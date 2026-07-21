@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
@@ -21,12 +22,12 @@ export default function Home() {
           <div className="product-index" aria-label="Aplicativos CRM Plus disponíveis">
             <div className="index-heading"><span>CRM Plus Store</span><small>6 soluções especializadas</small></div>
             {products.map((product) => (
-              <a key={product.slug} href={`/apps/${product.slug}`} style={{ "--product-color": product.color } as React.CSSProperties}>
+              <Link key={product.slug} href={`/apps/${product.slug}`} style={{ "--product-color": product.color } as React.CSSProperties}>
                 <span className="index-icon"><ProductIcon slug={product.slug} size={20} /></span>
                 <b>{product.shortName}</b>
                 <small>{product.category}</small>
                 <i aria-hidden="true">↗</i>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
