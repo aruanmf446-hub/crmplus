@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./compact.css";
 import "./workspace-actions.css";
+import "./soul.css";
 
 export const metadata: Metadata = {
   title: {
