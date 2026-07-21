@@ -1,0 +1,138 @@
+/* Ajuste de densidade visual: reduz áreas vazias sem apertar o conteúdo. */
+
+.home-hero {
+  padding-top: clamp(34px, 4vw, 56px);
+  padding-bottom: clamp(44px, 5vw, 68px);
+}
+
+.home-hero-grid {
+  gap: clamp(32px, 4vw, 58px);
+}
+
+.home-products {
+  padding-top: clamp(52px, 5vw, 72px);
+  padding-bottom: clamp(58px, 6vw, 82px);
+}
+
+.home-section-heading {
+  margin-bottom: 30px;
+}
+
+.home-card-grid {
+  gap: 14px;
+}
+
+.home-product-card {
+  min-height: 310px;
+}
+
+.home-closing {
+  padding: 50px 0;
+}
+
+.home-footer-grid {
+  gap: 58px;
+  padding-top: 44px;
+  padding-bottom: 38px;
+}
+
+.home-footer-bottom {
+  padding: 15px 0;
+}
+
+.auth-page {
+  min-height: 100vh;
+}
+
+.auth-nav {
+  height: 70px;
+}
+
+.auth-layout {
+  min-height: auto;
+  align-items: start;
+  gap: clamp(42px, 6vw, 84px);
+  padding: 32px 0 48px;
+}
+
+.auth-context {
+  padding-top: 34px;
+}
+
+.auth-context h2 {
+  margin-top: 14px;
+  margin-bottom: 24px;
+  font-size: clamp(44px, 4.4vw, 62px);
+}
+
+.auth-context blockquote {
+  margin-top: 22px;
+}
+
+.auth-panel {
+  padding: clamp(28px, 3vw, 40px);
+}
+
+.auth-form {
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.auth-switch {
+  margin-top: 18px;
+}
+
+.auth-disclaimer {
+  margin-top: 16px;
+}
+
+@media (max-width: 1020px) {
+  .home-hero {
+    padding-top: 36px;
+    padding-bottom: 52px;
+  }
+
+  .home-hero-grid {
+    gap: 34px;
+  }
+
+  .auth-layout {
+    gap: 28px;
+    padding-top: 24px;
+  }
+
+  .auth-context {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-hero {
+    padding: 34px 0 48px;
+  }
+
+  .home-products {
+    padding-block: 52px 60px;
+  }
+
+  .home-closing {
+    padding: 44px 0;
+  }
+
+  .home-footer-grid {
+    padding-top: 38px;
+    padding-bottom: 30px;
+  }
+
+  .auth-nav {
+    height: 62px;
+  }
+
+  .auth-layout {
+    padding: 14px 0 28px;
+  }
+
+  .auth-panel {
+    padding: 24px 18px;
+  }
+}
