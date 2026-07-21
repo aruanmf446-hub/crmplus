@@ -83,7 +83,6 @@ export function AppWorkspace({ product, workspace }: { product: Product; workspa
         </header>
 
         <main className="workspace-main">
-          <div className="workspace-signature" aria-hidden="true"><span>{product.category}</span><b>{product.shortName}</b></div>
           {activeView === "overview" ? (
             <Overview product={product} workspace={workspace} onCreate={() => setModalOpen(true)} />
           ) : currentView ? (
@@ -102,7 +101,7 @@ function Overview({ product, workspace, onCreate }: { product: Product; workspac
   return (
     <>
       <section className="workspace-heading">
-        <div><p>Terça-feira, 21 de julho</p><h1>{workspace.greeting}</h1><span>Olá, Alisson. Aqui está o que precisa da sua atenção hoje.</span></div>
+        <div><p>Visão do dia</p><h1>{workspace.greeting}</h1><span>O que precisa da sua atenção hoje.</span></div>
         <button className="workspace-primary" onClick={onCreate}><UiIcon name="plus" size={18} />{workspace.primaryAction}</button>
       </section>
 
@@ -112,12 +111,12 @@ function Overview({ product, workspace, onCreate }: { product: Product; workspac
 
       <section className="workspace-overview-grid">
         <div className="focus-panel">
-          <div className="panel-heading"><div><h2>{workspace.focusTitle}</h2><p>{workspace.focusDescription}</p></div><button aria-label="Ver opções">•••</button></div>
+          <div className="panel-heading"><div><h2>{workspace.focusTitle}</h2><p>{workspace.focusDescription}</p></div></div>
           <div className="focus-columns">
             {workspace.focusColumns.map((column) => (
               <div className="focus-column" key={column.label}>
                 <div><b>{column.label}</b><span>{column.count}</span></div>
-                {column.items.map((item) => <button key={item.title} onClick={() => undefined}><strong>{item.title}</strong><small>{item.meta}</small></button>)}
+                {column.items.map((item) => <article key={item.title}><strong>{item.title}</strong><small>{item.meta}</small></article>)}
               </div>
             ))}
           </div>

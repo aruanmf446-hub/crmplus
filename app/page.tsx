@@ -42,7 +42,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="product-stage-note"><b>Explore por dentro</b><span>Veja como cada app acompanha a rotina.</span></div>
             </div>
           </div>
         </section>
@@ -50,7 +49,9 @@ export default function Home() {
         <section className="store-statement" id="proposta">
           <div className="shell statement-grid-new">
             <p className="store-kicker">Feito para a rotina</p>
-            <div><h2>Tudo no lugar.<br />O trabalho segue.</h2><p>Cada app acompanha uma operação específica e mostra o que precisa acontecer agora, o que está em andamento e o que já foi concluído. A navegação continua familiar de um produto para o outro.</p><div className="statement-tags"><span>Visão do dia</span><span>Próximas ações</span><span>Histórico organizado</span><span>Acesso em qualquer tela</span></div></div>
+            <h2>Tudo no lugar.<br />O trabalho segue.</h2>
+            <p>Cada app acompanha uma operação específica e mostra o que precisa acontecer agora, o que está em andamento e o que já foi concluído. A navegação continua familiar de um produto para o outro.</p>
+            <div className="statement-tags"><span>Visão do dia</span><span>Próximas ações</span><span>Histórico organizado</span><span>Acesso em qualquer tela</span></div>
           </div>
         </section>
 
@@ -67,7 +68,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><a className="store-button" href="#sistemas">Conhecer os apps →</a></div></section>
+        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><Link className="store-button" href="/sistemas/atlas">Ver o Atlas em ação →</Link></div></section>
       </main>
       <Footer />
     </>
