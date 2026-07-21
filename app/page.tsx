@@ -17,7 +17,7 @@ export default function Home() {
               <p className="store-lead">O CRM Plus reúne aplicativos para oficinas, restaurantes, vendas, rotinas, pesquisas e orçamentos. Escolha por onde começar e conduza o dia em um ambiente claro, no computador ou celular.</p>
               <div className="store-actions">
                 <a className="store-button store-button-primary" href="#sistemas">Conhecer os apps <span>→</span></a>
-                <Link className="store-button store-button-quiet" href="/sistemas/atlas">Explorar uma demonstração</Link>
+                <Link className="store-button store-button-quiet" href="/sistemas/atlas">Ver demonstração</Link>
               </div>
               <div className="store-promises"><span>Apps independentes</span><span>Navegação consistente</span><span>Computador e celular</span></div>
             </div>
@@ -31,7 +31,7 @@ export default function Home() {
                     {['Visão do dia', 'Agenda', 'Ordens de serviço', 'Clientes e veículos'].map((item, index) => <span className={index === 0 ? 'active' : ''} key={item}>{item}</span>)}
                   </aside>
                   <div className="preview-main">
-                    <div className="preview-heading"><div><small>Terça-feira, 21 de julho</small><h2>A oficina está em dia.</h2></div><b>+ Nova OS</b></div>
+                    <div className="preview-heading"><div><small>Visão de hoje</small><h2>A oficina está em dia.</h2></div><b>+ Nova OS</b></div>
                     <div className="preview-metrics"><div><strong>08</strong><span>Agendados</span></div><div><strong>06</strong><span>Em serviço</span></div><div><strong>03</strong><span>Para entrega</span></div></div>
                     <div className="preview-flow-title"><b>Fluxo da oficina</b><span>Hoje · 17 itens</span></div>
                     <div className="preview-flow">
@@ -67,12 +67,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="store-method shell">
-          <div><p className="store-kicker">Do primeiro acesso ao dia a dia</p><h2>Escolha. Ajuste. Acompanhe.</h2><p>O jeito de usar permanece familiar em todos os produtos.</p></div>
-          <ol><li><b>01</b><strong>Escolha a rotina</strong><span>Encontre o app que corresponde ao trabalho da sua equipe.</span></li><li><b>02</b><strong>Ajuste ao negócio</strong><span>Organize clientes, serviços e etapas do seu processo.</span></li><li><b>03</b><strong>Acompanhe o dia</strong><span>Veja atividades, pendências e resultados em uma única visão.</span></li></ol>
-        </section>
-
-        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><a className="store-button" href="#sistemas">Explorar os apps →</a></div></section>
+        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><a className="store-button" href="#sistemas">Conhecer os apps →</a></div></section>
       </main>
       <Footer />
     </>
