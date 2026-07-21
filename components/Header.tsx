@@ -7,9 +7,9 @@ export function Header() {
       <div className="shell header-inner">
         <Brand />
         <nav aria-label="Navegação principal">
-          <Link href="/#solucoes">Soluções</Link>
-          <Link href="/#proposta">Como funciona</Link>
-          <Link className="header-cta" href="/#solucoes">Conhecer os apps</Link>
+          <Link href="/#sistemas">Apps</Link>
+          <Link href="/#proposta">Experiência</Link>
+          <Link className="header-cta" href="/#sistemas">Conhecer os apps</Link>
         </nav>
       </div>
     </header>

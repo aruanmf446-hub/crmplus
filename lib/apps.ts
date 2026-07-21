@@ -22,14 +22,14 @@ export const products: Product[] = [
     category: "Oficinas",
     tagline: "A oficina organizada do agendamento à entrega.",
     description:
-      "Atendimento, agenda e ordens de serviço em um fluxo simples. Sem estoque, sem módulo fiscal e sem complexidade de ERP.",
+      "Agenda, atendimento e ordens de serviço reunidos para acompanhar cada veículo da chegada à entrega.",
     seoDescription:
-      "Sistema simples para oficinas com atendimento, agendamento e ordens de serviço. Organize os veículos sem controle de estoque complexo.",
+      "Sistema para oficinas com agenda, atendimento e ordens de serviço. Acompanhe cada veículo da chegada à entrega.",
     color: "#a85c24",
     colorSoft: "#f8eee7",
     features: ["Agenda da oficina", "Cadastro de clientes e veículos", "Ordens de serviço", "Status até a entrega"],
-    audience: "Oficinas e centros automotivos que precisam organizar o serviço sem adotar um ERP pesado.",
-    outcome: "Menos informação espalhada e mais clareza sobre o que está agendado, em execução ou pronto.",
+    audience: "Oficinas e centros automotivos que acompanham atendimentos, veículos e serviços ao longo do dia.",
+    outcome: "Agenda, andamento dos serviços e entregas visíveis para toda a equipe.",
     workflow: ["Agendar", "Receber o veículo", "Abrir a OS", "Acompanhar", "Entregar"],
   },
   {
@@ -41,12 +41,12 @@ export const products: Product[] = [
     description:
       "Cardápio digital, acompanhamento de pedidos e caixa para uma rotina mais rápida no salão, balcão ou retirada.",
     seoDescription:
-      "Sistema para restaurantes com cardápio digital, pedidos e caixa simples. Acompanhe a operação do salão, balcão e retirada.",
+      "Sistema para restaurantes com cardápio digital, acompanhamento de pedidos e caixa para salão, balcão e retirada.",
     color: "#a23e52",
     colorSoft: "#faecef",
-    features: ["Cardápio digital", "Entrada de pedidos", "Acompanhamento da cozinha", "Caixa simples"],
-    audience: "Restaurantes, lanchonetes, cafés e operações pequenas que querem abandonar comandas soltas.",
-    outcome: "Pedidos claros do início ao fim e menos ruído entre atendimento, preparo e entrega.",
+    features: ["Cardápio digital", "Entrada de pedidos", "Acompanhamento da cozinha", "Movimento do caixa"],
+    audience: "Restaurantes, lanchonetes e cafés que atendem no salão, balcão ou retirada.",
+    outcome: "Cada pedido segue visível do atendimento ao preparo, entrega e fechamento.",
     workflow: ["Receber pedido", "Confirmar", "Preparar", "Entregar", "Fechar conta"],
   },
   {
@@ -58,9 +58,9 @@ export const products: Product[] = [
     description:
       "Carteira de clientes, funil de vendas e acompanhamento de resultados para equipes comerciais pequenas.",
     seoDescription:
-      "CRM de vendas simples com carteira de clientes, negociações, funil e acompanhamento de resultados para pequenas equipes.",
-    color: "#176d83",
-    colorSoft: "#e7f3f5",
+      "CRM de vendas com carteira de clientes, negociações, retornos, funil e acompanhamento de resultados comerciais.",
+    color: "#596778",
+    colorSoft: "#edf0f3",
     features: ["Carteira de clientes", "Funil de vendas", "Histórico de negociações", "Resultados comerciais"],
     audience: "Pequenas empresas e vendedores que precisam saber quem contatar e o que fazer em seguida.",
     outcome: "Negociações visíveis, retornos no tempo certo e uma rotina comercial mais constante.",
@@ -73,7 +73,7 @@ export const products: Product[] = [
     category: "Rotinas",
     tagline: "Rotinas bem feitas, todos os dias.",
     description:
-      "Checklists, evidências visuais e auditorias para acompanhar processos recorrentes sem planilhas extensas.",
+      "Checklists, evidências visuais e auditorias reunidos para acompanhar rotinas e tratar pendências.",
     seoDescription:
       "Sistema de checklist e auditoria visual para acompanhar rotinas, evidências e pendências em pequenas empresas.",
     color: "#347153",
@@ -88,15 +88,15 @@ export const products: Product[] = [
     name: "CRM Plus Pandora",
     shortName: "Pandora",
     category: "Pesquisas",
-    tagline: "Escute o cliente sem complicar a pergunta.",
+    tagline: "Ouça o cliente e acompanhe cada resposta.",
     description:
-      "Pesquisas de satisfação fáceis de enviar, responder e acompanhar em uma visão clara dos resultados.",
+      "Crie pesquisas de satisfação, compartilhe com os clientes e acompanhe respostas e resultados.",
     seoDescription:
-      "Sistema simples de pesquisa de satisfação para criar formulários, coletar respostas e acompanhar a experiência dos clientes.",
+      "Sistema de pesquisa de satisfação para criar formulários, coletar respostas e acompanhar a experiência dos clientes.",
     color: "#76539c",
     colorSoft: "#f1ecf7",
     features: ["Pesquisas rápidas", "Links para resposta", "Indicadores de satisfação", "Histórico de resultados"],
-    audience: "Empresas que querem ouvir seus clientes com frequência, sem ferramentas de pesquisa complicadas.",
+    audience: "Empresas que acompanham a experiência do cliente após atendimentos, compras ou entregas.",
     outcome: "Feedback organizado e sinais claros sobre o que manter ou melhorar no atendimento.",
     workflow: ["Criar pesquisa", "Compartilhar", "Receber respostas", "Acompanhar", "Melhorar"],
   },

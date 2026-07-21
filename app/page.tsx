@@ -12,14 +12,14 @@ export default function Home() {
         <section className="store-hero" id="inicio">
           <div className="shell store-hero-grid">
             <div className="store-hero-copy">
-              <p className="store-kicker">Operação organizada, sem complicação</p>
-              <h1>Coloque sua empresa em <em>movimento.</em></h1>
-              <p className="store-lead">Seis sistemas focados nas rotinas que mais tomam tempo de uma pequena empresa. Comece pelo que precisa, sem transformar o negócio em um projeto de ERP.</p>
+              <p className="store-kicker">Seis apps. Uma experiência conectada.</p>
+              <h1>Organize o trabalho. <em>Acompanhe o que importa.</em></h1>
+              <p className="store-lead">O CRM Plus reúne aplicativos para oficinas, restaurantes, vendas, rotinas, pesquisas e orçamentos. Escolha por onde começar e conduza o dia em um ambiente claro, no computador ou celular.</p>
               <div className="store-actions">
-                <a className="store-button store-button-primary" href="#sistemas">Encontrar meu sistema <span>→</span></a>
-                <Link className="store-button store-button-quiet" href="/sistemas/atlas">Ver uma demonstração</Link>
+                <a className="store-button store-button-primary" href="#sistemas">Conhecer os apps <span>→</span></a>
+                <Link className="store-button store-button-quiet" href="/sistemas/atlas">Explorar uma demonstração</Link>
               </div>
-              <div className="store-promises"><span>Implantação enxuta</span><span>Uso fácil no celular</span><span>Sem módulos desnecessários</span></div>
+              <div className="store-promises"><span>Apps independentes</span><span>Navegação consistente</span><span>Computador e celular</span></div>
             </div>
 
             <div className="product-stage" aria-label="Prévia do CRM Plus Atlas">
@@ -42,20 +42,20 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="product-stage-note"><b>Veja antes de escolher</b><span>As demonstrações mostram a rotina funcionando.</span></div>
+              <div className="product-stage-note"><b>Explore por dentro</b><span>Veja como cada app acompanha a rotina.</span></div>
             </div>
           </div>
         </section>
 
         <section className="store-statement" id="proposta">
           <div className="shell statement-grid-new">
-            <p className="store-kicker">A ideia do CRM Plus</p>
-            <div><h2>Pequeno no esforço.<br />Grande na clareza.</h2><p>Não queremos substituir tudo da empresa. Cada sistema resolve uma rotina específica com começo, meio e fim — fácil de aprender e valioso desde o primeiro dia.</p><div className="statement-tags"><span>Sem cara de planilha</span><span>Sem linguagem de ERP</span><span>Sem tela poluída</span><span>Responsivo de verdade</span></div></div>
+            <p className="store-kicker">Feito para a rotina</p>
+            <div><h2>Tudo no lugar.<br />O trabalho segue.</h2><p>Cada app acompanha uma operação específica e mostra o que precisa acontecer agora, o que está em andamento e o que já foi concluído. A navegação continua familiar de um produto para o outro.</p><div className="statement-tags"><span>Visão do dia</span><span>Próximas ações</span><span>Histórico organizado</span><span>Acesso em qualquer tela</span></div></div>
           </div>
         </section>
 
         <section className="store-products shell" id="sistemas">
-          <div className="store-section-head"><div><p className="store-kicker">Ecossistema CRM Plus</p><h2>Uma ferramenta para cada rotina.</h2></div><p>Os aplicativos compartilham a mesma lógica de uso, mas cada um ganha personalidade a partir do trabalho que ajuda a realizar.</p></div>
+          <div className="store-section-head"><div><p className="store-kicker">Apps CRM Plus</p><h2>Escolha o app que acompanha seu trabalho.</h2></div><p>Cada produto tem recursos e identidade próprios. A navegação segue o mesmo padrão para que a troca entre apps seja natural.</p></div>
           <div className="store-product-list">
             {products.map((product, index) => (
               <Link className="store-product-row" href={`/apps/${product.slug}`} key={product.slug} style={{ "--product-color": product.color, "--product-soft": product.colorSoft } as React.CSSProperties}>
@@ -68,11 +68,11 @@ export default function Home() {
         </section>
 
         <section className="store-method shell">
-          <div><p className="store-kicker">Uma lógica em comum</p><h2>Escolha. Configure. Trabalhe.</h2><p>Você aprende uma vez e reconhece o jeito de usar em todo o ecossistema.</p></div>
-          <ol><li><b>01</b><strong>Escolha</strong><span>A ferramenta da rotina que mais precisa de organização.</span></li><li><b>02</b><strong>Configure</strong><span>Somente os dados essenciais para sua empresa começar.</span></li><li><b>03</b><strong>Trabalhe</strong><span>Execute a operação com clareza no computador ou celular.</span></li></ol>
+          <div><p className="store-kicker">Do primeiro acesso ao dia a dia</p><h2>Escolha. Ajuste. Acompanhe.</h2><p>O jeito de usar permanece familiar em todos os produtos.</p></div>
+          <ol><li><b>01</b><strong>Escolha a rotina</strong><span>Encontre o app que corresponde ao trabalho da sua equipe.</span></li><li><b>02</b><strong>Ajuste ao negócio</strong><span>Organize clientes, serviços e etapas do seu processo.</span></li><li><b>03</b><strong>Acompanhe o dia</strong><span>Veja atividades, pendências e resultados em uma única visão.</span></li></ol>
         </section>
 
-        <section className="store-final"><div className="shell"><h2>Comece pela rotina que mais atrasa sua empresa.</h2><a className="store-button" href="#sistemas">Explorar os sistemas →</a></div></section>
+        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><a className="store-button" href="#sistemas">Explorar os apps →</a></div></section>
       </main>
       <Footer />
     </>

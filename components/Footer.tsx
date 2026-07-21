@@ -7,7 +7,7 @@ export function Footer() {
       <div className="shell footer-grid">
         <div>
           <Brand />
-          <p>Sistemas diretos para pequenas empresas organizarem o trabalho.</p>
+          <p>Aplicativos que acompanham o trabalho de pequenas empresas.</p>
         </div>
         <div className="footer-products">
           <span>Soluções</span>
@@ -19,7 +19,7 @@ export function Footer() {
           <Link href="/apps/ares">Ares</Link>
         </div>
       </div>
-      <div className="shell footer-bottom">© 2026 CRM Plus Store. Estrutura inicial do produto.</div>
+      <div className="shell footer-bottom">© 2026 CRM Plus Store.</div>
     </footer>
   );
 }

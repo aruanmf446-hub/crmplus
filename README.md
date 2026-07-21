@@ -1,6 +1,6 @@
 # CRM Plus Store
 
-Estrutura inicial da vitrine pública e dos seis aplicativos do ecossistema CRM Plus. O projeto apresenta sistemas simples para pequenas empresas, páginas individuais preparadas para SEO e ambientes demonstrativos responsivos com dados fictícios.
+Vitrine pública e seis aplicativos do ecossistema CRM Plus. O projeto apresenta produtos para pequenas empresas, páginas individuais preparadas para SEO e ambientes demonstrativos responsivos com dados fictícios.
 
 ## Aplicativos
 
