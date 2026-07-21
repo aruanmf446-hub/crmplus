@@ -1,0 +1,243 @@
+.soul-workspace {
+  --soul-radius: 18px;
+}
+
+.soul-workspace .workspace-sidebar {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 7%, white), white 38%);
+}
+
+.soul-workspace .workspace-product small,
+.soul-workspace .workspace-company small,
+.soul-workspace .workspace-heading > div > p {
+  color: var(--app-accent);
+}
+
+.soul-whisper {
+  margin: 0 0 16px;
+  padding: 14px 15px;
+  color: #625a67;
+  background: color-mix(in srgb, var(--app-soft) 68%, white);
+  border-left: 3px solid var(--app-accent);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.soul-heading {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 30px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--app-soft) 72%, white), white 70%);
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, #e3e5e6);
+  border-radius: 20px;
+}
+
+.soul-heading::after {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -100px;
+  top: -120px;
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  border-radius: 50%;
+}
+
+.soul-heading > * {
+  position: relative;
+  z-index: 1;
+}
+
+.soul-heading h1 {
+  max-width: 760px;
+}
+
+.soul-rituals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.soul-rituals article {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e4e6e7;
+  border-radius: 14px;
+}
+
+.soul-rituals span {
+  color: var(--app-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.soul-rituals strong {
+  color: #28323a;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.soul-workspace .metric-grid article {
+  position: relative;
+}
+
+.soul-workspace .metric-grid article::before {
+  content: "";
+  position: absolute;
+  height: 3px;
+  left: 20px;
+  right: 20px;
+  top: 0;
+  background: var(--app-accent);
+  border-radius: 0 0 4px 4px;
+  opacity: .75;
+}
+
+.soul-workspace .focus-panel,
+.soul-workspace .activity-panel,
+.soul-workspace .data-panel {
+  border-radius: var(--soul-radius);
+}
+
+.soul-workspace .focus-column > div span,
+.soul-workspace .data-row em {
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-soft) 72%, white);
+}
+
+.soul-workspace .data-row {
+  transition: background .18s ease, transform .18s ease;
+}
+
+.soul-workspace .data-row:hover {
+  transform: translateX(3px);
+}
+
+.soul-modal {
+  overflow: hidden;
+}
+
+.soul-modal .modal-heading {
+  border-bottom: 0;
+}
+
+.modal-manifesto {
+  margin: -4px 0 22px;
+  padding: 13px 15px;
+  color: #655e69;
+  background: color-mix(in srgb, var(--app-soft) 72%, white);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.soul-modal select {
+  width: 100%;
+  min-height: 47px;
+  padding: 0 12px;
+  color: #29232e;
+  background: #faf9f8;
+  border: 1px solid #dedade;
+  border-radius: 8px;
+  outline: none;
+}
+
+.soul-modal select:focus {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 12%, transparent);
+}
+
+.soul-atlas {
+  --soul-radius: 10px;
+}
+.soul-atlas .soul-heading {
+  border-left: 5px solid var(--app-accent);
+  border-radius: 10px;
+}
+.soul-atlas .soul-rituals article {
+  border-radius: 8px;
+}
+
+.soul-ares .workspace-primary,
+.soul-ares .data-toolbar button,
+.soul-ares .record-actions button {
+  border-radius: 999px;
+}
+.soul-ares .soul-heading {
+  background: linear-gradient(135deg, #fff, color-mix(in srgb, var(--app-soft) 62%, white));
+}
+
+.soul-artemis .workspace-sidebar {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-soft) 76%, white), white 42%);
+}
+.soul-artemis .soul-heading,
+.soul-artemis .focus-panel,
+.soul-artemis .activity-panel {
+  border-radius: 24px 8px 24px 8px;
+}
+.soul-artemis .soul-rituals article:nth-child(2) {
+  transform: translateY(5px);
+}
+
+.soul-pandora .activity-dot {
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+.soul-pandora .soul-rituals article {
+  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--app-soft) 48%, white));
+}
+.soul-pandora .metric-grid article strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+}
+
+.soul-poseidon .focus-columns {
+  gap: 10px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--app-soft) 35%, #f5f6f3);
+}
+.soul-poseidon .focus-column {
+  background: #fff;
+  border: 0;
+  border-radius: 14px;
+}
+.soul-poseidon .focus-column > article {
+  border-left: 4px solid var(--app-accent);
+}
+
+.soul-hercules .soul-heading {
+  border-top: 4px solid var(--app-accent);
+}
+.soul-hercules .soul-rituals article {
+  border-left: 4px solid var(--app-accent);
+}
+.soul-hercules .data-row-icon {
+  border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+  .soul-heading {
+    padding: 22px 20px;
+  }
+
+  .soul-rituals {
+    grid-template-columns: 1fr;
+  }
+
+  .soul-rituals article {
+    min-height: 62px;
+    padding: 14px 16px;
+  }
+
+  .soul-artemis .soul-rituals article:nth-child(2) {
+    transform: none;
+  }
+}
