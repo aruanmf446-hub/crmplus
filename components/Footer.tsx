@@ -7,7 +7,6 @@ export function Footer() {
       <div className="shell footer-grid">
         <div>
           <Brand />
-          <p>Aplicativos que acompanham o trabalho de pequenas empresas.</p>
         </div>
         <div className="footer-products">
           <span>Soluções</span>
