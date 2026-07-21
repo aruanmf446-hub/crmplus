@@ -3,11 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "CRM Plus Store | Apps para organizar sua operação",
-    template: "%s | CRM Plus Store",
+    default: "CRMPlus+ | O controle do seu negócio",
+    template: "%s | CRMPlus+",
   },
   description:
-    "Aplicativos para oficinas, restaurantes, vendas, rotinas, pesquisas e orçamentos em uma experiência clara e conectada.",
+    "Sistemas para oficinas, orçamentos, restaurantes, pesquisas NPS, vendas e checklists de inspeção.",
   robots: { index: true, follow: true },
 };
 

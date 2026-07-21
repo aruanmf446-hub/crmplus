@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AppWorkspace } from "@/components/AppWorkspace";
+import { WorkspaceRouter } from "@/components/WorkspaceRouter";
 import { getProduct, products } from "@/lib/apps";
 import { getWorkspace } from "@/lib/workspaces";
 
@@ -19,5 +19,5 @@ export default async function WorkspacePage({ params }: Props) {
   const product = getProduct(slug);
   const workspace = getWorkspace(slug);
   if (!product || !workspace) notFound();
-  return <AppWorkspace product={product} workspace={workspace} />;
+  return <WorkspaceRouter product={product} workspace={workspace} />;
 }

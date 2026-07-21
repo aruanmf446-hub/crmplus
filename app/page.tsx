@@ -1,80 +1,115 @@
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ProductScene } from "@/components/ProductScene";
 import { ProductIcon } from "@/components/ProductIcon";
 import { products } from "@/lib/apps";
 
+const homeContent: Record<string, { title: string; detail: string }> = {
+  atlas: {
+    title: "Sistema de oficina",
+    detail: "Acesse o histórico dos atendimentos e compartilhe orçamentos pelo WhatsApp.",
+  },
+  ares: {
+    title: "Sistema de orçamento",
+    detail: "Gere orçamentos personalizados em PDF, compartilhe e acompanhe a aprovação ou reprovação on-line.",
+  },
+  artemis: {
+    title: "Sistema de restaurante",
+    detail: "Cadastre o cardápio, abra comandas e conecte atendimento, cozinha e caixa.",
+  },
+  pandora: {
+    title: "Sistema de NPS",
+    detail: "Crie links de pesquisa, acompanhe respostas e identifique oportunidades para melhorar produtos e serviços.",
+  },
+  poseidon: {
+    title: "Sistema de funil de vendas",
+    detail: "Acompanhe oportunidades, leads, carteira de clientes e os próximos passos de cada negociação.",
+  },
+  hercules: {
+    title: "Sistema de checklist de inspeção",
+    detail: "Crie inspeções e rotinas, registre não conformidades, acompanhe planos de ação e emita relatórios periódicos.",
+  },
+};
+
+const productOrder = ["atlas", "ares", "artemis", "pandora", "poseidon", "hercules"];
+
 export default function Home() {
+  const orderedProducts = productOrder.map((slug) => products.find((product) => product.slug === slug)).filter(Boolean) as typeof products;
+
   return (
     <>
       <Header />
-      <main className="store-redesign">
-        <section className="store-hero" id="inicio">
-          <div className="shell store-hero-grid">
-            <div className="store-hero-copy">
-              <p className="store-kicker">Seis apps. Uma experiência conectada.</p>
-              <h1>Organize o trabalho. <em>Acompanhe o que importa.</em></h1>
-              <p className="store-lead">O CRM Plus reúne aplicativos para oficinas, restaurantes, vendas, rotinas, pesquisas e orçamentos. Escolha por onde começar e conduza o dia em um ambiente claro, no computador ou celular.</p>
-              <div className="store-actions">
-                <a className="store-button store-button-primary" href="#sistemas">Conhecer os apps <span>→</span></a>
-                <Link className="store-button store-button-quiet" href="/sistemas/atlas">Ver demonstração</Link>
+      <main className="home-page">
+        <section className="home-hero" id="inicio">
+          <div className="shell home-hero-grid">
+            <div className="home-hero-copy">
+              <p className="home-kicker">CRMPlus+ para pequenas empresas</p>
+              <h1>O controle do seu negócio <em>na palma da sua mão.</em></h1>
+              <p className="home-lead">Sistemas intuitivos sem complicação que cabem no seu bolso.</p>
+              <div className="home-actions">
+                <Link className="home-button home-button-primary" href="/criar-conta">Criar conta</Link>
+                <Link className="home-button home-button-secondary" href="/entrar">Entrar</Link>
               </div>
-              <div className="store-promises"><span>Apps independentes</span><span>Navegação consistente</span><span>Computador e celular</span></div>
+              <p className="home-note">Escolha os sistemas que combinam com a sua rotina. Você pode começar por um e ativar outros depois.</p>
             </div>
 
-            <div className="product-stage" aria-label="Prévia do CRM Plus Atlas">
-              <div className="product-window">
-                <div className="product-window-top"><span className="window-dots"><i /><i /><i /></span><strong>CRM Plus Atlas</strong><small>Demonstração</small></div>
-                <div className="product-preview">
-                  <aside className="preview-sidebar">
-                    <div className="preview-logo"><ProductIcon slug="atlas" size={18} /> Atlas</div>
-                    {['Visão do dia', 'Agenda', 'Ordens de serviço', 'Clientes e veículos'].map((item, index) => <span className={index === 0 ? 'active' : ''} key={item}>{item}</span>)}
-                  </aside>
-                  <div className="preview-main">
-                    <div className="preview-heading"><div><small>Visão de hoje</small><h2>A oficina está em dia.</h2></div><b>+ Nova OS</b></div>
-                    <div className="preview-metrics"><div><strong>08</strong><span>Agendados</span></div><div><strong>06</strong><span>Em serviço</span></div><div><strong>03</strong><span>Para entrega</span></div></div>
-                    <div className="preview-flow-title"><b>Fluxo da oficina</b><span>Hoje · 17 itens</span></div>
-                    <div className="preview-flow">
-                      <PreviewLane title="Recepção" count="2" jobs={['Nivus · QVE 4A21', 'Onix · RTH 8F32']} />
-                      <PreviewLane title="Em serviço" count="3" jobs={['Saveiro · TCJ 9I23', 'HB20 · QDB 7J10']} />
-                      <PreviewLane title="Finalização" count="2" jobs={['T-Cross · OSM 2D11', 'Strada · RXA 3E05']} />
-                    </div>
-                  </div>
+            <div className="home-product-preview" aria-label="Prévia do CRMPlus+ Atlas">
+              <div className="home-preview-top">
+                <span><ProductIcon slug="atlas" size={19} /> CRMPlus+ Atlas</span>
+                <small>Ambiente interno</small>
+              </div>
+              <div className="home-preview-body">
+                <div className="home-preview-heading"><div><small>Visão de hoje</small><strong>A oficina está em movimento.</strong></div><b>Nova OS</b></div>
+                <div className="home-preview-numbers"><span><b>08</b>Agendados</span><span><b>06</b>Em serviço</span><span><b>03</b>Para entrega</span></div>
+                <div className="home-preview-flow">
+                  <PreviewLane title="Recepção" items={["Nivus · 09:00", "Onix · 10:30"]} />
+                  <PreviewLane title="Em serviço" items={["Saveiro · OS 1048", "HB20 · OS 1046"]} />
+                  <PreviewLane title="Entrega" items={["T-Cross · Conferência", "Strada · Pronto"]} />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="store-statement" id="proposta">
-          <div className="shell statement-grid-new">
-            <p className="store-kicker">Feito para a rotina</p>
-            <h2>Tudo no lugar.<br />O trabalho segue.</h2>
-            <p>Cada app acompanha uma operação específica e mostra o que precisa acontecer agora, o que está em andamento e o que já foi concluído. A navegação continua familiar de um produto para o outro.</p>
-            <div className="statement-tags"><span>Visão do dia</span><span>Próximas ações</span><span>Histórico organizado</span><span>Acesso em qualquer tela</span></div>
+        <section className="home-products" id="sistemas">
+          <div className="shell">
+            <div className="home-section-heading">
+              <p className="home-kicker">Sistemas CRMPlus+</p>
+              <h2>Um sistema para cada parte do seu negócio.</h2>
+              <p>Abra a demonstração e veja como cada rotina funciona antes de criar sua conta.</p>
+            </div>
+            <div className="home-card-grid">
+              {orderedProducts.map((product) => {
+                const content = homeContent[product.slug];
+                return (
+                  <article className="home-product-card" key={product.slug} style={{ "--product-color": product.color, "--product-soft": product.colorSoft } as React.CSSProperties}>
+                    <ProductScene slug={product.slug} label={`Prévia do ${content.title}`} />
+                    <div className="home-card-copy">
+                      <div className="home-card-name"><span><ProductIcon slug={product.slug} size={20} /></span><small>CRMPlus+ {product.shortName}</small></div>
+                      <h3>{content.title}</h3>
+                      <p>{content.detail}</p>
+                      <Link href={`/sistemas/${product.slug}`}>Ver demonstração <span aria-hidden="true">→</span></Link>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </section>
 
-        <section className="store-products shell" id="sistemas">
-          <div className="store-section-head"><div><p className="store-kicker">Apps CRM Plus</p><h2>Escolha o app que acompanha seu trabalho.</h2></div><p>Cada produto tem recursos e identidade próprios. A navegação segue o mesmo padrão para que a troca entre apps seja natural.</p></div>
-          <div className="store-product-list">
-            {products.map((product, index) => (
-              <Link className="store-product-row" href={`/apps/${product.slug}`} key={product.slug} style={{ "--product-color": product.color, "--product-soft": product.colorSoft } as React.CSSProperties}>
-                <span className="store-product-index">{String(index + 1).padStart(2, '0')}</span>
-                <div className="store-product-name"><span><ProductIcon slug={product.slug} size={22} /></span><div><h3>{product.shortName}</h3><small>{product.category}</small></div></div>
-                <p>{product.description}</p><i aria-hidden="true">↗</i>
-              </Link>
-            ))}
+        <section className="home-closing">
+          <div className="shell home-closing-inner">
+            <div><p className="home-kicker">Comece por onde faz sentido</p><h2>Seu negócio, organizado do seu jeito.</h2></div>
+            <Link className="home-button home-button-light" href="/criar-conta">Criar minha conta</Link>
           </div>
         </section>
-
-        <section className="store-final"><div className="shell"><h2>Qual rotina você quer organizar primeiro?</h2><Link className="store-button" href="/sistemas/atlas">Ver o Atlas em ação →</Link></div></section>
       </main>
       <Footer />
     </>
   );
 }
 
-function PreviewLane({ title, count, jobs }: { title: string; count: string; jobs: string[] }) {
-  return <div className="preview-lane"><div><b>{title}</b><span>{count}</span></div>{jobs.map((job, index) => <article key={job}><strong>{job}</strong><small>{index ? 'Atualizado há 20 min' : 'Atualizado agora'}</small></article>)}</div>;
+function PreviewLane({ title, items }: { title: string; items: string[] }) {
+  return <div><small>{title}</small>{items.map((item) => <span key={item}>{item}<i /></span>)}</div>;
 }

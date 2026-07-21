@@ -3,13 +3,13 @@ import { Brand } from "./Brand";
 
 export function Header() {
   return (
-    <header className="site-header">
+    <header className="site-header home-header">
       <div className="shell header-inner">
         <Brand />
         <nav aria-label="Navegação principal">
-          <Link href="/#sistemas">Apps</Link>
-          <Link href="/#proposta">Experiência</Link>
-          <Link className="header-cta" href="/sistemas/atlas">Ver demonstração</Link>
+          <Link href="/#sistemas">Sistemas</Link>
+          <Link className="home-login-link" href="/entrar">Entrar</Link>
+          <Link className="header-cta" href="/criar-conta">Criar conta</Link>
         </nav>
       </div>
     </header>
