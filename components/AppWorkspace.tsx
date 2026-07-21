@@ -39,7 +39,7 @@ export function AppWorkspace({ product, workspace }: { product: Product; workspa
   }
 
   return (
-    <div className="workspace" style={{ "--app-accent": product.color, "--app-soft": product.colorSoft } as React.CSSProperties}>
+    <div className={`workspace workspace-${product.slug}`} data-product={product.slug} style={{ "--app-accent": product.color, "--app-soft": product.colorSoft } as React.CSSProperties}>
       <button className={`workspace-scrim ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} aria-label="Fechar menu" />
       <aside className={`workspace-sidebar ${menuOpen ? "is-open" : ""}`}>
         <div className="workspace-product">
@@ -83,6 +83,7 @@ export function AppWorkspace({ product, workspace }: { product: Product; workspa
         </header>
 
         <main className="workspace-main">
+          <div className="workspace-signature" aria-hidden="true"><span>{product.category}</span><b>{product.shortName}</b></div>
           {activeView === "overview" ? (
             <Overview product={product} workspace={workspace} onCreate={() => setModalOpen(true)} />
           ) : currentView ? (
