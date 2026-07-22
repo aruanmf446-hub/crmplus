@@ -4,8 +4,15 @@ import { Header } from "@/components/Header";
 import { HomeCatalog } from "@/components/HomeCatalog";
 import { ProductIcon } from "@/components/ProductIcon";
 import { products } from "@/lib/apps";
+import { getProductMedia } from "@/lib/storefront";
 
 export default function Home() {
+  const orderedProducts = [...products].sort((first, second) => {
+    const firstHasCover = getProductMedia(first.slug).hasCover ? 1 : 0;
+    const secondHasCover = getProductMedia(second.slug).hasCover ? 1 : 0;
+    return secondHasCover - firstHasCover;
+  });
+
   return (
     <>
       <Header />
@@ -20,7 +27,7 @@ export default function Home() {
                 <a className="home-button home-button-primary" href="#sistemas">Encontrar meu sistema</a>
                 <Link className="home-button home-button-secondary" href="/entrar">Entrar</Link>
               </div>
-              <p className="home-note">Capas 1:1, prévias em vídeo sem som e páginas comerciais próprias para cada aplicativo.</p>
+              <p className="home-note">Capas 1:1, prévias em vídeo e páginas comerciais próprias para cada aplicativo.</p>
             </div>
 
             <div className="home-product-preview" aria-label="Prévia do catálogo interativo CRMPlus+">
@@ -41,7 +48,7 @@ export default function Home() {
           </div>
         </section>
 
-        <HomeCatalog products={products} />
+        <HomeCatalog products={orderedProducts} />
 
         <section className="home-closing">
           <div className="shell home-closing-inner">
