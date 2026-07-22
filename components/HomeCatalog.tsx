@@ -112,6 +112,7 @@ function ProductCard({ product }: { product: Product }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const info = getStorefrontInfo(product.slug);
   const media = getProductMedia(product.slug);
+  const hasMultipleImages = media.gallery.length > 1;
 
   const mediaStyle = {
     "--product-color": product.color,
@@ -157,12 +158,6 @@ function ProductCard({ product }: { product: Product }) {
         onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => { if (event.key === "Enter" || event.key === " ") toggleVideo(); }}
         aria-label={`Reproduzir prévia em vídeo do ${product.name}`}
       >
-        <div className={styles.fallbackVisual}>
-          <span><ProductIcon slug={product.slug} size={48} /></span>
-          <small>{galleryIndex === 0 ? "Capa do aplicativo" : galleryIndex === 1 ? "Visão geral" : "Fluxo principal"}</small>
-          <strong>{product.shortName}</strong>
-        </div>
-
         {!videoUnavailable ? (
           <video
             ref={videoRef}
@@ -178,15 +173,18 @@ function ProductCard({ product }: { product: Product }) {
           />
         ) : null}
 
-        <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior">‹</button>
-        <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem">›</button>
+        {hasMultipleImages ? (
+          <>
+            <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior">‹</button>
+            <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem">›</button>
+            <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de ${media.gallery.length}`}>
+              {media.gallery.map((item, index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={item} />)}
+            </div>
+          </>
+        ) : null}
 
         <span className={styles.playBadge} aria-hidden="true">{videoActive ? "Ⅱ" : "▶"}</span>
         <span className={styles.mutedBadge}>Vídeo sem som</span>
-
-        <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de ${media.gallery.length}`}>
-          {media.gallery.map((item, index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={item} />)}
-        </div>
       </div>
 
       <div className={styles.cardBody}>
