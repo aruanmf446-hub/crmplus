@@ -7,6 +7,7 @@ import { AresApp } from "./AresApp";
 import { PoseidonApp } from "./PoseidonApp";
 import { PandoraApp } from "./PandoraApp";
 import { HerculesApp } from "./HerculesApp";
+import { ZeusApp } from "./ZeusApp";
 
 export function PhaseFourWorkspace({ product }: { product: Product }) {
   if (product.slug === "atlas") return <AtlasApp product={product} />;
@@ -15,5 +16,6 @@ export function PhaseFourWorkspace({ product }: { product: Product }) {
   if (product.slug === "poseidon") return <PoseidonApp product={product} />;
   if (product.slug === "pandora") return <PandoraApp product={product} />;
   if (product.slug === "hercules") return <HerculesApp product={product} />;
+  if (product.slug === "zeus") return <ZeusApp product={product} />;
   return null;
 }
