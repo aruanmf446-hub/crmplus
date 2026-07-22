@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type MouseEvent } from "react";
 import { ProductIcon } from "@/components/ProductIcon";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
@@ -10,10 +10,12 @@ import styles from "./HomeCatalog.module.css";
 
 type Props = { products: Product[] };
 type SegmentId = (typeof segmentFilters)[number]["id"];
+type ViewMode = "featured" | "all";
 
 export function HomeCatalog({ products }: Props) {
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<SegmentId>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("featured");
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = useMemo(() => {
@@ -24,22 +26,30 @@ export function HomeCatalog({ products }: Props) {
     });
   }, [products, query, segment]);
 
+  const shownProducts = viewMode === "featured" ? filteredProducts.slice(0, 6) : filteredProducts;
+
   function selectSegment(nextSegment: SegmentId) {
     setSegment(nextSegment);
+    if (nextSegment !== "all") setViewMode("all");
     requestAnimationFrame(() => railRef.current?.scrollTo({ left: 0, behavior: "smooth" }));
+  }
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    if (value.trim()) setViewMode("all");
   }
 
   return (
     <section className={`${styles.catalog} storefront-catalog`} id="sistemas" aria-labelledby="catalog-title">
       <div className="shell">
         <div className={styles.heading}>
-          <div><p className={styles.kicker}>Aplicativos por rotina</p><h2 id="catalog-title">Encontre o produto que combina com o seu negócio.</h2></div>
+          <div><h2 id="catalog-title">Encontre o produto que combina com o seu negócio.</h2></div>
           <p>Pesquise pelo segmento ou pela necessidade. Cada aplicativo possui identidade, fluxo e funções próprias.</p>
         </div>
 
         <label className={styles.search}>
-          <span className={styles.searchIcon} aria-hidden="true">⌕</span>
-          <input value={query} onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Pesquisar oficina, pet shop, orçamento, eventos..." aria-label="Pesquisar segmento, necessidade ou aplicativo" />
+          <svg className="storefront-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+          <input value={query} onChange={(event: ChangeEvent<HTMLInputElement>) => updateQuery(event.target.value)} placeholder="Pesquisar oficina, pet shop, orçamento, eventos..." aria-label="Pesquisar segmento, necessidade ou aplicativo" />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label="Limpar pesquisa">×</button> : null}
         </label>
 
@@ -47,14 +57,24 @@ export function HomeCatalog({ products }: Props) {
           {segmentFilters.map((filter) => <button type="button" key={filter.id} className={segment === filter.id ? styles.filterActive : undefined} onClick={() => selectSegment(filter.id)} aria-pressed={segment === filter.id}><FilterIcon id={filter.id} />{filter.label}</button>)}
         </div>
 
-        <div className={styles.resultBar}><strong>{filteredProducts.length === 1 ? "1 aplicativo encontrado" : `${filteredProducts.length} aplicativos encontrados`}</strong><span>Arraste para o lado ou use as setas</span></div>
-
-        {filteredProducts.length ? (
-          <div className={styles.carouselShell}>
-            <button className={`${styles.railButton} ${styles.railButtonLeft}`} type="button" onClick={() => railRef.current?.scrollBy({ left: -350, behavior: "smooth" })} aria-label="Ver aplicativos anteriores">‹</button>
-            <div className={styles.rail} ref={railRef}>{filteredProducts.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
-            <button className={`${styles.railButton} ${styles.railButtonRight}`} type="button" onClick={() => railRef.current?.scrollBy({ left: 350, behavior: "smooth" })} aria-label="Ver próximos aplicativos">›</button>
+        <div className="storefront-catalog-toolbar">
+          <div className="storefront-view-toggle" aria-label="Modo de visualização">
+            <button type="button" className={viewMode === "featured" ? "active" : undefined} onClick={() => setViewMode("featured")} aria-pressed={viewMode === "featured"}>Destaques</button>
+            <button type="button" className={viewMode === "all" ? "active" : undefined} onClick={() => setViewMode("all")} aria-pressed={viewMode === "all"}>Todos os aplicativos</button>
           </div>
+          <div className={styles.resultBar}><strong>{filteredProducts.length === 1 ? "1 aplicativo encontrado" : `${filteredProducts.length} aplicativos encontrados`}</strong>{viewMode === "featured" ? <span>Seleção inicial de produtos</span> : <span>Compare todas as opções</span>}</div>
+        </div>
+
+        {shownProducts.length ? (
+          viewMode === "featured" ? (
+            <div className={styles.carouselShell}>
+              <button className={`${styles.railButton} ${styles.railButtonLeft}`} type="button" onClick={() => railRef.current?.scrollBy({ left: -350, behavior: "smooth" })} aria-label="Ver aplicativos anteriores"><ArrowIcon direction="left" /></button>
+              <div className={styles.rail} ref={railRef}>{shownProducts.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
+              <button className={`${styles.railButton} ${styles.railButtonRight}`} type="button" onClick={() => railRef.current?.scrollBy({ left: 350, behavior: "smooth" })} aria-label="Ver próximos aplicativos"><ArrowIcon direction="right" /></button>
+            </div>
+          ) : (
+            <div className="storefront-products-grid">{shownProducts.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
+          )
         ) : (
           <div className={styles.empty}><ProductIcon slug="pandora" size={30} /><h3>Nenhum aplicativo encontrado</h3><p>Tente pesquisar por oficina, pet shop, orçamento, imóveis, eventos ou biblioteca.</p><button type="button" onClick={() => { setQuery(""); selectSegment("all"); }}>Mostrar todos</button></div>
         )}
@@ -66,6 +86,7 @@ export function HomeCatalog({ products }: Props) {
 function ProductCard({ product }: { product: Product }) {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [candidateIndex, setCandidateIndex] = useState(0);
+  const [failedSlides, setFailedSlides] = useState<Set<number>>(new Set());
   const [imageUnavailable, setImageUnavailable] = useState(false);
   const [videoActive, setVideoActive] = useState(false);
   const [videoUnavailable, setVideoUnavailable] = useState(false);
@@ -75,41 +96,77 @@ function ProductCard({ product }: { product: Product }) {
   const media = getProductMedia(product.slug);
   const candidates = media.galleryCandidates[galleryIndex];
   const currentImage = candidates[candidateIndex];
+  const availableSlides = [0, 1, 2].filter((index) => !failedSlides.has(index));
   const mediaStyle = { "--product-color": product.color, "--product-soft": product.colorSoft } as CSSProperties;
 
   async function startVideo() {
     if (videoUnavailable) return;
     try { await videoRef.current?.play(); setVideoActive(true); } catch { setVideoActive(false); }
   }
-  function stopVideo(reset = false) { videoRef.current?.pause(); if (reset && videoRef.current) videoRef.current.currentTime = 0; setVideoActive(false); }
-  function toggleVideo() { if (videoActive) stopVideo(); else void startVideo(); }
-  function moveGallery(direction: -1 | 1) { stopVideo(true); setGalleryIndex((current) => (current + direction + 3) % 3); setCandidateIndex(0); setImageUnavailable(false); }
+
+  function stopVideo(reset = false) {
+    videoRef.current?.pause();
+    if (reset && videoRef.current) videoRef.current.currentTime = 0;
+    setVideoActive(false);
+  }
+
+  function selectSlide(index: number) {
+    if (failedSlides.has(index)) return;
+    stopVideo(true);
+    setGalleryIndex(index);
+    setCandidateIndex(0);
+    setImageUnavailable(false);
+  }
+
+  function moveGallery(direction: -1 | 1) {
+    const choices = availableSlides.length ? availableSlides : [0];
+    const position = Math.max(0, choices.indexOf(galleryIndex));
+    selectSlide(choices[(position + direction + choices.length) % choices.length]);
+  }
+
   function tryNextImage() {
     const next = candidateIndex + 1;
-    if (next >= candidates.length) setImageUnavailable(true);
-    else setCandidateIndex(next);
+    if (next < candidates.length) {
+      setCandidateIndex(next);
+      return;
+    }
+    setImageUnavailable(true);
+    setFailedSlides((current) => new Set(current).add(galleryIndex));
   }
 
   return (
     <article className={`${styles.card} storefront-card`} style={mediaStyle}>
-      <div className={`${styles.media} crm-media`} onClick={toggleVideo} role="button" tabIndex={0} onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => { if (event.key === "Enter" || event.key === " ") toggleVideo(); }} aria-label={`Abrir prévia em vídeo do ${product.name}`}>
-        {!imageUnavailable && currentImage ? <img className="crm-cover-image" src={currentImage} alt={galleryIndex === 0 ? `Capa do ${product.name}` : `Tela ${galleryIndex} do ${product.name}`} loading="lazy" onError={tryNextImage} /> : <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{galleryIndex === 0 ? product.shortName : `Tela ${galleryIndex}`}</strong><small>{presentation.label}</small></div>}
-        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!imageUnavailable ? currentImage : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-hidden="true" />
-        <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior">‹</button>
-        <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem">›</button>
-        <span className={styles.playBadge} aria-hidden="true">{videoActive ? "Ⅱ" : "▶"}</span>
-        <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de 3`}>{[0, 1, 2].map((index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={`${product.slug}-${index}`} />)}</div>
+      <div className={`${styles.media} crm-media`}>
+        {!imageUnavailable && currentImage ? <img className="crm-cover-image" src={currentImage} alt={galleryIndex === 0 ? `Capa do ${product.name}` : `Tela ${galleryIndex} do ${product.name}`} loading="lazy" onError={tryNextImage} /> : <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{galleryIndex === 0 ? product.shortName : presentation.screens[Math.max(0, galleryIndex - 1)].title}</strong><small>{presentation.label}</small></div>}
+        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!imageUnavailable ? currentImage : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-label={`Prévia em vídeo do ${product.name}`} />
+
+        {availableSlides.length > 1 ? <>
+          <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior"><ArrowIcon direction="left" /></button>
+          <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem"><ArrowIcon direction="right" /></button>
+        </> : null}
+
+        {!videoUnavailable ? <button className="storefront-play-control" type="button" onClick={() => videoActive ? stopVideo() : void startVideo()} aria-label={videoActive ? "Pausar prévia" : "Ver prévia em vídeo"}>{videoActive ? <PauseIcon /> : <PlayIcon />}<span>{videoActive ? "Pausar" : "Ver prévia"}</span></button> : null}
+
+        {availableSlides.length > 1 ? <div className="storefront-media-dots" aria-label={`Imagem ${galleryIndex + 1} de ${availableSlides.length}`}>{availableSlides.map((index) => <button type="button" className={index === galleryIndex ? "active" : undefined} key={`${product.slug}-${index}`} onClick={() => selectSlide(index)} aria-label={`Mostrar imagem ${index + 1}`} aria-pressed={index === galleryIndex} />)}</div> : null}
       </div>
 
       <div className={`${styles.cardBody} storefront-card-body`}>
-        <div className={styles.cardIdentity}><span><ProductIcon slug={product.slug} size={21} /></span><div><small className="storefront-card-label">{presentation.label}</small><h3>{product.shortName}</h3><strong>{formatMonthlyPrice(info.monthlyPrice)}</strong></div></div>
+        <div className={styles.cardIdentity}><span><ProductIcon slug={product.slug} size={21} /></span><div><small className="storefront-card-label">{presentation.label}</small><h3>{product.shortName}</h3></div></div>
         <p>{presentation.benefit}</p>
         <ul className="storefront-card-features">{product.features.slice(0, 3).map((feature) => <li key={feature}>{feature}</li>)}</ul>
-        <div className={styles.cardActions}><Link className={styles.learnMore} href={`/sistemas/${product.slug}`}>Ver demonstração</Link><Link className={styles.subscribe} href={`/aplicativos/${product.slug}`}>Conhecer {product.shortName}</Link></div>
+        <div className="storefront-card-price"><span>A partir de</span><strong>{formatMonthlyPrice(info.monthlyPrice)}</strong></div>
+        <div className="storefront-card-footer"><Link className="storefront-demo-link" href={`/sistemas/${product.slug}`}>Ver demonstração</Link><Link className="storefront-primary-link" href={`/aplicativos/${product.slug}`}>Conhecer {product.shortName}<ArrowIcon direction="right" /></Link></div>
       </div>
     </article>
   );
 }
+
+function ArrowIcon({ direction }: { direction: "left" | "right" }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" style={direction === "left" ? { transform: "rotate(180deg)" } : undefined}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+}
+
+function PlayIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z" /></svg>; }
+function PauseIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10" /></svg>; }
 
 function FilterIcon({ id }: { id: string }) {
   const common = { width: 17, height: 17, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
