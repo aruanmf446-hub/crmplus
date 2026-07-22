@@ -13,8 +13,10 @@ type Account = { name: string; company: string; email: string; password: string 
 type Mode = "login" | "signup";
 
 export function AppAccessGate({ product, children }: { product: Product; children: ReactNode }) {
-  const accountKey = `crmplus.${product.slug}.account`;
-  const sessionKey = `crmplus.${product.slug}.session`;
+  const accountKey = `crmplus.access.${product.slug}.account`;
+  const sessionKey = `crmplus.access.${product.slug}.session`;
+  const legacyAccountKey = `crmplus.${product.slug}.account`;
+  const legacySessionKey = `crmplus.${product.slug}.session`;
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [mode, setMode] = useState<Mode>("login");
@@ -24,9 +26,15 @@ export function AppAccessGate({ product, children }: { product: Product; childre
   const media = getProductMedia(product.slug);
 
   useEffect(() => {
+    const legacyAccount = window.localStorage.getItem(legacyAccountKey);
+    const legacySession = window.localStorage.getItem(legacySessionKey);
+    if (!window.localStorage.getItem(accountKey) && legacyAccount) window.localStorage.setItem(accountKey, legacyAccount);
+    if (!window.localStorage.getItem(sessionKey) && legacySession) window.localStorage.setItem(sessionKey, legacySession);
+    if (legacyAccount) window.localStorage.removeItem(legacyAccountKey);
+    if (legacySession) window.localStorage.removeItem(legacySessionKey);
     setSignedIn(window.localStorage.getItem(sessionKey) === "active");
     setReady(true);
-  }, [sessionKey]);
+  }, [accountKey, legacyAccountKey, legacySessionKey, sessionKey]);
 
   const storedAccount = useMemo<Account | null>(() => {
     if (!ready) return null;
