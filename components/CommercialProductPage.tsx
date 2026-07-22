@@ -50,15 +50,7 @@ export function CommercialProductPage({ product }: Props) {
                 </div>
               </div>
 
-              <div className={styles.cover} aria-label={`Capa do ${product.name}`}>
-                <div className={styles.coverFallback}>
-                  <span><ProductIcon slug={product.slug} size={62} /></span>
-                  <small>CRM Plus</small>
-                  <strong>{product.shortName}</strong>
-                  <p>{product.category}</p>
-                </div>
-                <div className={styles.coverHint}>Capa 1:1 preparada para substituição</div>
-              </div>
+              <div className={styles.cover} role="img" aria-label={`Capa oficial do ${product.name}`} />
             </div>
           </div>
         </section>
