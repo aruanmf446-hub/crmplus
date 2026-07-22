@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Brand } from "./Brand";
 
 export function Footer() {
@@ -12,7 +11,7 @@ export function Footer() {
           <details><summary>Sobre o CRMPlus+ <span>+</span></summary><p>O CRMPlus+ reúne uma vitrine de produtos singulares. Cada aplicativo possui propósito, entrada e área operacional próprios.</p></details>
         </div>
       </div>
-      <div className="shell home-footer-bottom"><span>Copyright © 2026 CRMPlus+</span><Link href="/entrar">Acessar aplicativo</Link></div>
+      <div className="shell home-footer-bottom"><span>Copyright © 2026 CRMPlus+</span></div>
     </footer>
   );
 }
