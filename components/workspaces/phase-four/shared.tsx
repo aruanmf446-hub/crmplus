@@ -106,7 +106,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
       return;
     }
     if (file.size > 700 * 1024) {
-      setLogoError("Use uma imagem de até 700 KB para não exceder o armazenamento do navegador.");
+      setLogoError("A imagem é muito grande. Escolha uma de até 700 KB.");
       event.target.value = "";
       return;
     }
@@ -119,10 +119,11 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
     event.target.value = "";
   }
 
-  function clearLocalData() {
-    const confirmed = window.confirm(`Apagar os dados locais do ${product.shortName} neste navegador?`);
+  function resetApp() {
+    const confirmed = window.confirm(`Redefinir o ${product.shortName}? Isso removerá os registros e as personalizações deste aplicativo.`);
     if (!confirmed) return;
-    Object.keys(window.localStorage).filter((key) => key.startsWith(`crmplus.${product.slug}`)).forEach((key) => window.localStorage.removeItem(key));
+    const prefixes = [`crmplus.${product.slug}`, `crmplus.preferences.${product.slug}`];
+    Object.keys(window.localStorage).filter((key) => prefixes.some((prefix) => key.startsWith(prefix))).forEach((key) => window.localStorage.removeItem(key));
     window.location.reload();
   }
 
@@ -142,9 +143,8 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
           ))}
         </nav>
         <div className={styles.sidebarFooter}>
-          <button type="button" onClick={() => setSettingsOpen(true)}><Icon name="settings" /><span>Configurações locais</span></button>
-          <Link href="/"><Icon name="back" /><span>Todos os sistemas</span></Link>
-          <div className={styles.userMini}><span>AM</span><div><strong>Alisson Mafra</strong><small>Administrador local</small></div></div>
+          <button type="button" onClick={() => setSettingsOpen(true)}><Icon name="settings" /><span>Configurações</span></button>
+          <Link href="/"><Icon name="back" /><span>CRMPlus Store</span></Link>
         </div>
       </aside>
 
@@ -160,7 +160,6 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
           </div>
         </header>
         <main className={styles.content} data-ui="workspace">{children}</main>
-        <div className={styles.localNotice}>Salvamento automático local · nenhum dado é enviado para servidores</div>
       </div>
 
       <Modal open={commandOpen} title="Ir para uma área" description="Pesquise pelas seções deste aplicativo." onClose={() => setCommandOpen(false)}>
@@ -171,12 +170,12 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
         </div>
       </Modal>
 
-      <Modal open={settingsOpen} title="Configurações locais" description="Preferências deste aplicativo salvas apenas neste navegador." onClose={() => setSettingsOpen(false)}>
+      <Modal open={settingsOpen} title="Configurações" description="Personalize a apresentação e a densidade deste aplicativo." onClose={() => setSettingsOpen(false)}>
         <form className={styles.stackForm} onSubmit={(event) => { event.preventDefault(); setSettingsOpen(false); }}>
           <Field label="Nome exibido da empresa"><input value={preferences.company} onChange={(event) => setPreferences((current) => ({ ...current, company: event.target.value }))} /></Field>
           <div className={brand.logoSettings}>
             <div className={brand.logoSettingsHeader}>
-              <div><strong>Logo da empresa</strong><span>Imagem salva somente neste navegador.</span></div>
+              <div><strong>Logo da empresa</strong><span>Use a identidade visual da sua empresa.</span></div>
               <div className={brand.logoPreview}>{preferences.logo ? <img src={preferences.logo} alt={`Prévia da logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
             </div>
             <div className={brand.logoActions}>
@@ -186,7 +185,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
             {logoError ? <p className={brand.logoError}>{logoError}</p> : null}
           </div>
           <label className={styles.toggleRow}><input type="checkbox" checked={preferences.compact} onChange={(event) => setPreferences((current) => ({ ...current, compact: event.target.checked }))} /><span><strong>Modo compacto</strong><small>Reduz espaços para mostrar mais registros.</small></span></label>
-          <div className={styles.modalActions}><button type="button" className={styles.dangerButton} onClick={clearLocalData}>Limpar dados deste app</button><button className={styles.primaryButton}>Salvar preferências</button></div>
+          <div className={styles.modalActions}><button type="button" className={styles.dangerButton} onClick={resetApp}>Redefinir aplicativo</button><button className={styles.primaryButton}>Salvar preferências</button></div>
         </form>
       </Modal>
     </div>
