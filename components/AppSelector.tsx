@@ -16,14 +16,14 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
     return products.filter((product) => normalizeSearch(`${product.name} ${product.shortName} ${product.category} ${product.description}`).includes(normalized));
   }, [query]);
 
-  const heading = mode === "signup" ? "Escolha onde criar sua conta local." : "Qual aplicativo você deseja acessar?";
+  const heading = mode === "signup" ? "Em qual aplicativo você deseja criar sua conta?" : "Qual aplicativo você deseja acessar?";
   const description = mode === "signup"
-    ? "Cada aplicativo possui cadastro, sessão e dados próprios neste navegador."
-    : "Selecione o produto para entrar na área exclusiva dele. Nenhum aplicativo compartilha conta ou dados com outro.";
+    ? "Escolha o produto que corresponde à rotina da sua empresa."
+    : "Selecione o aplicativo para entrar em sua área exclusiva.";
 
   return (
     <main className="app-selector-page">
-      <header className="app-selector-header"><Brand /><Link href="/">Voltar para a vitrine</Link></header>
+      <header className="app-selector-header"><Brand /><Link href="/">Voltar para a CRMPlus Store</Link></header>
       <section className="app-selector-intro">
         <h1>{heading}</h1>
         <p>{description}</p>
