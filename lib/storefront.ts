@@ -38,12 +38,6 @@ const storefront: Record<string, StorefrontInfo> = {
   pegasus: { monthlyPrice: 59, segment: "pet-shop", aliases: ["pet shop", "banho e tosa", "pets", "hotel para animais"] },
 };
 
-const uploadedCovers = new Set([
-  "atlas", "zeus", "artemis", "poseidon", "ares", "pandora", "hercules",
-  "alexandria", "olympus", "argus", "titans", "hermes", "athena", "gaia", "pegasus",
-]);
-
-const safeCovers = new Set(["atlas", "artemis", "poseidon", "ares", "pandora"]);
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
 
 export function getStorefrontInfo(slug: string): StorefrontInfo {
@@ -78,17 +72,17 @@ export function getPublicBasePath(): string {
 }
 
 export function getProductMedia(slug: string) {
-  const hasCover = uploadedCovers.has(slug);
-  const coverFile = safeCovers.has(slug) ? "cover-safe.svg" : "cover.svg";
   const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
   const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
-  const cover = hasCover ? `${base}/${coverFile}?v=20260722-11` : "";
+  const version = "20260722-12";
+  const coverCandidates = ["png", "jpg", "jpeg", "svg"].map((extension) => `${base}/cover.${extension}?v=${version}`);
 
   return {
-    cover,
-    hasCover,
-    gallery: [cover, cover, cover],
-    video: `${base}/preview.mp4?v=20260722-11`,
+    cover: coverCandidates[0],
+    coverCandidates,
+    hasCover: true,
+    gallery: [coverCandidates[0], coverCandidates[0], coverCandidates[0]],
+    video: `${base}/preview.mp4?v=${version}`,
   };
 }
