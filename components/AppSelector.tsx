@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { products } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
 import { normalizeSearch } from "@/lib/storefront";
@@ -35,8 +35,9 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
       <section className="app-selector-grid" aria-label="Aplicativos disponíveis">
         {filtered.map((product) => {
           const presentation = getProductPresentation(product.slug);
+          const cardStyle = { "--selector-accent": product.color, "--selector-soft": product.colorSoft } as CSSProperties;
           return (
-            <Link key={product.slug} href={`/sistemas/${product.slug}`} style={{ "--selector-accent": product.color, "--selector-soft": product.colorSoft } as React.CSSProperties}>
+            <Link key={product.slug} href={`/sistemas/${product.slug}`} style={cardStyle}>
               <span className="app-selector-icon"><ProductIcon slug={product.slug} size={25} /></span>
               <div><small>{presentation.label}</small><h2>{product.shortName}</h2><p>{presentation.benefit}</p></div>
               <svg className="app-selector-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
