@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="home-page" data-catalog-build="20260722-10">
+      <main className="home-page" data-catalog-build="20260722-11">
         <section className="home-hero" id="inicio">
           <div className="shell home-hero-grid">
             <div className="home-hero-copy">
