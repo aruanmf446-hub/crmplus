@@ -39,17 +39,24 @@ const storefront: Record<string, StorefrontInfo> = {
 };
 
 const uploadedCovers = new Set([
-  "titans",
-  "pegasus",
-  "gaia",
-  "athena",
-  "hermes",
-  "argus",
-  "olympus",
-  "alexandria",
+  "atlas",
   "zeus",
+  "artemis",
+  "poseidon",
+  "ares",
+  "pandora",
   "hercules",
+  "alexandria",
+  "olympus",
+  "argus",
+  "titans",
+  "hermes",
+  "athena",
+  "gaia",
+  "pegasus",
 ]);
+
+const webpCovers = new Set(["atlas", "artemis", "poseidon", "ares", "pandora"]);
 
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
 
@@ -102,13 +109,14 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const hasCover = uploadedCovers.has(slug);
+  const extension = webpCovers.has(slug) ? "webp" : "svg";
   const repositoryBase = `https://raw.githubusercontent.com/aruanmf446-hub/crmplus/main/public/media/apps/${slug}`;
-  const cover = hasCover ? `${repositoryBase}/cover.svg?v=20260722-5` : "";
+  const cover = hasCover ? `${repositoryBase}/cover.${extension}?v=20260722-6` : "";
 
   return {
     cover,
     hasCover,
     gallery: [cover, cover, cover],
-    video: `${repositoryBase}/preview.mp4?v=20260722-5`,
+    video: `${repositoryBase}/preview.mp4?v=20260722-6`,
   };
 }
