@@ -1,0 +1,5 @@
+/* Dentro de um aplicativo, não exibir atalhos ou identidade de outros produtos. */
+[data-ui="navigation"] a[href="/"],
+[data-ui="navigation"] > div:last-child > div:last-child {
+  display: none !important;
+}
