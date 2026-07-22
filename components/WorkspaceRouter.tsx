@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/apps";
 import type { Workspace } from "@/lib/workspaces";
-import { RedesignedWorkspace } from "./workspaces/redesign/RedesignedWorkspace";
+import { PhaseTwoWorkspace } from "./workspaces/phase-two/PhaseTwoWorkspace";
 
 export function WorkspaceRouter({ product }: { product: Product; workspace: Workspace }) {
-  return <RedesignedWorkspace product={product} />;
+  return <PhaseTwoWorkspace product={product} />;
 }
