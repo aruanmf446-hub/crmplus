@@ -82,7 +82,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const [modal, setModal] = useState<"record" | "operation" | "resource" | null>(null);
   const [toast, setToast] = useState("");
   const [note, setNote] = useState("");
-  const [recordDraft, setRecordDraft] = useState<Record<string, string>>(() => ({ title: "", subtitle: "", owner: "Alisson", ...(config.newRecordDefaults ?? {}) }));
+  const [recordDraft, setRecordDraft] = useState<Record<string, string>>(() => ({ title: "", subtitle: "", owner: "", ...(config.newRecordDefaults ?? {}) }));
   const [operationDraft, setOperationDraft] = useState({ title: "", description: "", date: "", status: config.operationStatuses[0] ?? "Aberto" });
   const [resourceDraft, setResourceDraft] = useState({ title: "", category: "", reference: "", due: "", status: config.resourceStatuses[0] ?? "Ativo" });
   const selected = records.find((record) => record.id === selectedId) ?? records.find((record) => !record.archived) ?? records[0];
@@ -120,7 +120,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       title,
       subtitle: recordDraft.subtitle?.trim() || config.entityLabel,
       status: config.statuses[0],
-      owner: recordDraft.owner?.trim() || "Alisson",
+      owner: recordDraft.owner?.trim() || "Não atribuído",
       updated: "agora",
       archived: false,
       data,
@@ -129,10 +129,10 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     };
     setRecords((current) => [next, ...current]);
     setSelectedId(next.id);
-    setRecordDraft({ title: "", subtitle: "", owner: "Alisson", ...(config.newRecordDefaults ?? {}) });
+    setRecordDraft({ title: "", subtitle: "", owner: "", ...(config.newRecordDefaults ?? {}) });
     setModal(null);
     setActive(config.entityPlural);
-    setToast(`${config.entityLabel} criado localmente`);
+    setToast(`${config.entityLabel} criado`);
   }
 
   function advanceStatus() {
@@ -206,14 +206,14 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     if (!selected || !event.target.files?.length) return;
     const file = event.target.files[0];
     if (file.size > 700 * 1024) {
-      setToast("Use um arquivo de até 700 KB para manter o armazenamento local estável");
+      setToast("O arquivo é muito grande. Escolha um de até 700 KB");
       event.target.value = "";
       return;
     }
     try {
       const data = await fileToDataUrl(file);
       updateSelected({ attachments: [...selected.attachments, { id: uid("ARQ"), name: file.name, data }] }, `Arquivo anexado: ${file.name}`);
-      setToast("Arquivo salvo somente neste navegador");
+      setToast("Arquivo adicionado");
     } catch {
       setToast("Não foi possível ler este arquivo");
     }
@@ -246,13 +246,13 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       ["Código", config.entityLabel, "Descrição", "Situação", "Responsável", "Arquivado", ...customHeaders],
       ...records.map((record) => [record.id, record.title, record.subtitle, record.status, record.owner, record.archived ? "Sim" : "Não", ...config.fields.map((field) => record.data[field.key] ?? "")]),
     ]);
-    setToast("Planilha completa gerada no navegador");
+    setToast("Planilha gerada");
   }
 
   async function shareSelected() {
     if (!selected) return;
     await copyText(`${product.name}\n${selected.id} · ${selected.title}\nSituação: ${selected.status}\nResponsável: ${selected.owner}\n${config.operationPlural}: ${selectedOperations.length}\n${config.resourcePlural}: ${selectedResources.length}`);
-    setToast("Resumo copiado para compartilhamento manual");
+    setToast("Resumo copiado para compartilhamento");
   }
 
   const selectedOperations = selected ? related.filter((item) => item.parentId === selected.id) : [];
@@ -264,7 +264,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   return <AppShell product={product} nav={nav} active={active} onChange={setActive} title={active} subtitle={config.entityDescription} action={<button className={styles.primaryButton} onClick={() => setModal("record")}><Icon name="plus" /> {config.primaryAction}</button>}>
     <div className={vertical.overviewStrip}>
-      <div className={vertical.overviewItem}><span>{config.highlights[0]}</span><strong>{records.filter((record) => !record.archived).length}</strong><small>Registros ativos neste navegador</small></div>
+      <div className={vertical.overviewItem}><span>{config.highlights[0]}</span><strong>{records.filter((record) => !record.archived).length}</strong><small>Registros ativos</small></div>
       <div className={vertical.overviewItem}><span>{config.highlights[1]}</span><strong>{attention}</strong><small>Exigem acompanhamento</small></div>
       <div className={vertical.overviewItem}><span>{config.highlights[2]}</span><strong>{completed}</strong><small>Finalizados ou encerrados</small></div>
     </div>
@@ -291,7 +291,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
           {detailTab === "Resumo" ? <>
             {selected.archived ? <div className={vertical.archiveNotice}>Este registro está arquivado. Restaure para voltar a editar ou avançar etapas.</div> : null}
             <section className={`${vertical.dataCard} ${vertical.focusCard}`}><div className={vertical.focusHeader}><div><span>Registro em foco</span><strong>{selected.status}</strong></div><StatusPill status={selected.status} /></div><div className={vertical.focusGrid}><div><span>Próxima etapa</span><strong>{selected.archived ? "Restaurar registro" : isFinalStatus ? "Fluxo concluído" : nextStatus}</strong></div><div><span>{config.operationPlural}</span><strong>{selectedOperations.length}</strong></div><div><span>{config.resourcePlural}</span><strong>{selectedResources.length}</strong></div><div><span>Atenções</span><strong>{attentionResources}</strong></div></div></section>
-            <section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>Dados principais</h3><p>Informações específicas deste {config.entityLabel.toLowerCase()} com salvamento automático.</p></div></div><fieldset className={vertical.editFieldset} disabled={selected.archived}>
+            <section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>Dados principais</h3><p>Informações específicas deste {config.entityLabel.toLowerCase()}.</p></div></div><fieldset className={vertical.editFieldset} disabled={selected.archived}>
               <label>Título<input value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} /></label>
               <label>Descrição curta<input value={selected.subtitle} onChange={(event) => updateSelected({ subtitle: event.target.value })} /></label>
               <label>Situação<select value={selected.status} onChange={(event) => updateSelected({ status: event.target.value }, `Situação alterada para ${event.target.value}`)}>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
@@ -303,7 +303,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
           {detailTab === config.operationPlural ? <section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>{config.operationPlural}</h3><p>Registros operacionais vinculados ao item selecionado.</p></div><button onClick={() => setModal("operation")}><Icon name="plus" /> Adicionar</button></div><div className={vertical.operationList}>{selectedOperations.map((item) => <div className={vertical.operationRow} key={item.id}><div><strong>{item.title}</strong><p>{item.description || "Sem observação"}</p><small>{item.date || "Sem data"}</small></div><div className={vertical.operationActions}><select value={item.status} onChange={(event) => changeOperationStatus(item, event.target.value)}>{config.operationStatuses.map((status) => <option key={status}>{status}</option>)}</select><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeOperation(item)}><Icon name="trash" /></button></div></div>)}{!selectedOperations.length ? <div className={vertical.emptyCompact}>Nenhum registro operacional vinculado.</div> : null}</div></section> : null}
 
-          {detailTab === config.resourcePlural ? <section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>{config.resourcePlural}</h3><p>Cadastros e referências vinculados ao item selecionado.</p></div><button onClick={() => setModal("resource")}><Icon name="plus" /> Vincular</button></div><div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category} · {item.reference || "Sem referência"}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><select value={item.status} onChange={(event) => changeResourceStatus(item, event.target.value)}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}</div><div style={{ marginTop: 12 }}><label className={styles.secondaryButton}><Icon name="image" /> Anexar arquivo local<input hidden type="file" onChange={addAttachment} /></label></div>{selected.attachments.length ? <div className={vertical.resourceList} style={{ marginTop: 10 }}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo salvo somente neste navegador</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => { if (window.confirm(`Remover “${file.name}”?`)) updateSelected({ attachments: selected.attachments.filter((item) => item.id !== file.id) }, `Arquivo removido: ${file.name}`); }}><Icon name="trash" /></button></div></div>)}</div> : null}</section> : null}
+          {detailTab === config.resourcePlural ? <section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>{config.resourcePlural}</h3><p>Cadastros e referências vinculados ao item selecionado.</p></div><button onClick={() => setModal("resource")}><Icon name="plus" /> Vincular</button></div><div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category} · {item.reference || "Sem referência"}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><select value={item.status} onChange={(event) => changeResourceStatus(item, event.target.value)}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}</div><div style={{ marginTop: 12 }}><label className={styles.secondaryButton}><Icon name="image" /> Anexar arquivo<input hidden type="file" onChange={addAttachment} /></label></div>{selected.attachments.length ? <div className={vertical.resourceList} style={{ marginTop: 10 }}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo vinculado</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => { if (window.confirm(`Remover “${file.name}”?`)) updateSelected({ attachments: selected.attachments.filter((item) => item.id !== file.id) }, `Arquivo removido: ${file.name}`); }}><Icon name="trash" /></button></div></div>)}</div> : null}</section> : null}
 
           {detailTab === "Histórico" ? <><section className={vertical.dataCard}><div className={styles.sectionHeading}><div><h3>Histórico de alterações</h3><p>Registros preservados em ordem cronológica.</p></div></div><Timeline items={selected.history} /></section><section className={vertical.dataCard}><div className={vertical.noteComposer}><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar comentário interno ou decisão" /><button className={styles.primaryButton} onClick={addNote}>Adicionar comentário</button></div></section></> : null}
         </div>
