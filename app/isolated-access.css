@@ -1,5 +1,53 @@
-/* Dentro de um aplicativo, não exibir atalhos ou identidade de outros produtos. */
-[data-ui="navigation"] a[href="/"],
+/* Saída discreta para a vitrine, sem expor a estrutura dos demais aplicativos. */
+[data-ui="navigation"] a[href="/"] {
+  display: flex !important;
+}
+
+[data-ui="navigation"] a[href="/"] span {
+  font-size: 0 !important;
+}
+
+[data-ui="navigation"] a[href="/"] span::after {
+  content: "CRMPlus Store";
+  font-size: 12px;
+  letter-spacing: .01em;
+}
+
 [data-ui="navigation"] > div:last-child > div:last-child {
   display: none !important;
+}
+
+[data-ui="navigation"] > div:last-child > button:first-child span {
+  font-size: 0 !important;
+}
+
+[data-ui="navigation"] > div:last-child > button:first-child span::after {
+  content: "Configurações";
+  font-size: 12px;
+}
+
+[class*="localNotice"] {
+  display: none !important;
+}
+
+[role="dialog"][aria-label="Configurações locais"] header h2 {
+  font-size: 0 !important;
+}
+
+[role="dialog"][aria-label="Configurações locais"] header h2::after {
+  content: "Configurações";
+  font-size: 22px;
+}
+
+[role="dialog"][aria-label="Configurações locais"] header p {
+  display: none !important;
+}
+
+[class*="logoSettingsHeader"] > div:first-child > span {
+  font-size: 0 !important;
+}
+
+[class*="logoSettingsHeader"] > div:first-child > span::after {
+  content: "Use a identidade visual da sua empresa.";
+  font-size: 12px;
 }
