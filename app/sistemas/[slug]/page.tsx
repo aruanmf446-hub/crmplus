@@ -11,7 +11,7 @@ export function generateStaticParams() { return products.map(({ slug }) => ({ sl
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProduct((await params).slug);
   if (!product) return {};
-  return { title: `Demonstração ${product.name}`, description: `Conheça a estrutura visual e responsiva do ${product.name}.`, robots: { index: false, follow: false } };
+  return { title: `${product.name} | Acesso`, description: product.description, robots: { index: false, follow: false } };
 }
 
 export default async function WorkspacePage({ params }: Props) {
