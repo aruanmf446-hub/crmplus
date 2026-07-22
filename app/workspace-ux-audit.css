@@ -1,91 +1,197 @@
-/* Auditoria de legibilidade, hierarquia e responsividade das áreas internas. */
-[data-product] [class*="titleBlock"] > span,
-[data-product] [class*="eyebrow"] { font-size: 11px; }
-[data-product] [class*="titleBlock"] p,
+/* Interface interna: menos molduras, uma ação principal e leitura confortável. */
+[data-product] {
+  --line: #e5e8ed;
+  --muted: #667085;
+}
+
+[data-product][class*="appShell"] {
+  grid-template-columns: 220px minmax(0, 1fr);
+  background: #f6f7f9;
+}
+
+[data-product] [class*="sidebar"] {
+  background: var(--nav-bg);
+  padding: 18px 12px;
+}
+
+[data-product] [class*="brandBlock"] {
+  padding: 2px 5px 22px;
+}
+
+[data-product] [class*="productLogo"] {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+[data-product] [class*="sideNav"] { gap: 3px; }
+[data-product] [class*="sideNav"] button,
+[data-product] [class*="sidebarFooter"] button {
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+[data-product] [class*="navActive"] {
+  box-shadow: none !important;
+  background: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+[data-product] [class*="topbar"] {
+  min-height: 76px;
+  padding: 12px 26px;
+  gap: 14px;
+  background: rgba(255,255,255,.98);
+  backdrop-filter: none;
+}
+
+[data-product] [class*="titleBlock"] h1 {
+  margin: 0 0 3px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+[data-product] [class*="titleBlock"] p {
+  max-width: 720px;
+  margin: 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+[data-product] [class*="content"] {
+  padding: 24px 28px 56px;
+  background: #f6f7f9;
+}
+
+[data-product] [class*="primaryButton"],
+[data-product] [class*="secondaryButton"],
+[data-product] [class*="dangerButton"] {
+  min-height: 40px;
+  border-radius: 8px;
+  padding-inline: 13px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+[data-product] [class*="statusPill"] {
+  min-height: 24px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+[data-product] [class*="masterDetail"],
+[data-product] [class*="salesLayout"],
+[data-product] [class*="feedbackLayout"],
+[data-product] [class*="restaurantLayout"],
+[data-product] [class*="inspectionLayout"],
+[data-product] [class*="pageSheet"] {
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+/* Indicadores são apoio, não o foco da tela. */
+[data-product] [class*="summaryGrid"] {
+  margin: 0 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+}
+
+[data-product] [class*="summaryGrid"] > div {
+  min-width: 120px;
+  min-height: auto;
+  padding: 0;
+  border: 0 !important;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+[data-product] [class*="summaryGrid"] span {
+  order: 2;
+  color: #667085;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-product] [class*="summaryGrid"] strong {
+  order: 1;
+  font-size: 22px;
+  letter-spacing: -.04em;
+}
+
+[data-product] [class*="sectionHeading"] h3 { font-size: 14px; }
+[data-product] [class*="sectionHeading"] p { font-size: 11px; line-height: 1.45; }
+[data-product] [class*="recordMain"] strong { font-size: 13px; }
 [data-product] [class*="recordMain"] p,
-[data-product] [class*="recordMeta"] small,
-[data-product] [class*="sectionHeading"] p,
-[data-product] [class*="nextAction"] span,
-[data-product] [class*="summaryGrid"] span,
-[data-product] [class*="feedbackMeta"] span,
-[data-product] [class*="opportunityValue"] > span { font-size: 11px; }
-[data-product] [class*="recordMain"] strong,
-[data-product] [class*="summaryGrid"] strong { font-size: 13px; }
-[data-product] [class*="statusPill"] { min-height: 26px; padding-inline: 9px; font-size: 10px; }
-[data-product] [class*="emptyState"] h3 { font-size: 14px; }
-[data-product] [class*="emptyState"] p { font-size: 12px; }
-[data-product] [class*="toast"] span { font-size: 12px; }
-[data-product] [class*="modalCard"] header p { font-size: 12px; }
-[data-product] [class*="dataTable"] { overflow-x: auto; }
-[data-product] [class*="dataHead"],
-[data-product] [class*="dataRow"] { min-width: 640px; }
-[data-product] [class*="dataHead"] { font-size: 10px; }
-[data-product] [class*="dataRow"] span { font-size: 12px; }
+[data-product] [class*="recordMeta"] small { font-size: 10px; }
 
-[data-product] [class*="summaryGrid"] { margin-bottom: 14px; }
-[data-product] [class*="overviewItem"] span,
-[data-product] [class*="focusHeader"] span,
-[data-product] [class*="focusGrid"] span,
-[data-product] [class*="readField"] span,
-[data-product] [class*="editFieldset"] label,
-[data-product] [class*="resultBanner"],
-[data-product] [class*="tableHeader"] { font-size: 10px; }
-[data-product] [class*="overviewItem"] small { font-size: 10px; line-height: 1.35; }
-[data-product] [class*="overviewItem"] strong { font-size: 22px; }
-[data-product] [class*="entityMain"] strong,
-[data-product] [class*="operationRow"] strong,
-[data-product] [class*="resourceRow"] strong,
-[data-product] [class*="readField"] strong { font-size: 12px; }
-[data-product] [class*="entityMain"] p,
-[data-product] [class*="operationRow"] p,
-[data-product] [class*="resourceRow"] p { font-size: 10px; }
-[data-product] [class*="operationRow"] small,
-[data-product] [class*="resourceRow"] small,
-[data-product] [class*="entityMeta"] small,
-[data-product] [class*="dataCard"] > p { font-size: 10px; line-height: 1.45; }
-[data-product] [class*="operationActions"] select { min-height: 38px; font-size: 11px; }
-[data-product] [class*="editFieldset"] input,
-[data-product] [class*="editFieldset"] select,
-[data-product] [class*="editFieldset"] textarea { font-size: 13px; }
-[data-product] [class*="primaryTable"] [class*="tableRow"] strong,
-[data-product] [class*="primaryTable"] [class*="tableRow"] span { font-size: 11px; }
-[data-product] [class*="documentPane"] > [class*="noteBox"] { margin: 14px 18px 0; }
+[data-product] [class*="listToolbar"],
+[data-product] [class*="directoryToolbar"] {
+  padding: 14px;
+  gap: 9px;
+}
 
-/* As limitações internas de escopo não são apresentadas como descrição do produto. */
-[data-product="hermes"] [class*="titleBlock"] p,
-[data-product="gaia"] [class*="titleBlock"] p,
-[data-product="pegasus"] [class*="titleBlock"] p,
-[data-product="titans"] [class*="titleBlock"] p { font-size: 0; }
-[data-product="hermes"] [class*="titleBlock"] p::after { content: "Planejamento, programação, participantes, equipe, credenciamento e presença."; font-size: 12px; }
-[data-product="gaia"] [class*="titleBlock"] p::after { content: "Propriedades, áreas, culturas, observações e diário de campo."; font-size: 12px; }
-[data-product="pegasus"] [class*="titleBlock"] p::after { content: "Cadastro do pet, tutor, agenda de atendimentos, vacinas e histórico de cuidados."; font-size: 12px; }
-[data-product="titans"] [class*="titleBlock"] p::after { content: "Execução física, diário, projetos, decisões e pendências da obra."; font-size: 12px; }
+[data-product] [class*="inputSearch"] { min-height: 42px; }
+[data-product] [class*="inputSearch"] input,
+[data-product] [class*="compactSelect"] { font-size: 12px; }
 
-/* Elementos clicáveis de conteúdo não devem parecer botões soltos. */
-[data-product="artemis"] [class*="menuRows"] > div > button:first-child {
-  min-width: 0;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  display: grid;
-  gap: 3px;
-  color: inherit;
-  text-align: left;
+[data-product] [class*="detailHeader"] {
+  padding: 20px 22px 16px;
+}
+
+[data-product] [class*="detailHeader"] h2 { font-size: 20px; }
+[data-product] [class*="detailTabs"] { padding-inline: 22px; gap: 20px; }
+[data-product] [class*="detailTabs"] button { min-height: 44px; font-size: 12px; }
+
+[data-product] [class*="infoSection"] { padding-block: 18px; }
+[data-product] [class*="noteBox"] { font-size: 12px; line-height: 1.55; }
+[data-product] [class*="emptyState"] { padding: 36px 24px; }
+[data-product] [class*="emptyState"] h3 { font-size: 15px; }
+[data-product] [class*="emptyState"] p { max-width: 420px; font-size: 12px; line-height: 1.5; }
+
+[data-product] [class*="modalCard"] {
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(16,24,40,.18);
+}
+
+[data-product] [class*="modalCard"] header h2 { font-size: 18px; }
+[data-product] [class*="modalCard"] header p { font-size: 12px; line-height: 1.45; }
+[data-product] [class*="fieldLabel"] > span { font-size: 11px; }
+[data-product] [class*="fieldLabel"] input,
+[data-product] [class*="fieldLabel"] select,
+[data-product] [class*="fieldLabel"] textarea { min-height: 43px; font-size: 13px; }
+
+[data-product] [class*="modalCard"] details {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+[data-product] [class*="modalCard"] details summary {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 750;
   cursor: pointer;
 }
-[data-product="artemis"] [class*="menuRows"] > div > button:first-child:hover strong { color: var(--accent); }
-[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2) {
-  min-width: 0;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  display: grid;
-  gap: 2px;
-  text-align: left;
-  cursor: pointer;
+
+[data-product] [class*="modalCard"] details p {
+  margin: 8px 0 10px;
+  color: #667085;
+  font-size: 11px;
 }
-[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2):hover h3 { color: var(--accent); }
+
+/* Botões que representam conteúdo não recebem aparência de CTA. */
+[data-product="artemis"] [class*="menuRows"] > div > button:first-child,
+[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2),
 [data-product="zeus"] [class*="driverCard"] > button:nth-child(2) {
   min-width: 0;
   border: 0;
@@ -97,40 +203,50 @@
   text-align: left;
   cursor: pointer;
 }
+
+[data-product="artemis"] [class*="menuRows"] > div > button:first-child:hover strong,
+[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2):hover h3,
 [data-product="zeus"] [class*="driverCard"] > button:nth-child(2):hover h3 { color: var(--accent); }
-[data-product="hercules"] [class*="builderLineAdvanced"] {
-  grid-template-columns: 28px minmax(180px, 1fr) minmax(180px, 1fr) 38px;
+
+[data-product] [class*="toast"] span { font-size: 12px; }
+[data-product] [class*="dataTable"] { overflow-x: auto; }
+[data-product] [class*="dataHead"],
+[data-product] [class*="dataRow"] { min-width: 640px; }
+[data-product] [class*="dataHead"] { font-size: 10px; }
+[data-product] [class*="dataRow"] span { font-size: 12px; }
+
+@media (max-width: 1040px) {
+  [data-product][class*="appShell"] { grid-template-columns: 205px minmax(0, 1fr); }
+  [data-product] [class*="content"] { padding-inline: 20px; }
 }
 
-[data-product] [class*="topActions"] > button,
-[data-product] [class*="headerButtons"] > button,
-[data-product] [class*="modalActions"] > button { min-height: 40px; }
-[data-product] [class*="pageSubsection"] + [class*="pageSubsection"] { margin-top: 22px; }
-[data-product] [class*="directoryToolbar"],
-[data-product] [class*="listToolbar"] { align-items: center; }
-
-@media (max-width: 900px) {
-  [data-product] [class*="overviewStrip"] { grid-template-columns: repeat(3, minmax(170px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
-  [data-product] [class*="overviewItem"] { min-width: 170px; }
+@media (max-width: 820px) {
+  [data-product][class*="appShell"] { display: block; }
+  [data-product] [class*="topbar"] { min-height: 70px; padding: 10px 16px; }
+  [data-product] [class*="content"] { padding: 18px 14px 44px; }
+  [data-product] [class*="summaryGrid"] { gap: 18px; }
+  [data-product] [class*="masterDetail"],
+  [data-product] [class*="salesLayout"],
+  [data-product] [class*="feedbackLayout"],
+  [data-product] [class*="restaurantLayout"] { grid-template-columns: 1fr; }
+  [data-product] [class*="listPane"],
+  [data-product] [class*="feedbackInbox"],
+  [data-product] [class*="salesTablePane"] { border-right: 0; border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 620px) {
-  [data-product] [class*="topbar"] { gap: 12px; }
-  [data-product] [class*="topActions"] { flex-wrap: wrap; }
-  [data-product] [class*="topActions"] > button:not([class*="searchButton"]) { min-height: 44px; }
-  [data-product] [class*="recordRow"] { grid-template-columns: 38px minmax(0,1fr); }
-  [data-product] [class*="recordMeta"] { grid-column: 2; justify-items: start; }
-  [data-product] [class*="headerButtons"] > * { min-height: 44px; }
+  [data-product] [class*="titleBlock"] p { display: none; }
+  [data-product] [class*="topActions"] { margin-left: auto; }
+  [data-product] [class*="topActions"] button { min-height: 42px; }
+  [data-product] [class*="summaryGrid"] > div { min-width: 110px; }
   [data-product] [class*="modalActions"] { flex-direction: column-reverse; }
   [data-product] [class*="modalActions"] > * { width: 100%; min-height: 46px; }
-  [data-product] [class*="photoGrid"] { grid-template-columns: 1fr; }
-  [data-product] [class*="detailTabs"] { overflow-x: auto; scrollbar-width: thin; }
-  [data-product] [class*="detailTabs"] > button { flex: 0 0 auto; min-height: 44px; }
   [data-product] [class*="directoryToolbar"],
   [data-product] [class*="listToolbar"] { align-items: stretch; flex-direction: column; }
-  [data-product] [class*="compactSelect"] { min-height: 42px; width: 100%; }
+  [data-product] [class*="compactSelect"] { width: 100%; min-height: 42px; }
+  [data-product] [class*="detailTabs"] { overflow-x: auto; }
+  [data-product] [class*="detailTabs"] > button { flex: 0 0 auto; }
   [data-product="hercules"] [class*="builderLineAdvanced"] { grid-template-columns: 28px minmax(0, 1fr) 38px; }
   [data-product="hercules"] [class*="builderLineAdvanced"] input:nth-of-type(2) { grid-column: 2; }
   [data-product="artemis"] [class*="orderFooter"] { flex-direction: column; }
-  [data-product="zeus"] [class*="driverCard"] { align-items: flex-start; }
 }
