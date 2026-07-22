@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type CSSProperties, type ChangeEvent, type MouseEvent } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type MouseEvent } from "react";
 import { ProductIcon } from "@/components/ProductIcon";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
@@ -60,7 +60,7 @@ function ProductCard({ product }: { product: Product }) {
   const [imageUnavailable, setImageUnavailable] = useState(false);
   const [videoActive, setVideoActive] = useState(false);
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const videoRef = useState<HTMLVideoElement | null>(null)[0];
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const info = getStorefrontInfo(product.slug);
   const presentation = getProductPresentation(product.slug);
   const media = getProductMedia(product.slug);
@@ -71,12 +71,12 @@ function ProductCard({ product }: { product: Product }) {
 
   async function startVideo() {
     if (videoUnavailable) return;
-    try { await videoRef?.play(); setVideoActive(true); } catch { setVideoActive(false); }
+    try { await videoRef.current?.play(); setVideoActive(true); } catch { setVideoActive(false); }
   }
 
   function stopVideo(reset = false) {
-    videoRef?.pause();
-    if (reset && videoRef) videoRef.currentTime = 0;
+    videoRef.current?.pause();
+    if (reset && videoRef.current) videoRef.current.currentTime = 0;
     setVideoActive(false);
   }
 
@@ -108,7 +108,7 @@ function ProductCard({ product }: { product: Product }) {
     <article className={`${styles.card} storefront-card`} style={mediaStyle}>
       <div className={`${styles.media} crm-media`}>
         {!imageUnavailable && currentImage ? <img className="crm-cover-image" src={currentImage} alt={galleryIndex === 0 ? `Capa do ${product.name}` : `Tela ${galleryIndex} do ${product.name}`} loading="lazy" onError={tryNextImage} /> : <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{galleryIndex === 0 ? product.shortName : presentation.screens[Math.max(0, galleryIndex - 1)].title}</strong><small>{presentation.label}</small></div>}
-        <video ref={(element) => { if (element && !videoRef) Object.assign(videoRef ?? {}, element); }} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!imageUnavailable ? currentImage : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-label={`Prévia em vídeo do ${product.name}`} />
+        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!imageUnavailable ? currentImage : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-label={`Prévia em vídeo do ${product.name}`} />
 
         {availableSlides.length > 1 ? <>
           <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior"><ArrowIcon direction="left" /></button>
