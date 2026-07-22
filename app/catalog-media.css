@@ -1,7 +1,5 @@
 .crm-media {
-  background-image:
-    radial-gradient(circle at 25% 20%, color-mix(in srgb, var(--product-color) 44%, white), transparent 36%),
-    linear-gradient(145deg, var(--product-soft), color-mix(in srgb, var(--product-color) 16%, #17131d)) !important;
+  background: #fff !important;
   isolation: isolate;
 }
 
@@ -16,7 +14,8 @@
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   background: #fff;
   pointer-events: none;
 }
