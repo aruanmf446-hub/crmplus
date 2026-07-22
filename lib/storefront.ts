@@ -75,14 +75,16 @@ export function getProductMedia(slug: string) {
   const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
   const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
-  const version = "20260722-12";
-  const coverCandidates = ["png", "jpg", "jpeg", "svg"].map((extension) => `${base}/cover.${extension}?v=${version}`);
+  const version = "20260722-13";
+  const extensions = ["png", "jpg", "jpeg", "svg"];
+  const candidates = (name: string) => extensions.map((extension) => `${base}/${name}.${extension}?v=${version}`);
+  const galleryCandidates = [candidates("cover"), candidates("screen-01"), candidates("screen-02")];
 
   return {
-    cover: coverCandidates[0],
-    coverCandidates,
+    cover: galleryCandidates[0][0],
+    coverCandidates: galleryCandidates[0],
+    galleryCandidates,
     hasCover: true,
-    gallery: [coverCandidates[0], coverCandidates[0], coverCandidates[0]],
     video: `${base}/preview.mp4?v=${version}`,
   };
 }
