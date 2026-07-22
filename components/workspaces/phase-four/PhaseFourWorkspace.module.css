@@ -579,3 +579,16 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none !important; 
 .dataRow { width: 100%; min-height: 56px; padding: 9px 13px; border: 0; border-top: 1px solid var(--line); background: white; text-align: left; cursor: pointer; }
 .dataRow:hover { background: #fbfcfe; }
 .dataRow span { font-size: 10px; color: #475467; }
+
+
+.fileRows, .historySummary { display: grid; gap: 8px; }
+.fileRows > div { min-height: 54px; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; display: grid; grid-template-columns: 28px minmax(0,1fr) 38px; gap: 9px; align-items: center; }
+.fileRows > div > svg { color: var(--accent); }
+.fileRows > div > div { display: grid; gap: 2px; }
+.fileRows strong { font-size: 10px; }
+.fileRows small { color: #98a2b3; font-size: 8px; }
+.historySummary { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.historySummary > div { border: 1px solid var(--line); border-radius: 10px; padding: 13px; display: grid; gap: 5px; }
+.historySummary span { color: #7a8494; font-size: 8px; text-transform: uppercase; }
+.historySummary strong { font-size: 12px; }
+@media (max-width: 620px) { .historySummary { grid-template-columns: 1fr; } }
