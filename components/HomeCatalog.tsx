@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { ProductIcon } from "@/components/ProductIcon";
 import type { Product } from "@/lib/apps";
+import { getProductPresentation } from "@/lib/productPresentation";
 import { formatMonthlyPrice, getProductMedia, getSearchText, getStorefrontInfo, normalizeSearch, segmentFilters } from "@/lib/storefront";
 import styles from "./HomeCatalog.module.css";
 
@@ -29,16 +30,16 @@ export function HomeCatalog({ products }: Props) {
   }
 
   return (
-    <section className={styles.catalog} id="sistemas" aria-labelledby="catalog-title">
+    <section className={`${styles.catalog} storefront-catalog`} id="sistemas" aria-labelledby="catalog-title">
       <div className="shell">
         <div className={styles.heading}>
-          <div><p className={styles.kicker}>Encontre sem perder tempo</p><h2 id="catalog-title">O sistema certo para o seu segmento.</h2></div>
-          <p>Pesquise pelo tipo de negócio ou escolha um filtro. Você verá somente os aplicativos que fazem sentido para a sua rotina.</p>
+          <div><p className={styles.kicker}>Aplicativos por rotina</p><h2 id="catalog-title">Encontre o produto que combina com o seu negócio.</h2></div>
+          <p>Pesquise pelo segmento ou pela necessidade. Cada aplicativo possui identidade, fluxo e funções próprias.</p>
         </div>
 
         <label className={styles.search}>
           <span className={styles.searchIcon} aria-hidden="true">⌕</span>
-          <input value={query} onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Pesquisar segmento, necessidade ou app" aria-label="Pesquisar segmento, necessidade ou aplicativo" />
+          <input value={query} onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Pesquisar oficina, pet shop, orçamento, eventos..." aria-label="Pesquisar segmento, necessidade ou aplicativo" />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label="Limpar pesquisa">×</button> : null}
         </label>
 
@@ -55,7 +56,7 @@ export function HomeCatalog({ products }: Props) {
             <button className={`${styles.railButton} ${styles.railButtonRight}`} type="button" onClick={() => railRef.current?.scrollBy({ left: 350, behavior: "smooth" })} aria-label="Ver próximos aplicativos">›</button>
           </div>
         ) : (
-          <div className={styles.empty}><ProductIcon slug="pandora" size={30} /><h3>Nenhum aplicativo encontrado</h3><p>Tente pesquisar por palavras como oficina, pet shop, orçamento, imóveis, eventos ou biblioteca.</p><button type="button" onClick={() => { setQuery(""); selectSegment("all"); }}>Mostrar todos</button></div>
+          <div className={styles.empty}><ProductIcon slug="pandora" size={30} /><h3>Nenhum aplicativo encontrado</h3><p>Tente pesquisar por oficina, pet shop, orçamento, imóveis, eventos ou biblioteca.</p><button type="button" onClick={() => { setQuery(""); selectSegment("all"); }}>Mostrar todos</button></div>
         )}
       </div>
     </section>
@@ -64,71 +65,48 @@ export function HomeCatalog({ products }: Props) {
 
 function ProductCard({ product }: { product: Product }) {
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [coverCandidateIndex, setCoverCandidateIndex] = useState(0);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+  const [imageUnavailable, setImageUnavailable] = useState(false);
   const [videoActive, setVideoActive] = useState(false);
   const [videoUnavailable, setVideoUnavailable] = useState(false);
-  const [coverUnavailable, setCoverUnavailable] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const info = getStorefrontInfo(product.slug);
+  const presentation = getProductPresentation(product.slug);
   const media = getProductMedia(product.slug);
-  const currentCover = media.coverCandidates[coverCandidateIndex];
+  const candidates = media.galleryCandidates[galleryIndex];
+  const currentImage = candidates[candidateIndex];
   const mediaStyle = { "--product-color": product.color, "--product-soft": product.colorSoft } as CSSProperties;
 
   async function startVideo() {
     if (videoUnavailable) return;
-    try {
-      await videoRef.current?.play();
-      setVideoActive(true);
-    } catch {
-      setVideoActive(false);
-    }
+    try { await videoRef.current?.play(); setVideoActive(true); } catch { setVideoActive(false); }
   }
-
-  function stopVideo(reset = false) {
-    videoRef.current?.pause();
-    if (reset && videoRef.current) videoRef.current.currentTime = 0;
-    setVideoActive(false);
-  }
-
-  function toggleVideo() {
-    if (videoActive) stopVideo();
-    else void startVideo();
-  }
-
-  function moveGallery(direction: -1 | 1) {
-    stopVideo(true);
-    setGalleryIndex((current) => (current + direction + 3) % 3);
-  }
-
-  function tryNextCover() {
-    setCoverCandidateIndex((current) => {
-      const next = current + 1;
-      if (next >= media.coverCandidates.length) {
-        setCoverUnavailable(true);
-        return current;
-      }
-      return next;
-    });
+  function stopVideo(reset = false) { videoRef.current?.pause(); if (reset && videoRef.current) videoRef.current.currentTime = 0; setVideoActive(false); }
+  function toggleVideo() { if (videoActive) stopVideo(); else void startVideo(); }
+  function moveGallery(direction: -1 | 1) { stopVideo(true); setGalleryIndex((current) => (current + direction + 3) % 3); setCandidateIndex(0); setImageUnavailable(false); }
+  function tryNextImage() {
+    const next = candidateIndex + 1;
+    if (next >= candidates.length) setImageUnavailable(true);
+    else setCandidateIndex(next);
   }
 
   return (
-    <article className={styles.card} style={mediaStyle}>
+    <article className={`${styles.card} storefront-card`} style={mediaStyle}>
       <div className={`${styles.media} crm-media`} onClick={toggleVideo} role="button" tabIndex={0} onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => { if (event.key === "Enter" || event.key === " ") toggleVideo(); }} aria-label={`Abrir prévia em vídeo do ${product.name}`}>
-        {!coverUnavailable && currentCover ? (
-          <img className="crm-cover-image" src={currentCover} alt={`Capa do ${product.name}`} loading="lazy" onError={tryNextCover} />
-        ) : (
-          <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{product.shortName}</strong></div>
-        )}
-
-        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!coverUnavailable ? currentCover : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-hidden="true" />
-
+        {!imageUnavailable && currentImage ? <img className="crm-cover-image" src={currentImage} alt={galleryIndex === 0 ? `Capa do ${product.name}` : `Tela ${galleryIndex} do ${product.name}`} loading="lazy" onError={tryNextImage} /> : <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{galleryIndex === 0 ? product.shortName : `Tela ${galleryIndex}`}</strong><small>{presentation.label}</small></div>}
+        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!imageUnavailable ? currentImage : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-hidden="true" />
         <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior">‹</button>
         <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem">›</button>
         <span className={styles.playBadge} aria-hidden="true">{videoActive ? "Ⅱ" : "▶"}</span>
         <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de 3`}>{[0, 1, 2].map((index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={`${product.slug}-${index}`} />)}</div>
       </div>
 
-      <div className={styles.cardBody}><div className={styles.cardIdentity}><span><ProductIcon slug={product.slug} size={21} /></span><div><h3>{product.name}</h3><strong>{formatMonthlyPrice(info.monthlyPrice)}</strong></div></div><p>{product.description}</p><div className={styles.cardActions}><Link className={styles.learnMore} href={`/aplicativos/${product.slug}`}>Saiba mais</Link><Link className={styles.subscribe} href={`/assinar/${product.slug}`}>Assinar agora</Link></div></div>
+      <div className={`${styles.cardBody} storefront-card-body`}>
+        <div className={styles.cardIdentity}><span><ProductIcon slug={product.slug} size={21} /></span><div><small className="storefront-card-label">{presentation.label}</small><h3>{product.shortName}</h3><strong>{formatMonthlyPrice(info.monthlyPrice)}</strong></div></div>
+        <p>{presentation.benefit}</p>
+        <ul className="storefront-card-features">{product.features.slice(0, 3).map((feature) => <li key={feature}>{feature}</li>)}</ul>
+        <div className={styles.cardActions}><Link className={styles.learnMore} href={`/sistemas/${product.slug}`}>Ver demonstração</Link><Link className={styles.subscribe} href={`/aplicativos/${product.slug}`}>Conhecer {product.shortName}</Link></div>
+      </div>
     </article>
   );
 }
