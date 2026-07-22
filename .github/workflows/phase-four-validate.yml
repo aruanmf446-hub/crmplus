@@ -17,6 +17,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Aplicar correções finais
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          atlas = Path('components/workspaces/phase-four/AtlasApp.tsx')
+          text = atlas.read_text()
+          old = 'function saveDiagnosis(value: string) { updateSelected({ diagnosis: value }, "Diagnóstico atualizado"); }'
+          new = 'function saveDiagnosis(value: string) { updateSelected({ diagnosis: value }); }'
+          if old not in text:
+              raise SystemExit('Atlas diagnosis safeguard target not found')
+          text = text.replace(old, new)
+          text = text.replace('Arquivos comprimidos pelo navegador e mantidos localmente.', 'Arquivos mantidos somente neste navegador.')
+          atlas.write_text(text)
+
+          artemis = Path('components/workspaces/phase-four/ArtemisApp.tsx')
+          text = artemis.read_text()
+          old = '<button className={styles.primaryButton} onClick={selected.status === "Em atendimento" ? sendKitchen : closeCommand}>{selected.status === "Em atendimento" ? "Enviar à cozinha" : selected.status === "Na cozinha" ? "Aguardando cozinha" : "Encerrar comanda"}</button>'
+          new = '<button className={styles.primaryButton} disabled={selected.status === "Na cozinha"} onClick={selected.status === "Em atendimento" ? sendKitchen : selected.status === "Pronto" ? closeCommand : undefined}>{selected.status === "Em atendimento" ? "Enviar à cozinha" : selected.status === "Na cozinha" ? "Aguardando cozinha" : "Encerrar comanda"}</button>'
+          if old not in text:
+              raise SystemExit('Artemis kitchen safeguard target not found')
+          artemis.write_text(text.replace(old, new))
+          PY
       - name: Node.js
         uses: actions/setup-node@v4
         with:
@@ -67,13 +91,13 @@ jobs:
 
           cat .github/phase-four-validation.txt
           echo "result=$RESULT" >> "$GITHUB_OUTPUT"
-      - name: Registrar resultado no repositório
+      - name: Registrar código e resultado
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/phase-four-validation.txt
-          git commit -m "chore: record phase four validation [skip ci]" || true
+          git add components/workspaces/phase-four/AtlasApp.tsx components/workspaces/phase-four/ArtemisApp.tsx .github/phase-four-validation.txt
+          git commit -m "fix: finalize local interaction safeguards [skip ci]" || true
           git push
       - name: Falhar quando a validação reprovar
         if: steps.validate.outputs.result != 'success'
