@@ -89,9 +89,10 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const base = `${getPublicBasePath()}/media/apps/${slug}`;
+  const cover = `${base}/cover.svg`;
   return {
-    cover: `${base}/cover.webp`,
-    gallery: [`${base}/cover.webp`, `${base}/gallery-1.webp`, `${base}/gallery-2.webp`],
+    cover,
+    gallery: [cover],
     video: `${base}/preview.mp4`,
   };
 }
