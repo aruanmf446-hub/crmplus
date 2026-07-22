@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
@@ -46,7 +47,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
       return;
     }
     if (draft.password.length < 6) {
-      setError("Use uma senha local com pelo menos 6 caracteres.");
+      setError("Use uma senha com pelo menos 6 caracteres.");
       return;
     }
 
@@ -58,7 +59,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
       const account: Account = { name: draft.name.trim(), company: draft.company.trim(), email, password: draft.password };
       window.localStorage.setItem(accountKey, JSON.stringify(account));
       window.localStorage.setItem(sessionKey, "active");
-      window.localStorage.setItem(`crmplus.preferences.${product.slug}`, JSON.stringify({ company: account.company, compact: false, logo: "" }));
+      window.localStorage.setItem(`crmplus.preferences.${product.slug}`, JSON.stringify({ version: 1, value: { company: account.company, compact: false, logo: "" } }));
       setSignedIn(true);
       return;
     }
@@ -83,7 +84,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
     return (
       <div className={styles.signedInShell}>
         <div className={styles.sessionHeader}>
-          <div><span className={styles.sessionIcon}><ProductIcon slug={product.slug} size={17} /></span><p><strong>{storedAccount?.name || "Usuário local"}</strong><small>{storedAccount?.company || product.shortName}</small></p></div>
+          <div><span className={styles.sessionIcon}><ProductIcon slug={product.slug} size={17} /></span><p><strong>{storedAccount?.name || "Usuário"}</strong><small>{storedAccount?.company || product.shortName}</small></p></div>
           <button type="button" onClick={signOut}>Sair do {product.shortName}</button>
         </div>
         {children}
@@ -99,6 +100,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
       <section className={styles.shell}>
         <div className={styles.brand}>
           <div>
+            <Link className={styles.storeLink} href="/">CRMPlus Store</Link>
             <div className={styles.brandIdentity}><span><ProductIcon slug={product.slug} size={29} /></span><div><small>{presentation.label}</small><h1>{product.shortName}</h1></div></div>
             <p className={styles.tagline}>{product.tagline}</p>
             <ul>{product.features.slice(0, 3).map((feature) => <li key={feature}>{feature}</li>)}</ul>
@@ -106,11 +108,10 @@ export function AppAccessGate({ product, children }: { product: Product; childre
           <div className={styles.preview}>
             <ProductMediaImage candidates={previewCandidates} alt={`Prévia do ${product.name}`} className={styles.previewImage} fallback={<div className={styles.previewFallback}><ProductIcon slug={product.slug} size={48} /><span>{presentation.screens[0].title}</span></div>} />
           </div>
-          <p className={styles.privacy}>Rascunho local: esta conta e os dados deste aplicativo ficam somente neste navegador.</p>
         </div>
 
         <div className={styles.formSide}>
-          <div className={styles.formHeading}><small>{product.name}</small><h2>{mode === "login" ? "Entrar no aplicativo" : "Criar conta local"}</h2><p>{mode === "login" ? `Acesse sua área exclusiva do ${product.shortName}.` : `Crie uma conta usada somente no ${product.shortName}.`}</p></div>
+          <div className={styles.formHeading}><small>{product.name}</small><h2>{mode === "login" ? "Entrar no aplicativo" : "Criar conta"}</h2><p>{mode === "login" ? `Acesse sua área exclusiva do ${product.shortName}.` : `Prepare o acesso da sua empresa ao ${product.shortName}.`}</p></div>
           <div className={styles.tabs}>
             <button type="button" className={mode === "login" ? styles.active : ""} onClick={() => { setMode("login"); setError(""); }}>Entrar</button>
             <button type="button" className={mode === "signup" ? styles.active : ""} onClick={() => { setMode("signup"); setError(""); }}>Criar conta</button>
@@ -121,11 +122,10 @@ export function AppAccessGate({ product, children }: { product: Product; childre
               <label className={styles.field}><span>Empresa</span><input autoComplete="organization" value={draft.company} onChange={(event) => setDraft((current) => ({ ...current, company: event.target.value }))} /></label>
             </> : null}
             <label className={styles.field}><span>E-mail</span><input autoComplete="email" type="email" value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} /></label>
-            <label className={styles.field}><span>Senha local</span><input autoComplete={mode === "signup" ? "new-password" : "current-password"} type="password" minLength={6} value={draft.password} onChange={(event) => setDraft((current) => ({ ...current, password: event.target.value }))} /></label>
+            <label className={styles.field}><span>Senha</span><input autoComplete={mode === "signup" ? "new-password" : "current-password"} type="password" minLength={6} value={draft.password} onChange={(event) => setDraft((current) => ({ ...current, password: event.target.value }))} /></label>
             {error ? <div className={styles.error}>{error}</div> : null}
             <button className={styles.submit} type="submit">{mode === "login" ? `Entrar no ${product.shortName}` : "Criar conta e entrar"}</button>
           </form>
-          <p className={styles.note}>Nenhuma referência, conta ou registro é compartilhado com outro aplicativo.</p>
         </div>
       </section>
     </main>
