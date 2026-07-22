@@ -11,9 +11,15 @@ import "./workspace-hercules.css";
 import "./workspace-utilities.css";
 
 export const metadata: Metadata = {
-  title: { default: "CRMPlus+ | Ambiente demonstrativo", template: "%s | CRMPlus+" },
-  description: "Demonstração local de seis aplicativos independentes do CRMPlus+.",
-  robots: { index: false, follow: false, nocache: true },
+  title: { default: "CRMPlus+ | Sistemas para pequenas empresas", template: "%s | CRMPlus+" },
+  description: "Encontre aplicativos de gestão criados para oficinas, restaurantes, pet shops, imobiliárias, bibliotecas, eventos, construtoras e outros segmentos.",
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "CRMPlus+ | Encontre o sistema ideal para o seu negócio",
+    description: "Pesquise por segmento, veja prévias e conheça aplicativos criados para rotinas específicas.",
+    type: "website",
+    locale: "pt_BR",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
