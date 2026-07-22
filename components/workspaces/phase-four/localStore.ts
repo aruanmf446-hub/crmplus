@@ -7,26 +7,31 @@ const STORE_VERSION = 1;
 type StoredValue<T> = { version: number; value: T };
 
 export function useLocalState<T>(key: string, initial: T | (() => T)) {
-  const [value, setValue] = useState<T>(() => {
-    const fallback = typeof initial === "function" ? (initial as () => T)() : initial;
-    if (typeof window === "undefined") return fallback;
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) return fallback;
-      const parsed = JSON.parse(raw) as StoredValue<T>;
-      return parsed.version === STORE_VERSION ? parsed.value : fallback;
-    } catch {
-      return fallback;
-    }
-  });
+  const [value, setValue] = useState<T>(() => typeof initial === "function" ? (initial as () => T)() : initial);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
+      const raw = window.localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as StoredValue<T>;
+        if (parsed.version === STORE_VERSION) setValue(parsed.value);
+      }
+    } catch {
+      // Invalid or unavailable storage falls back to the in-memory seed.
+    } finally {
+      setHydrated(true);
+    }
+  }, [key]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
       window.localStorage.setItem(key, JSON.stringify({ version: STORE_VERSION, value } satisfies StoredValue<T>));
     } catch {
-      // Storage can be unavailable in private browsing. The prototype still works in memory.
+      // Storage can be unavailable or full. The prototype still works in memory.
     }
-  }, [key, value]);
+  }, [hydrated, key, value]);
 
   return [value, setValue] as const;
 }
