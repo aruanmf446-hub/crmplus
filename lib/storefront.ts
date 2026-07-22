@@ -92,14 +92,14 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const hasCover = uploadedCovers.has(slug);
-  const base = `${getPublicBasePath()}/media/apps/${slug}`;
+  const base = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const coverFile = safeCovers.has(slug) ? "cover-safe.svg" : "cover.svg";
-  const cover = hasCover ? `${base}/${coverFile}?v=20260722-9` : "";
+  const cover = hasCover ? `${base}/${coverFile}?v=20260722-10` : "";
 
   return {
     cover,
     hasCover,
     gallery: [cover, cover, cover],
-    video: `${base}/preview.mp4?v=20260722-9`,
+    video: `${base}/preview.mp4?v=20260722-10`,
   };
 }
