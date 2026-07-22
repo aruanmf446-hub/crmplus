@@ -3,6 +3,7 @@ import "./globals.css";
 import "./compact.css";
 import "./workspace-actions.css";
 import "./soul.css";
+import "./singular-apps.css";
 
 export const metadata: Metadata = {
   title: {
