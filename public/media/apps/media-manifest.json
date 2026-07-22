@@ -1,12 +1,13 @@
 {
-  "version": 1,
+  "version": 2,
   "files": {
-    "cover": "cover.webp",
+    "cover": "cover.svg",
     "gallery": ["gallery-1.webp", "gallery-2.webp"],
     "video": "preview.mp4"
   },
   "requirements": {
-    "images": "1:1, recomendado 1080x1080, formato WebP",
+    "cover": "SVG quadrado 1:1, preparado para exibição nítida no catálogo",
+    "gallery": "WebP quadrado 1:1, recomendado 1080x1080",
     "video": "MP4/H.264, 6 a 15 segundos, preparado para reprodução sem som"
   },
   "apps": [
