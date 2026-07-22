@@ -44,7 +44,6 @@ const uploadedCovers = new Set([
 ]);
 
 const safeCovers = new Set(["atlas", "artemis", "poseidon", "ares", "pandora"]);
-
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
 
 export function getStorefrontInfo(slug: string): StorefrontInfo {
@@ -53,23 +52,11 @@ export function getStorefrontInfo(slug: string): StorefrontInfo {
 
 export function getSearchText(product: Product): string {
   const info = getStorefrontInfo(product.slug);
-  return [
-    product.name,
-    product.shortName,
-    product.category,
-    product.tagline,
-    product.description,
-    ...product.features,
-    ...info.aliases,
-  ].join(" ");
+  return [product.name, product.shortName, product.category, product.tagline, product.description, ...product.features, ...info.aliases].join(" ");
 }
 
 export function normalizeSearch(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 export function formatMonthlyPrice(value: number): string {
@@ -92,8 +79,10 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const hasCover = uploadedCovers.has(slug);
-  const base = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const coverFile = safeCovers.has(slug) ? "cover-safe.svg" : "cover.svg";
+  const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
+  const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
+  const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
   const cover = hasCover ? `${base}/${coverFile}?v=20260722-10` : "";
 
   return {
