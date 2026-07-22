@@ -39,24 +39,11 @@ const storefront: Record<string, StorefrontInfo> = {
 };
 
 const uploadedCovers = new Set([
-  "atlas",
-  "zeus",
-  "artemis",
-  "poseidon",
-  "ares",
-  "pandora",
-  "hercules",
-  "alexandria",
-  "olympus",
-  "argus",
-  "titans",
-  "hermes",
-  "athena",
-  "gaia",
-  "pegasus",
+  "atlas", "zeus", "artemis", "poseidon", "ares", "pandora", "hercules",
+  "alexandria", "olympus", "argus", "titans", "hermes", "athena", "gaia", "pegasus",
 ]);
 
-const webpCovers = new Set(["atlas", "artemis", "poseidon", "ares", "pandora"]);
+const safeCovers = new Set(["atlas", "artemis", "poseidon", "ares", "pandora"]);
 
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
 
@@ -90,12 +77,8 @@ export function formatMonthlyPrice(value: number): string {
 }
 
 export function getBillingPrice(monthlyPrice: number, period: BillingPeriod) {
-  if (period === "semiannual") {
-    return { months: 6, discount: 8, total: monthlyPrice * 6 * 0.92 };
-  }
-  if (period === "annual") {
-    return { months: 12, discount: 16, total: monthlyPrice * 12 * 0.84 };
-  }
+  if (period === "semiannual") return { months: 6, discount: 8, total: monthlyPrice * 6 * 0.92 };
+  if (period === "annual") return { months: 12, discount: 16, total: monthlyPrice * 12 * 0.84 };
   return { months: 1, discount: 0, total: monthlyPrice };
 }
 
@@ -109,14 +92,14 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const hasCover = uploadedCovers.has(slug);
-  const extension = webpCovers.has(slug) ? "webp" : "svg";
   const repositoryBase = `https://raw.githubusercontent.com/aruanmf446-hub/crmplus/main/public/media/apps/${slug}`;
-  const cover = hasCover ? `${repositoryBase}/cover.${extension}?v=20260722-6` : "";
+  const coverFile = safeCovers.has(slug) ? "cover-safe.svg" : "cover.svg";
+  const cover = hasCover ? `${repositoryBase}/${coverFile}?v=20260722-8` : "";
 
   return {
     cover,
     hasCover,
     gallery: [cover, cover, cover],
-    video: `${repositoryBase}/preview.mp4?v=20260722-6`,
+    video: `${repositoryBase}/preview.mp4?v=20260722-8`,
   };
 }
