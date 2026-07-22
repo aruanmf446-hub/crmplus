@@ -67,7 +67,6 @@ export function CommercialProductPage({ product }: Props) {
           <div className="shell">
             <div className={styles.sectionHead}>
               <div><h2>O que você consegue fazer com o {product.shortName}</h2></div>
-              <p>Funções apresentadas com a linguagem e a prioridade próprias deste aplicativo.</p>
             </div>
             <div className={styles.featureGrid}>
               {product.features.map((feature, index) => (
