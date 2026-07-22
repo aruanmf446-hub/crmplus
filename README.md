@@ -11,6 +11,17 @@ Vitrine e ambientes demonstrativos de seis aplicativos independentes para pequen
 - **Poseidon** — funil de vendas, clientes, retornos, histórico e próximos passos. Valores são apenas referências comerciais.
 - **Hercules** — checklists e inspeções com evidências, não conformidades, responsáveis e correções.
 
+## Novo modelo de experiência
+
+Os seis ambientes seguem a mesma regra de produto: **simplicidade para executar e profundidade para gerenciar**.
+
+- Perfis operacionais recebem uma tela direta, com tarefa atual, prioridades e uma ação principal.
+- Supervisores acompanham exceções e gargalos sem abrir um dashboard completo.
+- Gestão e qualidade recebem indicadores filtráveis, classificação e exportação.
+- Restaurante possui experiências próprias para garçom, cozinha e gestor.
+- Inspeções separa a execução sequencial do inspetor da análise de qualidade.
+- Detalhes aparecem somente após a seleção de um registro.
+
 ## Executar localmente
 
 ```bash
