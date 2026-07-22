@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProductIcon } from "@/components/ProductIcon";
 import { ProductInsideGallery } from "@/components/ProductInsideGallery";
+import { ProductMediaImage } from "@/components/ProductMediaImage";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
 import { formatMonthlyPrice, getProductMedia, getStorefrontInfo } from "@/lib/storefront";
@@ -18,7 +19,6 @@ export function CommercialProductPage({ product }: Props) {
   const pageStyle = {
     "--accent": product.color,
     "--accent-soft": product.colorSoft,
-    "--cover-image": `url("${media.cover}")`,
   } as CSSProperties;
 
   return (
@@ -47,7 +47,15 @@ export function CommercialProductPage({ product }: Props) {
               </div>
 
               <div className="commercial-visual-stack">
-                <div className={styles.cover} role="img" aria-label={`Capa oficial do ${product.name}`} />
+                <div className={`${styles.cover} commercial-cover-media`}>
+                  <ProductMediaImage
+                    candidates={media.coverCandidates}
+                    alt={`Capa oficial do ${product.name}`}
+                    className="commercial-cover-image"
+                    eager
+                    fallback={<div className="commercial-cover-fallback"><ProductIcon slug={product.slug} size={72} /><strong>{product.shortName}</strong><span>{presentation.label}</span></div>}
+                  />
+                </div>
                 <div className="commercial-screen-card"><ProductIcon slug={product.slug} size={22} /><div><small>Tela em destaque</small><strong>{presentation.screens[0].title}</strong><span>{presentation.screens[0].description}</span></div></div>
               </div>
             </div>
