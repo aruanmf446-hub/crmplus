@@ -38,6 +38,19 @@ const storefront: Record<string, StorefrontInfo> = {
   pegasus: { monthlyPrice: 59, segment: "pet-shop", aliases: ["pet shop", "banho e tosa", "pets", "hotel para animais"] },
 };
 
+const uploadedCovers = new Set([
+  "titans",
+  "pegasus",
+  "gaia",
+  "athena",
+  "hermes",
+  "argus",
+  "olympus",
+  "alexandria",
+  "zeus",
+  "hercules",
+]);
+
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
 
 export function getStorefrontInfo(slug: string): StorefrontInfo {
@@ -89,10 +102,15 @@ export function getPublicBasePath(): string {
 
 export function getProductMedia(slug: string) {
   const base = `${getPublicBasePath()}/media/apps/${slug}`;
-  const cover = `${base}/cover.svg`;
+  const hasCover = uploadedCovers.has(slug);
+  const cover = hasCover ? `${base}/cover.svg?v=20260722-3` : "";
+
   return {
     cover,
-    gallery: [cover],
-    video: `${base}/preview.mp4`,
+    hasCover,
+    // Mantém a navegação de imagens ativa. As posições 2 e 3 serão
+    // substituídas pelos próximos assets enviados, sem alterar o componente.
+    gallery: [cover, cover, cover],
+    video: `${base}/preview.mp4?v=20260722-3`,
   };
 }
