@@ -1,0 +1,47 @@
+.crm-media {
+  background-image:
+    radial-gradient(circle at 25% 20%, color-mix(in srgb, var(--product-color) 44%, white), transparent 36%),
+    linear-gradient(145deg, var(--product-soft), color-mix(in srgb, var(--product-color) 16%, #17131d)) !important;
+  isolation: isolate;
+}
+
+.crm-media::after {
+  display: none !important;
+}
+
+.crm-cover-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+.crm-media video {
+  z-index: 2 !important;
+}
+
+.crm-media [class*="playBadge"] {
+  z-index: 6 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.crm-media [class*="mediaArrow"],
+.crm-media [class*="dots"] {
+  z-index: 7 !important;
+}
+
+@media (hover: hover) {
+  .crm-media [class*="mediaArrow"] {
+    opacity: 0;
+  }
+
+  .crm-media:hover [class*="mediaArrow"] {
+    opacity: 1;
+  }
+}
