@@ -14,16 +14,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProduct((await params).slug);
   if (!product) return {};
   const info = getStorefrontInfo(product.slug);
+  const canonical = `https://aruanmf446-hub.github.io/crmplus/aplicativos/${product.slug}/`;
   return {
     title: `${product.name} — ${product.category}`,
     description: `${product.description} Conheça funções, benefícios, fluxo de uso e planos a partir de R$ ${info.monthlyPrice} por mês.`,
     keywords: [product.name, product.category, product.tagline, ...product.features],
-    alternates: { canonical: `/aplicativos/${product.slug}/` },
+    alternates: { canonical },
     robots: { index: true, follow: true },
     openGraph: {
       title: `${product.name} | CRMPlus+`,
       description: product.description,
       type: "website",
+      url: canonical,
     },
   };
 }
