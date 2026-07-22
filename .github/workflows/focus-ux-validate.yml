@@ -8,15 +8,57 @@ on:
       - app/layout.tsx
       - .github/workflows/focus-ux-validate.yml
 
+permissions:
+  contents: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+      - name: Validar e registrar resultado
+        shell: bash
+        run: |
+          set +e
+          npm ci > /tmp/npm-ci.log 2>&1
+          NPM_CI_EXIT=$?
+          npm run lint > /tmp/lint.log 2>&1
+          LINT_EXIT=$?
+          npm run build > /tmp/build.log 2>&1
+          BUILD_EXIT=$?
+          set -e
+
+          if [ "$NPM_CI_EXIT" -eq 0 ] && [ "$LINT_EXIT" -eq 0 ] && [ "$BUILD_EXIT" -eq 0 ]; then
+            RESULT=success
+          else
+            RESULT=failure
+          fi
+
+          mkdir -p .qa
+          {
+            echo "RESULT=$RESULT"
+            echo "NPM_CI_EXIT=$NPM_CI_EXIT"
+            echo "LINT_EXIT=$LINT_EXIT"
+            echo "BUILD_EXIT=$BUILD_EXIT"
+            echo "COMMIT=$(git rev-parse HEAD)"
+            echo
+            cat /tmp/npm-ci.log
+            echo
+            cat /tmp/lint.log
+            echo
+            cat /tmp/build.log
+          } > .qa/focus-validation.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .qa/focus-validation.txt
+          git commit -m "chore: record focused workspace validation [skip ci]" || true
+          git push
+
+          test "$RESULT" = "success"
