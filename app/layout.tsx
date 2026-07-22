@@ -5,6 +5,7 @@ import "./workspace-actions.css";
 import "./soul.css";
 import "./singular-apps.css";
 import "./product-polish.css";
+import "./design-correction.css";
 
 export const metadata: Metadata = {
   title: {
