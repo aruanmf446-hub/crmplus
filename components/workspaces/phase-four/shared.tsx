@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import type { Product } from "@/lib/apps";
-import { useLocalState } from "./localStore";
+import { fileToDataUrl, useLocalState } from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
 import hierarchy from "./SemanticHierarchy.module.css";
+import brand from "./BrandLogo.module.css";
 
 export type IconName =
   | "activity" | "arrow" | "back" | "calendar" | "car" | "check" | "chevron" | "clipboard"
@@ -34,6 +35,7 @@ const appThemes: Record<string, VisualTheme> = {
   poseidon: { nav: "#102d3e", navRaised: "#163d53", selection: "#edf7fb", selectionStrong: "#d5ecf6", result: "#f6fbfd", resultRaised: "#e2f2f8", canvas: "#f1f5f7", topbar: "#fbfdfe", data: "#ffffff" },
   pandora: { nav: "#2b213e", navRaised: "#3a2b53", selection: "#f6f1fc", selectionStrong: "#e7dcf6", result: "#fbf8fe", resultRaised: "#efe7f9", canvas: "#f4f1f7", topbar: "#fdfbff", data: "#ffffff" },
   hercules: { nav: "#302a17", navRaised: "#40371d", selection: "#fff9e8", selectionStrong: "#ffefb7", result: "#fffdf6", resultRaised: "#fff5cf", canvas: "#f7f5ed", topbar: "#fffefb", data: "#ffffff" },
+  zeus: { nav: "#102f28", navRaised: "#17443a", selection: "#edf8f4", selectionStrong: "#d8f0e8", result: "#f7fcfa", resultRaised: "#e4f5ef", canvas: "#f1f6f4", topbar: "#fbfefd", data: "#ffffff" },
 };
 
 type ShellProps = {
@@ -52,7 +54,8 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   const [commandOpen, setCommandOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
-  const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Empresa demonstração", compact: false });
+  const [logoError, setLogoError] = useState("");
+  const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Empresa demonstração", compact: false, logo: "" });
   const filteredNav = useMemo(() => nav.filter((item) => item.label.toLowerCase().includes(commandQuery.toLowerCase())), [commandQuery, nav]);
   const visualTheme = appThemes[product.slug] ?? appThemes.ares;
   const shellStyle = {
@@ -85,6 +88,29 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setLogoError("");
+    if (!file.type.startsWith("image/")) {
+      setLogoError("Selecione uma imagem PNG, JPEG ou WebP.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 700 * 1024) {
+      setLogoError("Use uma imagem de até 700 KB para não exceder o armazenamento do navegador.");
+      event.target.value = "";
+      return;
+    }
+    try {
+      const logo = await fileToDataUrl(file);
+      setPreferences((current) => ({ ...current, logo }));
+    } catch {
+      setLogoError("Não foi possível ler esta imagem.");
+    }
+    event.target.value = "";
+  }
+
   function clearLocalData() {
     const confirmed = window.confirm(`Apagar os dados locais do ${product.shortName} neste navegador?`);
     if (!confirmed) return;
@@ -96,7 +122,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
     <div className={`${styles.appShell} ${hierarchy.visualHierarchy} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle} data-product={product.slug}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} data-ui="navigation">
         <div className={styles.brandBlock}>
-          <div className={styles.productLogo}><ProductGlyph slug={product.slug} /></div>
+          <div className={styles.productLogo}>{preferences.logo ? <img className={brand.brandLogoImage} src={preferences.logo} alt={`Logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
           <div><strong>{product.shortName}</strong><span>{preferences.company}</span></div>
           <button type="button" className={styles.closeMenu} onClick={() => setMenuOpen(false)} aria-label="Fechar menu"><Icon name="close" /></button>
         </div>
@@ -140,6 +166,17 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
       <Modal open={settingsOpen} title="Configurações locais" description="Preferências deste aplicativo salvas apenas neste navegador." onClose={() => setSettingsOpen(false)}>
         <form className={styles.stackForm} onSubmit={(event) => { event.preventDefault(); setSettingsOpen(false); }}>
           <Field label="Nome exibido da empresa"><input value={preferences.company} onChange={(event) => setPreferences((current) => ({ ...current, company: event.target.value }))} /></Field>
+          <div className={brand.logoSettings}>
+            <div className={brand.logoSettingsHeader}>
+              <div><strong>Logo da empresa</strong><span>Imagem salva somente neste navegador.</span></div>
+              <div className={brand.logoPreview}>{preferences.logo ? <img src={preferences.logo} alt={`Prévia da logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
+            </div>
+            <div className={brand.logoActions}>
+              <label className={brand.logoUploadButton}><Icon name="image" /> {preferences.logo ? "Substituir logo" : "Selecionar logo"}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} /></label>
+              {preferences.logo ? <button type="button" className={brand.logoRemoveButton} onClick={() => setPreferences((current) => ({ ...current, logo: "" }))}><Icon name="trash" /> Remover</button> : null}
+            </div>
+            {logoError ? <p className={brand.logoError}>{logoError}</p> : null}
+          </div>
           <label className={styles.toggleRow}><input type="checkbox" checked={preferences.compact} onChange={(event) => setPreferences((current) => ({ ...current, compact: event.target.checked }))} /><span><strong>Modo compacto</strong><small>Reduz espaços para mostrar mais registros.</small></span></label>
           <div className={styles.modalActions}><button type="button" className={styles.dangerButton} onClick={clearLocalData}>Limpar dados deste app</button><button className={styles.primaryButton}>Salvar preferências</button></div>
         </form>
@@ -196,13 +233,13 @@ export function Form({ children, onSubmit }: { children: ReactNode; onSubmit: ()
 }
 
 export function ProductGlyph({ slug }: { slug: string }) {
-  const map: Record<string, IconName> = { atlas: "car", artemis: "kitchen", ares: "document", poseidon: "spark", pandora: "message", hercules: "check" };
+  const map: Record<string, IconName> = { atlas: "car", artemis: "kitchen", ares: "document", poseidon: "spark", pandora: "message", hercules: "check", zeus: "car" };
   return <Icon name={map[slug] ?? "home"} />;
 }
 
 export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
-    activity: <path d="M3 12h4l2-6 4 12 2-6h6" />, arrow: <path d="M5 12h14M13 6l6 6-6 6" />, back: <path d="m15 18-6-6 6-6" />, calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></>, car: <><path d="m5 17-1 2M19 17l1 2M3 13l2-6h14l2 6v5H3z" /><circle cx="7" cy="15" r="1" /><circle cx="17" cy="15" r="1" /></>, check: <path d="m5 12 4 4L19 6" />, chevron: <path d="m9 18 6-6-6-6" />, clipboard: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6" /></>, clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>, close: <path d="m6 6 12 12M18 6 6 18" />, document: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6" /></>, download: <path d="M12 3v12m-5-5 5 5 5-5M5 21h14" />, edit: <><path d="m4 16-1 5 5-1L19 9l-4-4z" /><path d="m13 7 4 4" /></>, filter: <path d="M4 5h16M7 12h10M10 19h4" />, history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /><path d="M12 7v5l3 2" /></>, home: <path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z" />, image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 15-5-5L5 20" /></>, inbox: <path d="M4 4h16v14H4zM4 14h5l2 3h2l2-3h5" />, kitchen: <><path d="M7 3v7M4 3v4c0 2 6 2 6 0V3M7 10v11M17 3v18" /><path d="M14 3c0 5 6 5 6 0" /></>, menu: <path d="M4 7h16M4 12h16M4 17h16" />, message: <path d="M4 4h16v13H8l-4 4z" />, people: <><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2" /><path d="M3 21c0-4 2-7 6-7s6 3 6 7M15 15c4 0 6 2 6 6" /></>, plus: <path d="M12 5v14M5 12h14" />, print: <><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /></>, search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>, settings: <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5l-.4 3.1a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L5.1 11a7 7 0 0 0 0 2L3 14.5l2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7-1l2.4 1 2-3.4-2.1-1.5a7 7 0 0 0 .1-1Z" /></>, spark: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7z" /></>, table: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M8 10v9" /></>, tag: <><path d="M3 11V4h7l11 11-7 7z" /><circle cx="7" cy="8" r="1" /></>, trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" /></>, user: <><circle cx="12" cy="8" r="4" /><path d="M4 22c0-5 3-8 8-8s8 3 8 8" /></>, warning: <path d="M12 3 2 21h20zM12 9v5M12 18h.01" />,
+    activity: <path d="M3 12h4l2-6 4 12 2-6h6" />, arrow: <path d="M5 12h14M13 6l6 6-6 6" />, back: <path d="m15 18-6-6 6-6" />, calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></>, car: <><path d="m5 17-1 2M19 17l1 2M3 13l2-6h14l2 6v5H3z" /><circle cx="7" cy="15" r="1" /><circle cx="17" cy="15" r="1" /></>, check: <path d="m5 12 4 4L19 6" />, chevron: <path d="m9 18 6-6-6-6" />, clipboard: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6" /></>, clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>, close: <path d="m6 6 12 12M18 6 6 18" />, document: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6" /></>, download: <path d="M12 3v12m-5-5 5 5 5-5M5 21h14" />, edit: <><path d="m4 16-1 5 5-1L19 9l-4-4z" /><path d="m13 7 4 4" /></>, filter: <path d="M4 5h16M7 12h10M10 19h4" />, history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /><path d="M12 7v5l3 2" /></>, home: <path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z" />, image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 15-5-5L5 20" /></>, inbox: <path d="M4 4h16v14H4zM4 14h5l2 3h2l2-3h5" />, kitchen: <><path d="M7 3v7M4 3v4c0 2 6 2 6 0V3M7 10v11M17 3v18" /><path d="M14 3c0 5 6 5 6 0" /></>, menu: <path d="M4 7h16M4 12h16M4 17h16" />, message: <path d="M4 4h16v13H8l-4 4z" />, people: <><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2" /><path d="M3 21c0-4 2-7 6-7s6 3 6 7M15 15c4 0 6 2 6 6" /></>, plus: <path d="M12 5v14M5 12h14" />, print: <><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /></>, search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>, settings: <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5l-.4 3.1a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L5.1 11a7 7 0 0 0 0 2L3 14.5l2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7 1l2.4 1 2-3.4-2.1-1.5a7 7 0 0 0 .1-1Z" /></>, spark: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7z" /></>, table: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M8 10v9" /></>, tag: <><path d="M3 11V4h7l11 11-7 7z" /><circle cx="7" cy="8" r="1" /></>, trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" /></>, user: <><circle cx="12" cy="8" r="4" /><path d="M4 22c0-5 3-8 8-8s8 3 8 8" /></>, warning: <path d="M12 3 2 21h20zM12 9v5M12 18h.01" />,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
