@@ -2,3 +2,25 @@
 [data-ui="navigation"] a[href="/"] {
   display: flex !important;
 }
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  [data-ui="navigation"] a[href="/"] { position: relative; }
+  [data-ui="navigation"] a[href="/"]:hover::after,
+  [data-ui="navigation"] a[href="/"]:focus-visible::after {
+    content: "CRMPlus Store";
+    position: absolute;
+    z-index: 80;
+    left: 58px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: max-content;
+    padding: 8px 10px;
+    color: #fff;
+    background: #111827;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 9px;
+    box-shadow: 0 12px 30px rgba(15,23,42,.22);
+    font-size: 11px;
+    font-weight: 750;
+  }
+}
