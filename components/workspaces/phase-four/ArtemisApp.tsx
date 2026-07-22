@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Product } from "@/lib/apps";
 import { AppShell, EmptyState, Field, Form, Icon, Modal, StatusPill, Toast, type NavItem } from "./shared";
 import { currency, todayLabel, uid, useLocalState } from "./localStore";
@@ -11,7 +11,7 @@ type OrderItem = { id: string; menuId: string; name: string; price: number; quan
 type TableStatus = "Livre" | "Em atendimento" | "Na cozinha" | "Pronto";
 type DiningTable = { id: number; seats: number; status: TableStatus; waiter?: string; openedAt?: string; items: OrderItem[] };
 type KitchenTicket = { id: string; tableId: number; createdAt: string; state: "Novo" | "Preparando" | "Pronto"; items: OrderItem[] };
-type ClosedOrder = { id: string; place: string; total: number; closedAt: string; items: number };
+type ClosedOrder = { id: string; place: string; total: number; closedAt: string; items: number; summary?: string };
 
 const initialMenu: MenuItem[] = [
   { id: "m1", name: "X-bacon", category: "Lanches", price: 22, active: true },
@@ -29,65 +29,86 @@ export function ArtemisApp({ product }: { product: Product }) {
   const [menu, setMenu] = useLocalState<MenuItem[]>("crmplus.artemis.menu", initialMenu);
   const [tables, setTables] = useLocalState<DiningTable[]>("crmplus.artemis.tables", initialTables);
   const [tickets, setTickets] = useLocalState<KitchenTicket[]>("crmplus.artemis.tickets", [{ id: "PED-411", tableId: 3, createdAt: "há 31 min", state: "Preparando", items: initialTables[2].items }]);
-  const [history, setHistory] = useLocalState<ClosedOrder[]>("crmplus.artemis.history", [{ id: "CMD-407", place: "Mesa 08", total: 96, closedAt: "Hoje, 18:52", items: 5 }]);
+  const [history, setHistory] = useLocalState<ClosedOrder[]>("crmplus.artemis.history", [{ id: "CMD-407", place: "Mesa 08", total: 96, closedAt: "Hoje, 18:52", items: 5, summary: "2× X-bacon · 1× Fritas grande · 2× Refrigerante lata" }]);
   const [selectedId, setSelectedId] = useState(2);
   const [modal, setModal] = useState<"item" | "menu" | "command" | null>(null);
   const [toast, setToast] = useState("");
   const [historyPreview, setHistoryPreview] = useState<ClosedOrder | null>(null);
   const [itemDraft, setItemDraft] = useState({ menuId: initialMenu[0]?.id ?? "", quantity: 1, note: "" });
-  const [menuDraft, setMenuDraft] = useState({ name: "", category: "", price: "" });
+  const [menuDraft, setMenuDraft] = useState({ id: "", name: "", category: "", price: "", active: true });
+  const [commandDraft, setCommandDraft] = useState({ tableId: "", waiter: "" });
+  const [menuQuery, setMenuQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("Todas");
+
   const selected = tables.find((table) => table.id === selectedId) ?? tables[0];
   const nav: NavItem[] = [{ label: "Salão", icon: "table" }, { label: "Cozinha", icon: "kitchen" }, { label: "Cardápio", icon: "document" }, { label: "Histórico", icon: "history" }];
-  const selectedTotal = selected.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const selectedTotal = selected?.items.reduce((sum, item) => sum + item.price * item.quantity, 0) ?? 0;
   const activeMenu = menu.filter((item) => item.active);
-  const canEditOrder = selected.status === "Em atendimento";
+  const canEditOrder = selected?.status === "Em atendimento";
+  const freeTables = tables.filter((table) => table.status === "Livre");
+  const categories = useMemo(() => ["Todas", ...Array.from(new Set(menu.map((item) => item.category))).sort()], [menu]);
+  const filteredMenu = useMemo(() => {
+    const value = menuQuery.trim().toLowerCase();
+    return menu.filter((item) => (categoryFilter === "Todas" || item.category === categoryFilter) && (!value || `${item.name} ${item.category}`.toLowerCase().includes(value)));
+  }, [categoryFilter, menu, menuQuery]);
 
   function updateTable(id: number, updater: (table: DiningTable) => DiningTable) {
     setTables((current) => current.map((table) => table.id === id ? updater(table) : table));
   }
 
-  function openTable(table: DiningTable) {
-    if (table.status === "Livre") {
-      updateTable(table.id, (current) => ({ ...current, status: "Em atendimento", waiter: "Ana", openedAt: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }));
-      setToast(`Mesa ${table.id} aberta`);
-    }
-    setSelectedId(table.id);
+  function openCommandModal(tableId?: number) {
+    const table = tableId ? tables.find((item) => item.id === tableId && item.status === "Livre") : freeTables[0];
+    if (!table) { setToast("Não há mesas livres neste momento"); return; }
+    setCommandDraft({ tableId: String(table.id), waiter: "" });
+    setModal("command");
   }
 
   function createCommand() {
-    const free = tables.find((table) => table.status === "Livre");
-    if (!free) { setToast("Não há mesas livres neste momento"); return; }
-    openTable(free); setModal(null); setActive("Salão");
+    const tableId = Number(commandDraft.tableId);
+    const table = tables.find((item) => item.id === tableId);
+    if (!table || table.status !== "Livre") { setToast("Selecione uma mesa livre"); return; }
+    if (!commandDraft.waiter.trim()) { setToast("Informe o responsável pela mesa"); return; }
+    updateTable(table.id, (current) => ({ ...current, status: "Em atendimento", waiter: commandDraft.waiter.trim(), openedAt: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }));
+    setSelectedId(table.id);
+    setCommandDraft({ tableId: "", waiter: "" });
+    setModal(null);
+    setActive("Salão");
+    setToast(`Mesa ${table.id} aberta`);
   }
 
   function addItem() {
-    if (!canEditOrder) { setToast("Marque o pedido como servido antes de alterar a comanda"); return; }
+    if (!selected || !canEditOrder) { setToast("Marque o pedido como servido antes de alterar a comanda"); return; }
     const menuItem = menu.find((item) => item.id === itemDraft.menuId && item.active);
     if (!menuItem) { setToast("Selecione um item disponível"); return; }
-    const line: OrderItem = { id: uid("ITEM"), menuId: menuItem.id, name: menuItem.name, price: menuItem.price, quantity: itemDraft.quantity, note: itemDraft.note };
-    updateTable(selected.id, (table) => ({ ...table, waiter: table.waiter ?? "Ana", items: [...table.items, line] }));
-    setItemDraft({ menuId: activeMenu[0]?.id ?? "", quantity: 1, note: "" }); setModal(null); setToast("Item adicionado à comanda");
+    const line: OrderItem = { id: uid("ITEM"), menuId: menuItem.id, name: menuItem.name, price: menuItem.price, quantity: Math.max(1, itemDraft.quantity), note: itemDraft.note.trim() };
+    updateTable(selected.id, (table) => ({ ...table, items: [...table.items, line] }));
+    setItemDraft({ menuId: activeMenu[0]?.id ?? "", quantity: 1, note: "" });
+    setModal(null);
+    setToast("Item adicionado à comanda");
   }
 
   function changeQuantity(itemId: string, delta: number) {
-    if (!canEditOrder) return;
+    if (!selected || !canEditOrder) return;
     updateTable(selected.id, (table) => ({ ...table, items: table.items.map((item) => item.id === itemId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item) }));
   }
 
   function removeItem(itemId: string) {
-    if (!canEditOrder) return;
+    if (!selected || !canEditOrder) return;
     updateTable(selected.id, (table) => ({ ...table, items: table.items.filter((item) => item.id !== itemId) }));
   }
 
   function sendKitchen() {
-    if (!selected.items.length) { setToast("Adicione itens antes de enviar"); return; }
-    const ticket: KitchenTicket = { id: uid("PED"), tableId: selected.id, createdAt: "agora", state: "Novo", items: selected.items };
+    if (!selected?.items.length) { setToast("Adicione itens antes de enviar"); return; }
+    const ticket: KitchenTicket = { id: uid("PED"), tableId: selected.id, createdAt: "agora", state: "Novo", items: selected.items.map((item) => ({ ...item })) };
     setTickets((current) => [ticket, ...current.filter((item) => item.tableId !== selected.id)]);
     updateTable(selected.id, (table) => ({ ...table, status: "Na cozinha" }));
     setToast("Pedido enviado à cozinha");
   }
 
-  function markPreparing(ticketId: string) { setTickets((current) => current.map((ticket) => ticket.id === ticketId ? { ...ticket, state: "Preparando" } : ticket)); }
+  function markPreparing(ticketId: string) {
+    setTickets((current) => current.map((ticket) => ticket.id === ticketId ? { ...ticket, state: "Preparando" } : ticket));
+  }
+
   function markReady(ticketId: string) {
     const ticket = tickets.find((item) => item.id === ticketId);
     if (!ticket) return;
@@ -95,47 +116,87 @@ export function ArtemisApp({ product }: { product: Product }) {
     updateTable(ticket.tableId, (table) => ({ ...table, status: "Pronto" }));
     setToast(`Mesa ${ticket.tableId} pronta para servir`);
   }
+
   function serveTable() {
-    setTickets((current) => current.filter((ticket) => !(ticket.tableId === selected.id && ticket.state === "Pronto")));
+    if (!selected) return;
+    setTickets((current) => current.filter((ticket) => ticket.tableId !== selected.id));
     updateTable(selected.id, (table) => ({ ...table, status: "Em atendimento" }));
     setToast("Pedido marcado como servido");
   }
 
   function closeCommand() {
-    if (!selected.items.length) { updateTable(selected.id, (table) => ({ ...table, status: "Livre", waiter: undefined, openedAt: undefined })); setToast("Mesa liberada"); return; }
-    const closed: ClosedOrder = { id: uid("CMD"), place: `Mesa ${String(selected.id).padStart(2, "0")}`, total: selectedTotal, closedAt: todayLabel(), items: selected.items.reduce((sum, item) => sum + item.quantity, 0) };
+    if (!selected || selected.status !== "Em atendimento") { setToast("Marque o pedido como servido antes de encerrar"); return; }
+    if (!selected.items.length) {
+      updateTable(selected.id, (table) => ({ ...table, status: "Livre", waiter: undefined, openedAt: undefined }));
+      setToast("Mesa liberada");
+      return;
+    }
+    const summary = selected.items.map((item) => `${item.quantity}× ${item.name}`).join(" · ");
+    const closed: ClosedOrder = { id: uid("CMD"), place: `Mesa ${String(selected.id).padStart(2, "0")}`, total: selectedTotal, closedAt: todayLabel(), items: selected.items.reduce((sum, item) => sum + item.quantity, 0), summary };
     setHistory((current) => [closed, ...current]);
     setTickets((current) => current.filter((ticket) => ticket.tableId !== selected.id));
     updateTable(selected.id, (table) => ({ ...table, status: "Livre", waiter: undefined, openedAt: undefined, items: [] }));
     setToast("Comanda encerrada e salva no histórico");
   }
 
-  function addMenuItem() {
-    if (!menuDraft.name.trim()) return;
-    const nextItem: MenuItem = { id: uid("MENU"), name: menuDraft.name.trim(), category: menuDraft.category.trim() || "Outros", price: Number(menuDraft.price.replace(",", ".")) || 0, active: true };
-    setMenu((current) => [...current, nextItem]);
-    setItemDraft((current) => ({ ...current, menuId: nextItem.id }));
-    setMenuDraft({ name: "", category: "", price: "" }); setModal(null); setToast("Item criado no cardápio");
+  function openNewMenuItem() {
+    setMenuDraft({ id: "", name: "", category: "", price: "", active: true });
+    setModal("menu");
   }
 
-  const addItemLabel = !activeMenu.length ? "Cardápio sem itens disponíveis" : canEditOrder ? "Adicionar item" : selected.status === "Na cozinha" ? "Pedido enviado à cozinha" : "Marque o pedido como servido";
+  function openEditMenuItem(item: MenuItem) {
+    setMenuDraft({ id: item.id, name: item.name, category: item.category, price: String(item.price), active: item.active });
+    setModal("menu");
+  }
 
-  return <AppShell product={product} nav={nav} active={active} onChange={setActive} title={active} subtitle="Salão, comandas, cozinha e cardápio sem misturar responsabilidades." action={active === "Salão" ? <button className={styles.primaryButton} onClick={() => setModal("command")}><Icon name="plus" /> Nova comanda</button> : undefined}>
-    {active === "Salão" ? <div className={styles.restaurantLayout}>
-      <section className={styles.floorSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Turno atual</span><h2>Mapa do salão</h2><p>Abra uma mesa ou acompanhe o atendimento em andamento.</p></div><div className={styles.serviceStatus}><i /><span>{tables.filter((table) => table.status !== "Livre").length} mesas ativas</span></div></div><div className={styles.floorLegend}><span><i className={styles.freeDot} />Livre</span><span><i className={styles.servingDot} />Atendimento</span><span><i className={styles.kitchenDot} />Cozinha</span><span><i className={styles.readyDot} />Pronto</span></div><div className={styles.floorMap}>{tables.map((table) => <button key={table.id} className={`${styles.floorTable} ${styles[`floor${table.status.replaceAll(" ", "")}`]} ${selected.id === table.id ? styles.floorSelected : ""}`} onClick={() => openTable(table)}><span>Mesa {String(table.id).padStart(2, "0")}</span><strong>{table.status === "Livre" ? `${table.seats} lugares` : table.status}</strong><small>{table.waiter ? `${table.waiter} · ${table.items.reduce((sum, item) => sum + item.quantity, 0)} itens` : "Toque para abrir"}</small></button>)}</div></section>
-      <aside className={styles.orderSheet}><div className={styles.orderHeader}><div><span className={styles.eyebrow}>Comanda</span><h2>Mesa {String(selected.id).padStart(2, "0")}</h2><p>{selected.waiter ?? "Sem garçom"} · {selected.seats} lugares</p></div><StatusPill status={selected.status} /></div>{selected.status === "Livre" ? <EmptyState icon="table" title="Mesa disponível" description="Abra a mesa para iniciar uma comanda." action={<button className={styles.primaryButton} onClick={() => openTable(selected)}>Abrir mesa</button>} /> : <><div className={styles.orderItems}>{selected.items.map((item) => <div key={item.id}><div className={styles.quantityControl}><button disabled={!canEditOrder} onClick={() => changeQuantity(item.id, -1)}>−</button><span>{item.quantity}×</span><button disabled={!canEditOrder} onClick={() => changeQuantity(item.id, 1)}>+</button></div><div><strong>{item.name}</strong><small>{item.note || "Sem observação"}</small></div><b>{currency(item.price * item.quantity)}</b><button disabled={!canEditOrder} className={styles.iconButton} aria-label={`Remover ${item.name}`} onClick={() => removeItem(item.id)}><Icon name="trash" /></button></div>)}</div><button className={styles.addItemButton} disabled={!activeMenu.length || !canEditOrder} onClick={() => setModal("item")}><Icon name="plus" /> {addItemLabel}</button><div className={styles.orderTotal}><span>Total parcial</span><strong>{currency(selectedTotal)}</strong></div><div className={styles.orderFooter}>{selected.status === "Pronto" ? <button className={styles.secondaryButton} onClick={serveTable}>Marcar servido</button> : <button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir</button>}<button className={styles.primaryButton} disabled={selected.status === "Na cozinha"} onClick={selected.status === "Em atendimento" ? sendKitchen : selected.status === "Pronto" ? closeCommand : undefined}>{selected.status === "Em atendimento" ? "Enviar à cozinha" : selected.status === "Na cozinha" ? "Aguardando cozinha" : "Encerrar comanda"}</button></div></>}</aside>
+  function saveMenuItem() {
+    const name = menuDraft.name.trim();
+    const price = Number(menuDraft.price.replace(",", ".")) || 0;
+    if (!name) { setToast("Informe o nome do item"); return; }
+    if (price <= 0) { setToast("Informe um preço maior que zero"); return; }
+    if (menuDraft.id) {
+      setMenu((current) => current.map((item) => item.id === menuDraft.id ? { ...item, name, category: menuDraft.category.trim() || "Outros", price, active: menuDraft.active } : item));
+      setToast("Item atualizado");
+    } else {
+      const nextItem: MenuItem = { id: uid("MENU"), name, category: menuDraft.category.trim() || "Outros", price, active: true };
+      setMenu((current) => [...current, nextItem]);
+      setItemDraft((current) => ({ ...current, menuId: nextItem.id }));
+      setToast("Item criado no cardápio");
+    }
+    setMenuDraft({ id: "", name: "", category: "", price: "", active: true });
+    setModal(null);
+  }
+
+  function removeMenuItem(item: MenuItem) {
+    if (!window.confirm(`Remover “${item.name}” do cardápio?`)) return;
+    setMenu((current) => current.filter((entry) => entry.id !== item.id));
+    if (itemDraft.menuId === item.id) setItemDraft((current) => ({ ...current, menuId: "" }));
+    setToast("Item removido do cardápio");
+  }
+
+  const addItemLabel = !activeMenu.length ? "Cardápio sem itens disponíveis" : canEditOrder ? "Adicionar item" : selected?.status === "Na cozinha" ? "Pedido enviado à cozinha" : "Marque o pedido como servido";
+  const headerAction = active === "Salão"
+    ? <button className={styles.primaryButton} disabled={!freeTables.length} onClick={() => openCommandModal()}><Icon name="plus" /> Nova comanda</button>
+    : active === "Cardápio"
+      ? <button className={styles.primaryButton} onClick={openNewMenuItem}><Icon name="plus" /> Novo item</button>
+      : undefined;
+
+  return <AppShell product={product} nav={nav} active={active} onChange={setActive} title={active} subtitle="Salão, comandas, cozinha e cardápio em um fluxo direto de atendimento." action={headerAction}>
+    {active === "Salão" && selected ? <div className={styles.restaurantLayout}>
+      <section className={styles.floorSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Turno atual</span><h2>Mapa do salão</h2><p>Selecione uma mesa para abrir ou acompanhar a comanda.</p></div><div className={styles.serviceStatus}><i /><span>{tables.filter((table) => table.status !== "Livre").length} mesas ativas</span></div></div><div className={styles.floorLegend}><span><i className={styles.freeDot} />Livre</span><span><i className={styles.servingDot} />Atendimento</span><span><i className={styles.kitchenDot} />Cozinha</span><span><i className={styles.readyDot} />Pronto</span></div><div className={styles.floorMap}>{tables.map((table) => <button key={table.id} className={`${styles.floorTable} ${styles[`floor${table.status.replaceAll(" ", "")}`]} ${selected.id === table.id ? styles.floorSelected : ""}`} onClick={() => setSelectedId(table.id)}><span>Mesa {String(table.id).padStart(2, "0")}</span><strong>{table.status === "Livre" ? `${table.seats} lugares` : table.status}</strong><small>{table.waiter ? `${table.waiter} · ${table.items.reduce((sum, item) => sum + item.quantity, 0)} itens` : "Selecione para abrir"}</small></button>)}</div></section>
+      <aside className={styles.orderSheet}><div className={styles.orderHeader}><div><span className={styles.eyebrow}>Comanda</span><h2>Mesa {String(selected.id).padStart(2, "0")}</h2><p>{selected.waiter ?? "Sem responsável"} · {selected.seats} lugares{selected.openedAt ? ` · aberta às ${selected.openedAt}` : ""}</p></div><StatusPill status={selected.status} /></div>{selected.status === "Livre" ? <EmptyState icon="table" title="Mesa disponível" description="Abra a mesa e informe o responsável pelo atendimento." action={<button className={styles.primaryButton} onClick={() => openCommandModal(selected.id)}>Abrir mesa</button>} /> : <><div className={styles.orderItems}>{selected.items.map((item) => <div key={item.id}><div className={styles.quantityControl}><button disabled={!canEditOrder} onClick={() => changeQuantity(item.id, -1)}>−</button><span>{item.quantity}×</span><button disabled={!canEditOrder} onClick={() => changeQuantity(item.id, 1)}>+</button></div><div><strong>{item.name}</strong><small>{item.note || "Sem observação"}</small></div><b>{currency(item.price * item.quantity)}</b><button disabled={!canEditOrder} className={styles.iconButton} aria-label={`Remover ${item.name}`} onClick={() => removeItem(item.id)}><Icon name="trash" /></button></div>)}</div>{!selected.items.length ? <EmptyState icon="document" title="Comanda vazia" description="Adicione itens antes de enviar o pedido à cozinha." /> : null}<button className={styles.addItemButton} disabled={!activeMenu.length || !canEditOrder} onClick={() => { setItemDraft((current) => ({ ...current, menuId: activeMenu.some((item) => item.id === current.menuId) ? current.menuId : activeMenu[0]?.id ?? "" })); setModal("item"); }}><Icon name="plus" /> {addItemLabel}</button><div className={styles.orderTotal}><span>Total parcial</span><strong>{currency(selectedTotal)}</strong></div><div className={styles.orderFooter}>{selected.status === "Pronto" ? <button className={styles.primaryButton} onClick={serveTable}>Marcar como servido</button> : <button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir comanda</button>}{selected.status === "Em atendimento" ? <button className={styles.primaryButton} onClick={selected.items.length ? sendKitchen : closeCommand}>{selected.items.length ? "Enviar à cozinha" : "Liberar mesa"}</button> : selected.status === "Na cozinha" ? <button className={styles.primaryButton} disabled>Aguardando cozinha</button> : null}{selected.status === "Em atendimento" && selected.items.length ? <button className={styles.secondaryButton} onClick={closeCommand}>Encerrar comanda</button> : null}</div></>}</aside>
     </div> : null}
 
-    {active === "Cozinha" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Cozinha</span><h2>Fila de preparo</h2><p>Pedidos em ordem de entrada e situação.</p></div><div className={styles.serviceStatus}><i /><span>{tickets.filter((ticket) => ticket.state !== "Pronto").length} ativos</span></div></div><div className={styles.kitchenTable}><div className={styles.tableHead}><span>Pedido</span><span>Itens</span><span>Entrada</span><span>Situação</span><span /></div>{tickets.map((ticket) => <div className={styles.kitchenRow} key={ticket.id}><div><strong>{ticket.id}</strong><span>Mesa {String(ticket.tableId).padStart(2, "0")}</span></div><div><strong>{ticket.items.map((item) => `${item.quantity}× ${item.name}`).join(", ")}</strong><span>{ticket.items.map((item) => item.note).filter(Boolean).join(" · ") || "Sem observações"}</span></div><b>{ticket.createdAt}</b><StatusPill status={ticket.state} /><div className={styles.rowActions}>{ticket.state === "Novo" ? <button className={styles.secondaryButton} onClick={() => markPreparing(ticket.id)}>Iniciar</button> : null}{ticket.state !== "Pronto" ? <button className={styles.primaryButton} onClick={() => markReady(ticket.id)}><Icon name="check" /> Pronto</button> : <span>Concluído</span>}</div></div>)}{!tickets.length ? <EmptyState icon="check" title="Fila concluída" description="Nenhum pedido aguardando preparo." /> : null}</div></section> : null}
+    {active === "Cozinha" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Cozinha</span><h2>Fila de preparo</h2><p>Pedidos em ordem de entrada e situação.</p></div><div className={styles.serviceStatus}><i /><span>{tickets.filter((ticket) => ticket.state !== "Pronto").length} em preparo</span></div></div><div className={styles.kitchenTable}><div className={styles.tableHead}><span>Pedido</span><span>Itens</span><span>Entrada</span><span>Situação</span><span /></div>{tickets.map((ticket) => <div className={styles.kitchenRow} key={ticket.id}><div><strong>{ticket.id}</strong><span>Mesa {String(ticket.tableId).padStart(2, "0")}</span></div><div><strong>{ticket.items.map((item) => `${item.quantity}× ${item.name}`).join(", ")}</strong><span>{ticket.items.map((item) => item.note).filter(Boolean).join(" · ") || "Sem observações"}</span></div><b>{ticket.createdAt}</b><StatusPill status={ticket.state} /><div className={styles.rowActions}>{ticket.state === "Novo" ? <button className={styles.secondaryButton} onClick={() => markPreparing(ticket.id)}>Iniciar</button> : null}{ticket.state !== "Pronto" ? <button className={styles.primaryButton} onClick={() => markReady(ticket.id)}><Icon name="check" /> Pronto</button> : <span>Aguardando retirada</span>}</div></div>)}</div>{!tickets.length ? <EmptyState icon="check" title="Fila concluída" description="Nenhum pedido aguardando preparo." /> : null}</section> : null}
 
-    {active === "Cardápio" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Cardápio</span><h2>Itens e disponibilidade</h2><p>Nome, categoria, preço e disponibilidade para atendimento.</p></div><button className={styles.primaryButton} onClick={() => setModal("menu")}><Icon name="plus" /> Novo item</button></div><div className={styles.menuRows}>{menu.map((item) => <div key={item.id}><div><strong>{item.name}</strong><span>{item.category}</span></div><b>{currency(item.price)}</b><label className={styles.inlineToggle}><input type="checkbox" checked={item.active} onChange={(event) => setMenu((current) => current.map((entry) => entry.id === item.id ? { ...entry, active: event.target.checked } : entry))} /><span>{item.active ? "Disponível" : "Indisponível"}</span></label><button className={styles.iconButton} aria-label={`Remover ${item.name}`} onClick={() => setMenu((current) => current.filter((entry) => entry.id !== item.id))}><Icon name="trash" /></button></div>)}{!menu.length ? <EmptyState icon="document" title="Cardápio vazio" description="Crie o primeiro item para começar a usar as comandas." /> : null}</div></section> : null}
+    {active === "Cardápio" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Cardápio</span><h2>Itens e disponibilidade</h2><p>Edite nome, categoria, preço e disponibilidade para atendimento.</p></div></div><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={menuQuery} onChange={(event) => setMenuQuery(event.target.value)} placeholder="Buscar item ou categoria" /></label><select className={styles.compactSelect} value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>{categories.map((category) => <option key={category}>{category}</option>)}</select></div><div className={styles.menuRows}>{filteredMenu.map((item) => <div key={item.id}><button type="button" onClick={() => openEditMenuItem(item)}><strong>{item.name}</strong><span>{item.category}</span></button><b>{currency(item.price)}</b><label className={styles.inlineToggle}><input type="checkbox" checked={item.active} onChange={(event) => setMenu((current) => current.map((entry) => entry.id === item.id ? { ...entry, active: event.target.checked } : entry))} /><span>{item.active ? "Disponível" : "Indisponível"}</span></label><button className={styles.iconButton} aria-label={`Remover ${item.name}`} onClick={() => removeMenuItem(item)}><Icon name="trash" /></button></div>)}{!filteredMenu.length ? <EmptyState icon="search" title={menu.length ? "Nenhum item encontrado" : "Cardápio vazio"} description={menu.length ? "Altere a busca ou o filtro de categoria." : "Crie o primeiro item para começar a usar as comandas."} /> : null}</div></section> : null}
 
     {active === "Histórico" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Histórico</span><h2>Comandas encerradas</h2><p>Consulte os atendimentos finalizados por mesa.</p></div></div><div className={styles.directoryRows}>{history.map((item) => <button key={item.id} onClick={() => setHistoryPreview(item)}><span className={styles.companyAvatar}>{item.place.slice(-2)}</span><div><strong>{item.place} · {item.id}</strong><small>{item.closedAt} · {item.items} itens</small></div><strong>{currency(item.total)}</strong></button>)}{!history.length ? <EmptyState icon="history" title="Sem comandas encerradas" description="As comandas finalizadas aparecerão aqui." /> : null}</div></section> : null}
 
-    <Modal open={Boolean(historyPreview)} title={historyPreview?.place ?? "Comanda"} description={historyPreview?.id} onClose={() => setHistoryPreview(null)}><div className={styles.historySummary}><div><span>Encerrada em</span><strong>{historyPreview?.closedAt}</strong></div><div><span>Quantidade de itens</span><strong>{historyPreview?.items}</strong></div><div><span>Total registrado</span><strong>{currency(historyPreview?.total ?? 0)}</strong></div></div></Modal>
-    <Modal open={modal === "command"} title="Nova comanda" description="Abra a primeira mesa livre para iniciar o atendimento." onClose={() => setModal(null)}><div className={styles.confirmBox}><Icon name="table" /><div><strong>{tables.filter((table) => table.status === "Livre").length} mesas livres</strong><span>Garçom responsável: Ana</span></div></div><div className={styles.modalActions}><button className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton} disabled={!tables.some((table) => table.status === "Livre")} onClick={createCommand}>Abrir mesa livre</button></div></Modal>
-    <Modal open={modal === "item"} title="Adicionar item" description={`Mesa ${String(selected.id).padStart(2, "0")}`} onClose={() => setModal(null)}><Form onSubmit={addItem}><Field label="Item do cardápio"><select value={itemDraft.menuId} onChange={(event) => setItemDraft((current) => ({ ...current, menuId: event.target.value }))}><option value="">Selecione</option>{activeMenu.map((item) => <option value={item.id} key={item.id}>{item.name} · {currency(item.price)}</option>)}</select></Field><Field label="Quantidade"><input type="number" min="1" value={itemDraft.quantity} onChange={(event) => setItemDraft((current) => ({ ...current, quantity: Number(event.target.value) || 1 }))} /></Field><Field label="Observação"><input value={itemDraft.note} onChange={(event) => setItemDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Ex.: sem cebola" /></Field><div className={styles.modalActions}><button className={styles.primaryButton}>Adicionar à comanda</button></div></Form></Modal>
-    <Modal open={modal === "menu"} title="Novo item do cardápio" onClose={() => setModal(null)}><Form onSubmit={addMenuItem}><Field label="Nome"><input required value={menuDraft.name} onChange={(event) => setMenuDraft((current) => ({ ...current, name: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Categoria"><input value={menuDraft.category} onChange={(event) => setMenuDraft((current) => ({ ...current, category: event.target.value }))} /></Field><Field label="Preço"><input inputMode="decimal" value={menuDraft.price} onChange={(event) => setMenuDraft((current) => ({ ...current, price: event.target.value }))} /></Field></div><div className={styles.modalActions}><button className={styles.primaryButton}>Criar item</button></div></Form></Modal>
+    <Modal open={Boolean(historyPreview)} title={historyPreview?.place ?? "Comanda"} description={historyPreview?.id} onClose={() => setHistoryPreview(null)}><div className={styles.historySummary}><div><span>Encerrada em</span><strong>{historyPreview?.closedAt}</strong></div><div><span>Quantidade de itens</span><strong>{historyPreview?.items}</strong></div><div><span>Total registrado</span><strong>{currency(historyPreview?.total ?? 0)}</strong></div></div>{historyPreview?.summary ? <div className={styles.noteBox}>{historyPreview.summary}</div> : null}</Modal>
+    <Modal open={modal === "command"} title="Nova comanda" description="Escolha uma mesa livre e o responsável pelo atendimento." onClose={() => setModal(null)}><Form onSubmit={createCommand}><Field label="Mesa"><select required value={commandDraft.tableId} onChange={(event) => setCommandDraft((current) => ({ ...current, tableId: event.target.value }))}><option value="">Selecione</option>{freeTables.map((table) => <option key={table.id} value={table.id}>Mesa {String(table.id).padStart(2, "0")} · {table.seats} lugares</option>)}</select></Field><Field label="Responsável"><input required value={commandDraft.waiter} onChange={(event) => setCommandDraft((current) => ({ ...current, waiter: event.target.value }))} placeholder="Nome do atendente" /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Abrir comanda</button></div></Form></Modal>
+    <Modal open={modal === "item"} title="Adicionar item" description={selected ? `Mesa ${String(selected.id).padStart(2, "0")}` : undefined} onClose={() => setModal(null)}><Form onSubmit={addItem}><Field label="Item do cardápio"><select required value={itemDraft.menuId} onChange={(event) => setItemDraft((current) => ({ ...current, menuId: event.target.value }))}><option value="">Selecione</option>{activeMenu.map((item) => <option value={item.id} key={item.id}>{item.name} · {currency(item.price)}</option>)}</select></Field><Field label="Quantidade"><input type="number" min="1" value={itemDraft.quantity} onChange={(event) => setItemDraft((current) => ({ ...current, quantity: Number(event.target.value) || 1 }))} /></Field><Field label="Observação"><input value={itemDraft.note} onChange={(event) => setItemDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Ex.: sem cebola" /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Adicionar à comanda</button></div></Form></Modal>
+    <Modal open={modal === "menu"} title={menuDraft.id ? "Editar item do cardápio" : "Novo item do cardápio"} onClose={() => setModal(null)}><Form onSubmit={saveMenuItem}><Field label="Nome"><input required value={menuDraft.name} onChange={(event) => setMenuDraft((current) => ({ ...current, name: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Categoria"><input value={menuDraft.category} onChange={(event) => setMenuDraft((current) => ({ ...current, category: event.target.value }))} /></Field><Field label="Preço"><input inputMode="decimal" value={menuDraft.price} onChange={(event) => setMenuDraft((current) => ({ ...current, price: event.target.value }))} /></Field></div>{menuDraft.id ? <label className={styles.toggleRow}><input type="checkbox" checked={menuDraft.active} onChange={(event) => setMenuDraft((current) => ({ ...current, active: event.target.checked }))} /><span><strong>Disponível</strong><small>Permitir seleção em novas comandas.</small></span></label> : null}<div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>{menuDraft.id ? "Salvar alterações" : "Criar item"}</button></div></Form></Modal>
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
 }
