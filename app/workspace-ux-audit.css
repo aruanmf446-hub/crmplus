@@ -25,18 +25,41 @@
 [data-product] [class*="summaryGrid"] { margin-bottom: 14px; }
 [data-product] [class*="overviewItem"] span,
 [data-product] [class*="focusHeader"] span,
-[data-product] [class*="focusGrid"] span { font-size: 10px; }
+[data-product] [class*="focusGrid"] span,
+[data-product] [class*="readField"] span,
+[data-product] [class*="editFieldset"] label,
+[data-product] [class*="resultBanner"],
+[data-product] [class*="tableHeader"] { font-size: 10px; }
 [data-product] [class*="overviewItem"] small { font-size: 10px; line-height: 1.35; }
 [data-product] [class*="overviewItem"] strong { font-size: 22px; }
 [data-product] [class*="entityMain"] strong,
 [data-product] [class*="operationRow"] strong,
-[data-product] [class*="resourceRow"] strong { font-size: 12px; }
+[data-product] [class*="resourceRow"] strong,
+[data-product] [class*="readField"] strong { font-size: 12px; }
 [data-product] [class*="entityMain"] p,
 [data-product] [class*="operationRow"] p,
 [data-product] [class*="resourceRow"] p { font-size: 10px; }
+[data-product] [class*="operationRow"] small,
+[data-product] [class*="resourceRow"] small,
+[data-product] [class*="entityMeta"] small,
+[data-product] [class*="dataCard"] > p { font-size: 10px; line-height: 1.45; }
+[data-product] [class*="operationActions"] select { min-height: 38px; font-size: 11px; }
+[data-product] [class*="editFieldset"] input,
+[data-product] [class*="editFieldset"] select,
+[data-product] [class*="editFieldset"] textarea { font-size: 13px; }
 [data-product] [class*="primaryTable"] [class*="tableRow"] strong,
 [data-product] [class*="primaryTable"] [class*="tableRow"] span { font-size: 11px; }
 [data-product] [class*="documentPane"] > [class*="noteBox"] { margin: 14px 18px 0; }
+
+/* As limitações internas de escopo não são apresentadas como descrição do produto. */
+[data-product="hermes"] [class*="titleBlock"] p,
+[data-product="gaia"] [class*="titleBlock"] p,
+[data-product="pegasus"] [class*="titleBlock"] p,
+[data-product="titans"] [class*="titleBlock"] p { font-size: 0; }
+[data-product="hermes"] [class*="titleBlock"] p::after { content: "Planejamento, programação, participantes, equipe, credenciamento e presença."; font-size: 12px; }
+[data-product="gaia"] [class*="titleBlock"] p::after { content: "Propriedades, áreas, culturas, observações e diário de campo."; font-size: 12px; }
+[data-product="pegasus"] [class*="titleBlock"] p::after { content: "Cadastro do pet, tutor, agenda de atendimentos, vacinas e histórico de cuidados."; font-size: 12px; }
+[data-product="titans"] [class*="titleBlock"] p::after { content: "Execução física, diário, projetos, decisões e pendências da obra."; font-size: 12px; }
 
 /* Elementos clicáveis de conteúdo não devem parecer botões soltos. */
 [data-product="artemis"] [class*="menuRows"] > div > button:first-child {
@@ -87,7 +110,7 @@
 [data-product] [class*="listToolbar"] { align-items: center; }
 
 @media (max-width: 900px) {
-  [data-product] [class*="overviewStrip"] { grid-template-columns: repeat(3, minmax(150px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
+  [data-product] [class*="overviewStrip"] { grid-template-columns: repeat(3, minmax(170px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
   [data-product] [class*="overviewItem"] { min-width: 170px; }
 }
 
@@ -101,6 +124,8 @@
   [data-product] [class*="modalActions"] { flex-direction: column-reverse; }
   [data-product] [class*="modalActions"] > * { width: 100%; min-height: 46px; }
   [data-product] [class*="photoGrid"] { grid-template-columns: 1fr; }
+  [data-product] [class*="detailTabs"] { overflow-x: auto; scrollbar-width: thin; }
+  [data-product] [class*="detailTabs"] > button { flex: 0 0 auto; min-height: 44px; }
   [data-product] [class*="directoryToolbar"],
   [data-product] [class*="listToolbar"] { align-items: stretch; flex-direction: column; }
   [data-product] [class*="compactSelect"] { min-height: 42px; width: 100%; }
