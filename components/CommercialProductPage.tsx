@@ -35,7 +35,6 @@ export function CommercialProductPage({ product }: Props) {
                 <div className={styles.productName}><span><ProductIcon slug={product.slug} size={25} /></span><div><small>{presentation.label}</small><strong>{product.name}</strong></div></div>
                 <h1>{product.tagline}</h1>
                 <p className={styles.lead}>{presentation.benefit}</p>
-                <div className="commercial-feature-chips">{product.features.slice(0, 3).map((feature) => <span key={feature}>{feature}</span>)}</div>
                 <div className={styles.priceRow}>
                   <strong>{formatMonthlyPrice(info.monthlyPrice)}</strong>
                   <span>Planos mensal, semestral e anual</span>
@@ -56,7 +55,7 @@ export function CommercialProductPage({ product }: Props) {
                     fallback={<div className="commercial-cover-fallback"><ProductIcon slug={product.slug} size={72} /><strong>{product.shortName}</strong><span>{presentation.label}</span></div>}
                   />
                 </div>
-                <div className="commercial-screen-card"><ProductIcon slug={product.slug} size={22} /><div><small>Tela em destaque</small><strong>{presentation.screens[0].title}</strong><span>{presentation.screens[0].description}</span></div></div>
+                <div className="commercial-screen-card"><ProductIcon slug={product.slug} size={22} /><div><small>Resultado principal</small><strong>{product.outcome}</strong></div></div>
               </div>
             </div>
           </div>
@@ -93,16 +92,6 @@ export function CommercialProductPage({ product }: Props) {
                 <li key={step}><span>{String(index + 1).padStart(2, "0")}</span><strong>{step}</strong></li>
               ))}
             </ol>
-          </div>
-        </section>
-
-        <section className={styles.closing}>
-          <div className="shell">
-            <div><h2>Abra o {product.shortName} e avalie o design e as funções do protótipo.</h2></div>
-            <div className={styles.actions}>
-              <Link className={styles.primary} href={`/sistemas/${product.slug}`}>Abrir demonstração</Link>
-              <Link className={styles.light} href={`/assinar/${product.slug}`}>Ver planos</Link>
-            </div>
           </div>
         </section>
       </main>
