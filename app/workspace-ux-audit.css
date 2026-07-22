@@ -1,39 +1,39 @@
 /* Auditoria de legibilidade e responsividade das áreas internas. */
-.appShell .titleBlock > span,
-.appShell .eyebrow { font-size: 11px; }
-.appShell .titleBlock p,
-.appShell .recordMain p,
-.appShell .recordMeta small,
-.appShell .sectionHeading p,
-.appShell .nextAction span,
-.appShell .summaryGrid span,
-.appShell .feedbackMeta span,
-.appShell .opportunityValue > span { font-size: 11px; }
-.appShell .recordMain strong,
-.appShell .summaryGrid strong { font-size: 13px; }
-.appShell .statusPill { min-height: 26px; padding-inline: 9px; font-size: 10px; }
-.appShell .emptyState h3 { font-size: 14px; }
-.appShell .emptyState p { font-size: 12px; }
-.appShell .toast span { font-size: 12px; }
-.appShell .modalCard header p { font-size: 12px; }
-.appShell .dataTable { overflow-x: auto; }
-.appShell .dataHead,
-.appShell .dataRow { min-width: 640px; }
-.appShell .dataHead { font-size: 10px; }
-.appShell .dataRow span { font-size: 12px; }
+[data-product] [class*="titleBlock"] > span,
+[data-product] [class*="eyebrow"] { font-size: 11px; }
+[data-product] [class*="titleBlock"] p,
+[data-product] [class*="recordMain"] p,
+[data-product] [class*="recordMeta"] small,
+[data-product] [class*="sectionHeading"] p,
+[data-product] [class*="nextAction"] span,
+[data-product] [class*="summaryGrid"] span,
+[data-product] [class*="feedbackMeta"] span,
+[data-product] [class*="opportunityValue"] > span { font-size: 11px; }
+[data-product] [class*="recordMain"] strong,
+[data-product] [class*="summaryGrid"] strong { font-size: 13px; }
+[data-product] [class*="statusPill"] { min-height: 26px; padding-inline: 9px; font-size: 10px; }
+[data-product] [class*="emptyState"] h3 { font-size: 14px; }
+[data-product] [class*="emptyState"] p { font-size: 12px; }
+[data-product] [class*="toast"] span { font-size: 12px; }
+[data-product] [class*="modalCard"] header p { font-size: 12px; }
+[data-product] [class*="dataTable"] { overflow-x: auto; }
+[data-product] [class*="dataHead"],
+[data-product] [class*="dataRow"] { min-width: 640px; }
+[data-product] [class*="dataHead"] { font-size: 10px; }
+[data-product] [class*="dataRow"] span { font-size: 12px; }
 
 /* Evita repetir ações que já estão disponíveis no cabeçalho do aplicativo. */
 [data-product="pandora"] [class*="pageHeading"] > button,
 [data-product="hercules"] [class*="pageHeading"] > button { display: none; }
 
 @media (max-width: 620px) {
-  .appShell .topbar { gap: 12px; }
-  .appShell .topActions { flex-wrap: wrap; }
-  .appShell .topActions > button:not([class*="searchButton"]) { min-height: 44px; }
-  .appShell .recordRow { grid-template-columns: 38px minmax(0,1fr); }
-  .appShell .recordMeta { grid-column: 2; justify-items: start; }
-  .appShell .headerButtons > * { min-height: 44px; }
-  .appShell .modalActions { flex-direction: column-reverse; }
-  .appShell .modalActions > * { width: 100%; min-height: 46px; }
-  .appShell .photoGrid { grid-template-columns: 1fr; }
+  [data-product] [class*="topbar"] { gap: 12px; }
+  [data-product] [class*="topActions"] { flex-wrap: wrap; }
+  [data-product] [class*="topActions"] > button:not([class*="searchButton"]) { min-height: 44px; }
+  [data-product] [class*="recordRow"] { grid-template-columns: 38px minmax(0,1fr); }
+  [data-product] [class*="recordMeta"] { grid-column: 2; justify-items: start; }
+  [data-product] [class*="headerButtons"] > * { min-height: 44px; }
+  [data-product] [class*="modalActions"] { flex-direction: column-reverse; }
+  [data-product] [class*="modalActions"] > * { width: 100%; min-height: 46px; }
+  [data-product] [class*="photoGrid"] { grid-template-columns: 1fr; }
 }
