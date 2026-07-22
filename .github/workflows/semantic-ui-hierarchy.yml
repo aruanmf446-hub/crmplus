@@ -1,0 +1,390 @@
+name: Aplicar hierarquia visual semântica
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/semantic-ui-hierarchy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  hierarchy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Aplicar temas e hierarquia
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          shared = Path('components/workspaces/phase-four/shared.tsx')
+          text = shared.read_text()
+
+          anchor = '''export type NavItem = { label: string; icon: IconName };\n\n'''
+          themes = '''export type NavItem = { label: string; icon: IconName };\n\ntype VisualTheme = {\n  nav: string;\n  navRaised: string;\n  selection: string;\n  selectionStrong: string;\n  result: string;\n  resultRaised: string;\n  canvas: string;\n  topbar: string;\n  data: string;\n};\n\nconst appThemes: Record<string, VisualTheme> = {\n  atlas: { nav: "#2c1b14", navRaised: "#3a241a", selection: "#fff4ec", selectionStrong: "#ffe0ca", result: "#fff9f5", resultRaised: "#ffefe3", canvas: "#f7f3f0", topbar: "#fffcfa", data: "#ffffff" },\n  artemis: { nav: "#351b1d", navRaised: "#462226", selection: "#fff2ef", selectionStrong: "#ffdcd5", result: "#fff8f6", resultRaised: "#ffeae5", canvas: "#f7f2f1", topbar: "#fffdfc", data: "#ffffff" },\n  ares: { nav: "#142344", navRaised: "#1c2f59", selection: "#f0f4ff", selectionStrong: "#dce6ff", result: "#f7f9ff", resultRaised: "#e9efff", canvas: "#f2f4f9", topbar: "#fbfcff", data: "#ffffff" },\n  poseidon: { nav: "#102d3e", navRaised: "#163d53", selection: "#edf7fb", selectionStrong: "#d5ecf6", result: "#f6fbfd", resultRaised: "#e2f2f8", canvas: "#f1f5f7", topbar: "#fbfdfe", data: "#ffffff" },\n  pandora: { nav: "#2b213e", navRaised: "#3a2b53", selection: "#f6f1fc", selectionStrong: "#e7dcf6", result: "#fbf8fe", resultRaised: "#efe7f9", canvas: "#f4f1f7", topbar: "#fdfbff", data: "#ffffff" },\n  hercules: { nav: "#302a17", navRaised: "#40371d", selection: "#fff9e8", selectionStrong: "#ffefb7", result: "#fffdf6", resultRaised: "#fff5cf", canvas: "#f7f5ed", topbar: "#fffefb", data: "#ffffff" },\n};\n\n'''
+          if 'const appThemes:' not in text:
+              if anchor not in text:
+                  raise SystemExit('theme insertion anchor not found')
+              text = text.replace(anchor, themes)
+
+          old_style = '  const shellStyle = { "--accent": product.color, "--accent-soft": product.colorSoft } as CSSProperties;'
+          new_style = '''  const visualTheme = appThemes[product.slug] ?? appThemes.ares;\n  const shellStyle = {\n    "--accent": product.color,\n    "--accent-soft": product.colorSoft,\n    "--nav-bg": visualTheme.nav,\n    "--nav-raised": visualTheme.navRaised,\n    "--selection-bg": visualTheme.selection,\n    "--selection-strong": visualTheme.selectionStrong,\n    "--result-bg": visualTheme.result,\n    "--result-raised": visualTheme.resultRaised,\n    "--canvas-bg": visualTheme.canvas,\n    "--topbar-bg": visualTheme.topbar,\n    "--data-bg": visualTheme.data,\n  } as CSSProperties;'''
+          if old_style in text:
+              text = text.replace(old_style, new_style)
+          elif 'const visualTheme = appThemes[product.slug]' not in text:
+              raise SystemExit('shell style replacement target not found')
+
+          old_root = '<div className={`${styles.appShell} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle}>'
+          new_root = '<div className={`${styles.appShell} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle} data-product={product.slug}>'
+          if old_root in text:
+              text = text.replace(old_root, new_root)
+          elif 'data-product={product.slug}' not in text:
+              raise SystemExit('root data product target not found')
+
+          shared.write_text(text)
+
+          css = Path('components/workspaces/phase-four/PhaseFourWorkspace.module.css')
+          css_text = css.read_text()
+          marker = '/* VISUAL SEMANTIC HIERARCHY */'
+          if marker not in css_text:
+              css_text += r'''
+
+/* VISUAL SEMANTIC HIERARCHY */
+.appShell {
+  --nav-bg: #172033;
+  --nav-raised: #202c43;
+  --selection-bg: #f4f7fb;
+  --selection-strong: #e4edff;
+  --result-bg: #f8faff;
+  --result-raised: #edf2ff;
+  --canvas-bg: #f3f5f8;
+  --topbar-bg: #ffffff;
+  --data-bg: #ffffff;
+  background: var(--canvas-bg);
+}
+
+.sidebar {
+  background: var(--nav-bg);
+  border-right-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 10px 0 32px rgba(16, 24, 40, .08);
+}
+
+.brandBlock {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 13px;
+  background: var(--nav-raised);
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.productLogo {
+  border-radius: 10px;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.sideNav .navActive {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 0 0 1px rgba(255,255,255,.14);
+}
+
+.sideNav button:not(.navActive):hover,
+.sidebarFooter button:hover,
+.sidebarFooter a:hover {
+  background: var(--nav-raised);
+}
+
+.topbar {
+  background: color-mix(in srgb, var(--topbar-bg) 96%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  box-shadow: inset 0 -3px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.titleBlock > span {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  letter-spacing: .06em;
+}
+
+.content { background: var(--canvas-bg); }
+
+.masterDetail,
+.restaurantLayout,
+.salesLayout,
+.feedbackLayout,
+.inspectionLayout {
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--line));
+  box-shadow: 0 12px 34px rgba(16,24,40,.07);
+}
+
+.listPane,
+.feedbackInbox,
+.salesTablePane,
+.floorSheet,
+.inspectionIndex {
+  background: var(--selection-bg);
+}
+
+.listToolbar,
+.segmented,
+.feedbackFilter,
+.salesHeader,
+.floorLegend,
+.progressBlock {
+  background: color-mix(in srgb, var(--selection-bg) 78%, white);
+}
+
+.recordRow:hover,
+.salesRow:hover,
+.feedbackRow:hover {
+  background: color-mix(in srgb, var(--selection-strong) 42%, white);
+}
+
+.recordSelected,
+.salesSelected,
+.feedbackRow.recordSelected {
+  background: var(--selection-strong);
+  box-shadow: inset 5px 0 var(--accent), inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.recordSelected .recordAvatar,
+.salesSelected .companyAvatar,
+.feedbackRow.recordSelected .scoreBadge {
+  background: var(--accent);
+  color: white;
+}
+
+.segmented .segmentActive,
+.feedbackFilter .segmentActive,
+.segmentActive {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.segmented .segmentActive span { color: rgba(255,255,255,.78); }
+
+.floorSelected {
+  background: var(--selection-strong);
+  border-color: var(--accent);
+  outline: 4px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 -5px var(--accent), 0 10px 22px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.checkIndex .checkCurrent {
+  background: var(--selection-strong);
+  box-shadow: inset 4px 0 var(--accent);
+}
+
+.detailPane,
+.feedbackDetail,
+.salesDetail,
+.documentPane,
+.orderSheet,
+.inspectionStage {
+  position: relative;
+  background: var(--result-bg);
+}
+
+.detailPane::before,
+.feedbackDetail::before,
+.salesDetail::before,
+.documentPane::before,
+.orderSheet::before,
+.inspectionStage::before {
+  display: block;
+  min-height: 28px;
+  padding: 8px 18px 7px;
+  background: var(--result-raised);
+  color: var(--accent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+  font-size: 8px;
+  line-height: 1.4;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.detailPane::before { content: "Registro selecionado"; }
+.orderSheet::before { content: "Comanda selecionada"; }
+.salesDetail::before { content: "Oportunidade selecionada"; }
+.feedbackDetail::before { content: "Resposta selecionada"; }
+.documentPane::before { content: "Resultado da seleção"; }
+.inspectionStage::before { content: "Item selecionado"; }
+
+.detailHeader,
+.orderHeader,
+.documentToolbar,
+.feedbackDetail .detailHeader,
+.salesDetail .detailHeader,
+.stageHeader {
+  background: var(--result-raised);
+}
+
+.detailTabs {
+  background: color-mix(in srgb, var(--result-raised) 70%, white);
+  gap: 7px;
+  padding-top: 7px;
+}
+
+.detailTabs button {
+  padding: 9px 10px 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.detailTabs .tabActive {
+  background: var(--accent);
+  color: white;
+  border-bottom-color: var(--accent);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.detailBody,
+.feedbackDetail,
+.salesDetail,
+.inspectionStage {
+  color: #101828;
+}
+
+.summaryGrid,
+.noteBox,
+.lineItems,
+.feedbackMeta,
+.opportunityValue,
+.evidenceBox,
+.quickComposer,
+.paper,
+.miniPaper,
+.builderForm,
+.livePreview,
+.modalCard,
+.dataTable,
+.directoryRows,
+.scheduleList,
+.menuRows,
+.surveyRows article,
+.inspectionRows article,
+.deviationRows article {
+  background: var(--data-bg);
+}
+
+.detailPane .infoSection,
+.feedbackDetail .infoSection,
+.salesDetail .infoSection {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--line));
+  border-radius: 12px;
+  background: var(--data-bg);
+}
+
+.summaryGrid strong,
+.noteBox,
+.lineItems strong,
+.fieldLabel input,
+.fieldLabel textarea,
+.fieldLabel select,
+.paper,
+.miniPaper,
+.dataRow strong,
+.directoryRows strong,
+.scheduleRow h3 {
+  color: #101828;
+}
+
+.fieldLabel > span,
+.summaryGrid span,
+.feedbackMeta span,
+.opportunityValue > span {
+  color: #475467;
+}
+
+.inputSearch:focus-within,
+.fieldLabel input:focus,
+.fieldLabel textarea:focus,
+.fieldLabel select:focus,
+.compactSelect:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.primaryButton {
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.pageSheet {
+  background: color-mix(in srgb, var(--result-bg) 52%, white);
+  border-color: color-mix(in srgb, var(--accent) 12%, var(--line));
+}
+
+.pageHeading {
+  padding: 14px 16px;
+  margin: -4px -4px 18px;
+  border-radius: 11px;
+  background: var(--result-raised);
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--line));
+}
+
+.emptyState {
+  background: color-mix(in srgb, var(--data-bg) 86%, var(--result-bg));
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .brandBlock { margin-bottom: 8px; }
+  .detailPane::before,
+  .feedbackDetail::before,
+  .salesDetail::before,
+  .documentPane::before,
+  .orderSheet::before,
+  .inspectionStage::before { position: sticky; top: 0; z-index: 3; }
+}
+
+@media (max-width: 620px) {
+  .pageHeading { padding: 12px; }
+  .detailPane .infoSection,
+  .feedbackDetail .infoSection,
+  .salesDetail .infoSection { margin-left: 0; margin-right: 0; padding: 13px; }
+  .titleBlock > span { min-height: 20px; font-size: 8px; }
+}
+'''
+              css.write_text(css_text)
+          PY
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: TypeScript
+        run: npm run lint
+
+      - name: Build estático
+        run: npm run build
+
+      - name: Registrar código e validação
+        shell: bash
+        run: |
+          printf 'SEMANTIC_UI_HIERARCHY=success\nSOURCE_COMMIT=%s\nVALIDATED_AT=%s\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/semantic-ui-validation.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/workspaces/phase-four/shared.tsx components/workspaces/phase-four/PhaseFourWorkspace.module.css .github/semantic-ui-validation.txt
+          git commit -m "style: separate navigation selection results and data [skip ci]"
+          git push
