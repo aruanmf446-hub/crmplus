@@ -19,7 +19,7 @@ function migrateKnownValue<T>(key: string, value: T): T {
       if (!entry || typeof entry !== "object") return entry;
       const record = entry as MigratableRecord;
       return record.status === "Vendido" ? { ...record, status: "Negócio concluído" } : record;
-    }) as T;
+    }) as unknown as T;
   }
 
   if (key === "crmplus.pegasus.records") {
@@ -28,7 +28,7 @@ function migrateKnownValue<T>(key: string, value: T): T {
       if (!entry || typeof entry !== "object") return entry;
       const record = entry as MigratableRecord;
       return typeof record.status === "string" && previousServiceStates.has(record.status) ? { ...record, status: "Ativo" } : record;
-    }) as T;
+    }) as unknown as T;
   }
 
   if (key === "crmplus.pandora.surveys") {
@@ -36,7 +36,7 @@ function migrateKnownValue<T>(key: string, value: T): T {
       if (!entry || typeof entry !== "object") return entry;
       const survey = entry as MigratableRecord;
       return typeof survey.link === "string" ? { ...survey, link: survey.link.replace("crmplus.local", "crmplus.store") } : survey;
-    }) as T;
+    }) as unknown as T;
   }
 
   return value;
