@@ -5,9 +5,41 @@ import { useEffect, useState } from "react";
 const STORE_VERSION = 1;
 
 type StoredValue<T> = { version: number; value: T };
+type MigratableRecord = Record<string, unknown>;
 
 function isStoredValue<T>(value: unknown): value is StoredValue<T> {
   return Boolean(value && typeof value === "object" && "version" in value && "value" in value);
+}
+
+function migrateKnownValue<T>(key: string, value: T): T {
+  if (!Array.isArray(value)) return value;
+
+  if (key === "crmplus.olympus.records") {
+    return value.map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const record = entry as MigratableRecord;
+      return record.status === "Vendido" ? { ...record, status: "Negócio concluído" } : record;
+    }) as T;
+  }
+
+  if (key === "crmplus.pegasus.records") {
+    const previousServiceStates = new Set(["Aguardando chegada", "Em atendimento", "Aguardando retirada", "Concluído", "Agendado", "Pronto", "Hospedado"]);
+    return value.map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const record = entry as MigratableRecord;
+      return typeof record.status === "string" && previousServiceStates.has(record.status) ? { ...record, status: "Ativo" } : record;
+    }) as T;
+  }
+
+  if (key === "crmplus.pandora.surveys") {
+    return value.map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const survey = entry as MigratableRecord;
+      return typeof survey.link === "string" ? { ...survey, link: survey.link.replace("crmplus.local", "crmplus.store") } : survey;
+    }) as T;
+  }
+
+  return value;
 }
 
 export function useLocalState<T>(key: string, initial: T | (() => T)) {
@@ -20,9 +52,9 @@ export function useLocalState<T>(key: string, initial: T | (() => T)) {
       if (raw) {
         const parsed = JSON.parse(raw) as StoredValue<T> | T;
         if (isStoredValue<T>(parsed)) {
-          if (parsed.version === STORE_VERSION) setValue(parsed.value);
+          if (parsed.version === STORE_VERSION) setValue(migrateKnownValue(key, parsed.value));
         } else {
-          setValue(parsed);
+          setValue(migrateKnownValue(key, parsed));
         }
       }
     } catch {
