@@ -36,6 +36,14 @@ const appThemes: Record<string, VisualTheme> = {
   pandora: { nav: "#2b213e", navRaised: "#3a2b53", selection: "#f6f1fc", selectionStrong: "#e7dcf6", result: "#fbf8fe", resultRaised: "#efe7f9", canvas: "#f4f1f7", topbar: "#fdfbff", data: "#ffffff" },
   hercules: { nav: "#302a17", navRaised: "#40371d", selection: "#fff9e8", selectionStrong: "#ffefb7", result: "#fffdf6", resultRaised: "#fff5cf", canvas: "#f7f5ed", topbar: "#fffefb", data: "#ffffff" },
   zeus: { nav: "#102f28", navRaised: "#17443a", selection: "#edf8f4", selectionStrong: "#d8f0e8", result: "#f7fcfa", resultRaised: "#e4f5ef", canvas: "#f1f6f4", topbar: "#fbfefd", data: "#ffffff" },
+  alexandria: { nav: "#322319", navRaised: "#463126", selection: "#faf1ea", selectionStrong: "#efd9ca", result: "#fdf9f6", resultRaised: "#f5e7dc", canvas: "#f5f1ee", topbar: "#fffdfb", data: "#ffffff" },
+  olympus: { nav: "#142f3d", navRaised: "#1d4254", selection: "#edf6f9", selectionStrong: "#d7eaf1", result: "#f7fbfc", resultRaised: "#e3f1f5", canvas: "#f0f5f7", topbar: "#fbfdfe", data: "#ffffff" },
+  argus: { nav: "#252d38", navRaised: "#333e4c", selection: "#f0f2f5", selectionStrong: "#dfe4e9", result: "#f8f9fb", resultRaised: "#e9edf1", canvas: "#f2f4f6", topbar: "#fcfcfd", data: "#ffffff" },
+  hermes: { nav: "#382216", navRaised: "#4c2e1c", selection: "#fff4ec", selectionStrong: "#f9dfcc", result: "#fffaf6", resultRaised: "#fbe9dc", canvas: "#f7f2ee", topbar: "#fffdfb", data: "#ffffff" },
+  athena: { nav: "#28203b", navRaised: "#392c54", selection: "#f5f1fb", selectionStrong: "#e5dcf4", result: "#fbf9fd", resultRaised: "#eee7f8", canvas: "#f4f2f7", topbar: "#fdfcff", data: "#ffffff" },
+  gaia: { nav: "#21301b", navRaised: "#304526", selection: "#f0f7ec", selectionStrong: "#deecd7", result: "#f9fcf7", resultRaised: "#e8f3e2", canvas: "#f2f6ef", topbar: "#fcfefb", data: "#ffffff" },
+  pegasus: { nav: "#3b202b", navRaised: "#502c3b", selection: "#fcf0f4", selectionStrong: "#f3dbe4", result: "#fef9fb", resultRaised: "#f8e7ed", canvas: "#f7f1f3", topbar: "#fffdfd", data: "#ffffff" },
+  titans: { nav: "#352918", navRaised: "#493923", selection: "#fbf5ea", selectionStrong: "#efe2ca", result: "#fdfbf7", resultRaised: "#f6ead8", canvas: "#f5f2ed", topbar: "#fffefc", data: "#ffffff" },
 };
 
 type ShellProps = {
@@ -152,7 +160,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
           </div>
         </header>
         <main className={styles.content} data-ui="workspace">{children}</main>
-        <div className={styles.localNotice}>Protótipo funcional · dados salvos somente neste navegador</div>
+        <div className={styles.localNotice}>Salvamento automático local · nenhum dado é enviado para servidores</div>
       </div>
 
       <Modal open={commandOpen} title="Ir para uma área" description="Pesquise pelas seções deste aplicativo." onClose={() => setCommandOpen(false)}>
@@ -233,7 +241,7 @@ export function Form({ children, onSubmit }: { children: ReactNode; onSubmit: ()
 }
 
 export function ProductGlyph({ slug }: { slug: string }) {
-  const map: Record<string, IconName> = { atlas: "car", artemis: "kitchen", ares: "document", poseidon: "spark", pandora: "message", hercules: "check", zeus: "car" };
+  const map: Record<string, IconName> = { atlas: "car", artemis: "kitchen", ares: "document", poseidon: "spark", pandora: "message", hercules: "check", zeus: "car", alexandria: "document", olympus: "home", argus: "tag", hermes: "calendar", athena: "clipboard", gaia: "activity", pegasus: "user", titans: "table" };
   return <Icon name={map[slug] ?? "home"} />;
 }
 

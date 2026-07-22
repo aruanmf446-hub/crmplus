@@ -273,3 +273,49 @@
   .detailCanvas { padding: 15px; }
   .resultBanner { position: sticky; top: 0; z-index: 3; padding: 0 15px; }
 }
+
+
+/* Polimento funcional compartilhado */
+.editFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.editFieldset label { display: grid; gap: 6px; color: #475467; font-size: 9px; font-weight: 800; }
+.editFieldset input, .editFieldset select, .editFieldset textarea {
+  width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 9px;
+  padding: 8px 10px; outline: 0; background: #fff; color: #152033;
+}
+.editFieldset textarea { min-height: 88px; resize: vertical; }
+.editFieldset:disabled { opacity: .72; }
+.editFieldset:disabled input, .editFieldset:disabled select, .editFieldset:disabled textarea { cursor: not-allowed; background: #f7f8fa; }
+.focusCard { border-color: color-mix(in srgb, var(--accent) 18%, var(--line)); background: color-mix(in srgb, var(--result-raised) 52%, #fff); }
+.focusHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 13px; }
+.focusHeader > div { display: grid; gap: 4px; }
+.focusHeader span, .focusGrid span { color: #667085; font-size: 8px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.focusHeader strong { font-size: 14px; }
+.focusGrid { display: grid; grid-template-columns: 1.4fr repeat(3, minmax(80px, .7fr)); border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--line)); border-radius: 10px; overflow: hidden; background: #fff; }
+.focusGrid > div { min-height: 61px; display: grid; gap: 6px; align-content: center; padding: 10px 12px; border-right: 1px solid var(--line); }
+.focusGrid > div:last-child { border-right: 0; }
+.focusGrid strong { font-size: 11px; line-height: 1.35; }
+.tabCount { min-width: 19px; height: 19px; margin-left: 7px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 999px; background: color-mix(in srgb, currentColor 10%, transparent); font-size: 8px; }
+.fileAction { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--accent); font-size: 9px; font-weight: 800; }
+.fileAction svg { width: 14px; height: 14px; }
+:global(button:disabled) { cursor: not-allowed; opacity: .58; transform: none !important; }
+
+@media (max-width: 760px) {
+  .editFieldset { grid-template-columns: 1fr; }
+  .focusGrid { grid-template-columns: 1fr 1fr; }
+  .focusGrid > div:nth-child(2) { border-right: 0; }
+  .focusGrid > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+}
+
+@media (max-width: 460px) {
+  .focusGrid { grid-template-columns: 1fr; }
+  .focusGrid > div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .focusGrid > div:last-child { border-bottom: 0; }
+}
