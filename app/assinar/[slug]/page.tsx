@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return {};
   return {
     title: `Planos do ${product.name}`,
-    description: `Escolha entre os planos mensal, semestral e anual do ${product.name}. Pagamento ainda não integrado.`,
+    description: `Compare os períodos mensal, semestral e anual do ${product.name}.`,
     robots: { index: false, follow: true },
   };
 }
