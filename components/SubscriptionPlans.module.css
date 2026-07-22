@@ -1,0 +1,49 @@
+.page { color: #1c1721; background: #f7f7f9; }
+.hero { padding: 38px 0 72px; color: white; background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 34%), #211a27; }
+.back { display: inline-flex; margin-bottom: 42px; color: #cfc6d7; font-size: 11px; font-weight: 700; }
+.back:hover { color: white; }
+.identity { display: flex; align-items: center; gap: 11px; margin-bottom: 30px; }
+.identity > span { width: 46px; height: 46px; display: grid; place-items: center; color: var(--accent); background: white; border-radius: 14px; }
+.identity strong { font-size: 15px; }
+.kicker { margin: 0; color: color-mix(in srgb, var(--accent) 55%, white); font-size: 10px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+.hero h1 { max-width: 900px; margin: 13px 0 19px; font-size: clamp(45px,6vw,73px); line-height: .98; letter-spacing: -.06em; }
+.hero > div > p:last-child { max-width: 690px; margin: 0; color: #c2bac8; font-size: 15px; line-height: 1.7; }
+.plansSection { padding: 68px 0 92px; }
+.plansSection > div { display: grid; grid-template-columns: minmax(0,1fr) 350px; gap: 24px; align-items: start; }
+.planGrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
+.planGrid button { position: relative; min-height: 340px; padding: 26px; text-align: left; background: white; border: 1px solid #dedfe4; border-radius: 22px; cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.planGrid button:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 45%, #dedfe4); }
+.planGrid .planActive { border-color: var(--accent); box-shadow: 0 20px 48px color-mix(in srgb, var(--accent) 16%, transparent); }
+.radio { position: absolute; top: 20px; right: 20px; width: 27px; height: 27px; display: grid; place-items: center; color: white; background: #ebecef; border-radius: 50%; font-size: 12px; }
+.planActive .radio { background: var(--accent); }
+.planGrid small { display: block; max-width: 150px; color: #818992; font-size: 10px; line-height: 1.4; }
+.planGrid h2 { margin: 45px 0 19px; font-size: 27px; letter-spacing: -.04em; }
+.planGrid strong { display: block; color: var(--accent); font-size: 24px; letter-spacing: -.04em; }
+.planGrid strong em { margin-left: 3px; color: #899099; font-size: 10px; font-style: normal; font-weight: 650; letter-spacing: 0; }
+.planGrid p { margin: 12px 0 0; color: #6d7680; font-size: 11px; line-height: 1.5; }
+.planGrid b { position: absolute; left: 26px; bottom: 25px; padding: 7px 9px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; font-size: 9px; }
+.summary { position: sticky; top: 20px; padding: 28px; background: white; border: 1px solid #dedfe4; border-radius: 22px; box-shadow: 0 20px 55px rgba(29,24,34,.08); }
+.summary h2 { margin: 11px 0 24px; font-size: 24px; letter-spacing: -.035em; }
+.summary dl { margin: 0; }
+.summary dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-top: 1px solid #ececef; font-size: 11px; }
+.summary dt { color: #7d858e; }
+.summary dd { margin: 0; font-weight: 750; text-align: right; }
+.summary .total { margin-top: 7px; padding-top: 18px; font-size: 15px; }
+.summary .total dd { color: var(--accent); font-size: 21px; }
+.summary button { width: 100%; min-height: 48px; margin-top: 24px; color: #8a8f96; background: #e9e9ed; border: 0; border-radius: 12px; cursor: not-allowed; font-size: 11px; font-weight: 800; }
+.summary > small { display: block; margin-top: 13px; color: #8b929a; font-size: 9.5px; line-height: 1.55; }
+@media (max-width: 1020px) {
+  .plansSection > div { grid-template-columns: 1fr; }
+  .summary { position: static; }
+}
+@media (max-width: 760px) {
+  .planGrid { grid-template-columns: 1fr; }
+  .planGrid button { min-height: 270px; }
+}
+@media (max-width: 640px) {
+  .hero { padding-bottom: 58px; }
+  .back { margin-bottom: 32px; }
+  .hero h1 { font-size: clamp(42px,12vw,56px); }
+  .plansSection { padding: 50px 0 70px; }
+  .summary { padding: 22px; }
+}
