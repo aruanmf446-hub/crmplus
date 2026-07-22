@@ -83,12 +83,12 @@ export function getProductMedia(slug: string) {
   const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
   const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
-  const cover = hasCover ? `${base}/${coverFile}?v=20260722-10` : "";
+  const cover = hasCover ? `${base}/${coverFile}?v=20260722-11` : "";
 
   return {
     cover,
     hasCover,
     gallery: [cover, cover, cover],
-    video: `${base}/preview.mp4?v=20260722-10`,
+    video: `${base}/preview.mp4?v=20260722-11`,
   };
 }
