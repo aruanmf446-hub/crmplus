@@ -41,9 +41,9 @@ export const products: Product[] = [
   },
   {
     slug: "pandora", name: "CRM Plus Pandora", shortName: "Pandora", category: "NPS e pesquisas", tagline: "Feedback que vira prioridade.",
-    description: "Pesquisas, links, respostas, NPS e temas para transformar a voz do cliente em ação.", seoDescription: "Sistema para criar pesquisas, calcular NPS, classificar respostas e tratar feedbacks.",
-    color: "#7650b6", colorSoft: "#f1eafb", features: ["Pesquisas personalizadas", "Links e materiais", "NPS e satisfação", "Temas e ações"],
-    audience: "Empresas que querem acompanhar a experiência do cliente sem depender de planilhas.", outcome: "Notas e comentários mostram os temas que elevam ou prejudicam a experiência.", workflow: ["Criar pesquisa", "Compartilhar", "Coletar", "Interpretar", "Agir"],
+    description: "Pesquisas, mensagens, respostas, NPS e temas para transformar a voz do cliente em ação.", seoDescription: "Sistema para criar pesquisas, calcular NPS, classificar respostas e tratar feedbacks.",
+    color: "#7650b6", colorSoft: "#f1eafb", features: ["Pesquisas personalizadas", "Mensagens e materiais", "NPS e satisfação", "Temas e ações"],
+    audience: "Empresas que querem acompanhar a experiência do cliente sem depender de planilhas.", outcome: "Notas e comentários mostram os temas que elevam ou prejudicam a experiência.", workflow: ["Criar pesquisa", "Preparar convite", "Registrar respostas", "Interpretar", "Agir"],
   },
   {
     slug: "zeus", name: "CRM Plus Zeus", shortName: "Zeus", category: "Gestão de frotas", tagline: "Cada veículo com responsável e próxima manutenção.",
