@@ -1,31 +1,9 @@
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { ProductScene } from "@/components/ProductScene";
+import { HomeCatalog } from "@/components/HomeCatalog";
 import { ProductIcon } from "@/components/ProductIcon";
-import { products, type Product } from "@/lib/apps";
-
-const homeTitles: Record<string, string> = {
-  atlas: "Sistema de oficina",
-  ares: "Sistema de orçamento",
-  artemis: "Sistema de restaurante",
-  pandora: "Sistema de NPS",
-  poseidon: "Sistema de funil de vendas",
-  hercules: "Sistema de checklist de inspeção",
-  zeus: "Sistema de gestão de frotas",
-  alexandria: "Sistema de biblioteca",
-  olympus: "Sistema de imobiliária",
-  argus: "Sistema de patrimônio",
-  hermes: "Sistema de eventos",
-  athena: "Sistema de licitações",
-  gaia: "Sistema de produção rural",
-  pegasus: "Sistema para pet shop",
-  titans: "Sistema para construtora",
-};
-
-function getHomeTitle(product: Product) {
-  return homeTitles[product.slug] ?? `Sistema para ${product.category.toLowerCase()}`;
-}
+import { products } from "@/lib/apps";
 
 export default function Home() {
   return (
@@ -36,63 +14,39 @@ export default function Home() {
           <div className="shell home-hero-grid">
             <div className="home-hero-copy">
               <p className="home-kicker">CRMPlus+ para pequenas empresas</p>
-              <h1>Aplicativos simples para <em>operações que precisam de clareza.</em></h1>
-              <p className="home-lead">Cada sistema resolve uma rotina específica. Sem módulos desnecessários e sem misturar negócios diferentes.</p>
+              <h1>Encontre o sistema ideal <em>para o seu negócio.</em></h1>
+              <p className="home-lead">Pesquise pelo seu segmento, filtre as opções e conheça somente os aplicativos que fazem sentido para a sua rotina.</p>
               <div className="home-actions">
-                <Link className="home-button home-button-primary" href="/criar-conta">Criar conta local</Link>
+                <a className="home-button home-button-primary" href="#sistemas">Encontrar meu sistema</a>
                 <Link className="home-button home-button-secondary" href="/entrar">Entrar</Link>
               </div>
-              <p className="home-note">Ambiente demonstrativo. Contas e registros ficam somente no navegador utilizado.</p>
+              <p className="home-note">Capas 1:1, prévias em vídeo sem som e páginas comerciais próprias para cada aplicativo.</p>
             </div>
 
-            <div className="home-product-preview" aria-label="Prévia do CRMPlus+ Atlas">
+            <div className="home-product-preview" aria-label="Prévia do catálogo interativo CRMPlus+">
               <div className="home-preview-top">
-                <span><ProductIcon slug="atlas" size={19} /> CRMPlus+ Atlas</span>
-                <small>Central operacional</small>
+                <span><ProductIcon slug="pandora" size={19} /> CRMPlus+ Store</span>
+                <small>Descoberta por segmento</small>
               </div>
               <div className="home-preview-body">
-                <div className="home-preview-heading"><div><small>Prioridades de hoje</small><strong>A oficina sem pontos cegos.</strong></div><b>Nova OS</b></div>
-                <div className="home-preview-numbers"><span><b>05</b>Entradas</span><span><b>03</b>Em serviço</span><span><b>02</b>Para entrega</span></div>
+                <div className="home-preview-heading"><div><small>Encontre sem perder tempo</small><strong>Pesquise. Filtre. Conheça.</strong></div><b>{products.length} apps</b></div>
+                <div className="home-preview-numbers"><span><b>01</b>Escolha o segmento</span><span><b>02</b>Veja a prévia</span><span><b>03</b>Conheça os planos</span></div>
                 <div className="home-preview-flow">
-                  <PreviewLane title="Avaliação" items={["Nivus · 28 min", "Onix · chegada"]} />
-                  <PreviewLane title="Em serviço" items={["T-Cross · OS 1050", "Strada · OS 1048"]} />
-                  <PreviewLane title="Entrega" items={["HB20 · conferência", "Saveiro · cliente avisado"]} />
+                  <PreviewLane title="Pesquisar" items={["Pet shop", "Oficina"]} />
+                  <PreviewLane title="Filtrar" items={["Automotivo", "Serviços"]} />
+                  <PreviewLane title="Descobrir" items={["Pegasus", "Atlas"]} />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="home-products" id="sistemas">
-          <div className="shell">
-            <div className="home-section-heading">
-              <p className="home-kicker">{products.length} produtos independentes</p>
-              <h2>Uma experiência própria para cada tipo de operação.</h2>
-              <p>Abra as demonstrações e valide fluxos, identidade e usabilidade antes da integração com serviços externos.</p>
-            </div>
-            <div className="home-card-grid">
-              {products.map((product) => {
-                const title = getHomeTitle(product);
-                return (
-                  <article className="home-product-card" key={product.slug} style={{ "--product-color": product.color, "--product-soft": product.colorSoft } as React.CSSProperties}>
-                    <ProductScene slug={product.slug} label={`Prévia do ${title}`} />
-                    <div className="home-card-copy">
-                      <div className="home-card-name"><span><ProductIcon slug={product.slug} size={20} /></span><small>CRMPlus+ {product.shortName}</small></div>
-                      <h3>{title}</h3>
-                      <p>{product.description}</p>
-                      <Link href={`/sistemas/${product.slug}`}>Abrir demonstração <span aria-hidden="true">→</span></Link>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <HomeCatalog products={products} />
 
         <section className="home-closing">
           <div className="shell home-closing-inner">
-            <div><p className="home-kicker">Teste antes de integrar</p><h2>Dados fictícios, experiência real de produto.</h2></div>
-            <Link className="home-button home-button-light" href="/criar-conta">Criar conta local</Link>
+            <div><p className="home-kicker">Uma experiência para cada negócio</p><h2>Conheça o aplicativo antes de escolher o plano.</h2></div>
+            <a className="home-button home-button-light" href="#sistemas">Explorar aplicativos</a>
           </div>
         </section>
       </main>
