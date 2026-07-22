@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import type { Product } from "@/lib/apps";
 import { fileToDataUrl, useLocalState } from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
@@ -59,12 +58,9 @@ type ShellProps = {
 
 export function AppShell({ product, nav, active, onChange, title, subtitle, action, children }: ShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [commandOpen, setCommandOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [commandQuery, setCommandQuery] = useState("");
   const [logoError, setLogoError] = useState("");
-  const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Empresa demonstração", compact: false, logo: "" });
-  const filteredNav = useMemo(() => nav.filter((item) => item.label.toLowerCase().includes(commandQuery.toLowerCase())), [commandQuery, nav]);
+  const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Minha empresa", logo: "" });
   const visualTheme = appThemes[product.slug] ?? appThemes.ares;
   const shellStyle = {
     "--accent": product.color,
@@ -82,15 +78,9 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setCommandOpen(true);
-      }
-      if (event.key === "Escape") {
-        setCommandOpen(false);
-        setSettingsOpen(false);
-        setMenuOpen(false);
-      }
+      if (event.key !== "Escape") return;
+      setSettingsOpen(false);
+      setMenuOpen(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -106,7 +96,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
       return;
     }
     if (file.size > 700 * 1024) {
-      setLogoError("A imagem é muito grande. Escolha uma de até 700 KB.");
+      setLogoError("Escolha uma imagem de até 700 KB.");
       event.target.value = "";
       return;
     }
@@ -120,7 +110,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   }
 
   function resetApp() {
-    const confirmed = window.confirm(`Redefinir o ${product.shortName}? Isso removerá os registros e as personalizações deste aplicativo.`);
+    const confirmed = window.confirm(`Redefinir o ${product.shortName}? Os registros deste aplicativo serão removidos deste navegador.`);
     if (!confirmed) return;
     const prefixes = [`crmplus.${product.slug}`, `crmplus.preferences.${product.slug}`];
     Object.keys(window.localStorage).filter((key) => prefixes.some((prefix) => key.startsWith(prefix))).forEach((key) => window.localStorage.removeItem(key));
@@ -128,7 +118,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   }
 
   return (
-    <div className={`${styles.appShell} ${hierarchy.visualHierarchy} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle} data-product={product.slug}>
+    <div className={`${styles.appShell} ${hierarchy.visualHierarchy}`} style={shellStyle} data-product={product.slug}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} data-ui="navigation">
         <div className={styles.brandBlock}>
           <div className={styles.productLogo}>{preferences.logo ? <img className={brand.brandLogoImage} src={preferences.logo} alt={`Logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
@@ -144,7 +134,6 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
         </nav>
         <div className={styles.sidebarFooter}>
           <button type="button" onClick={() => setSettingsOpen(true)}><Icon name="settings" /><span>Configurações</span></button>
-          <Link href="/"><Icon name="back" /><span>CRMPlus Store</span></Link>
         </div>
       </aside>
 
@@ -153,39 +142,32 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
       <div className={styles.workspace}>
         <header className={styles.topbar} data-ui="context">
           <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Abrir menu"><Icon name="menu" /></button>
-          <div className={styles.titleBlock}><span>{product.shortName} / {active}</span><h1>{title}</h1><p>{subtitle}</p></div>
-          <div className={styles.topActions}>
-            <button type="button" className={styles.searchButton} onClick={() => setCommandOpen(true)}><Icon name="search" /><span>Ir para</span><kbd>Ctrl K</kbd></button>
-            {action}
-          </div>
+          <div className={styles.titleBlock}><h1>{title}</h1><p>{subtitle}</p></div>
+          {action ? <div className={styles.topActions}>{action}</div> : null}
         </header>
         <main className={styles.content} data-ui="workspace">{children}</main>
       </div>
 
-      <Modal open={commandOpen} title="Ir para uma área" description="Pesquise pelas seções deste aplicativo." onClose={() => setCommandOpen(false)}>
-        <label className={styles.commandSearch}><Icon name="search" /><input autoFocus value={commandQuery} onChange={(event) => setCommandQuery(event.target.value)} placeholder="Digite uma área" /></label>
-        <div className={styles.commandResults}>
-          {filteredNav.map((item) => <button key={item.label} type="button" onClick={() => { onChange(item.label); setCommandOpen(false); setCommandQuery(""); }}><Icon name={item.icon} /><span>{item.label}</span><Icon name="chevron" /></button>)}
-          {!filteredNav.length ? <EmptyState icon="search" title="Nenhuma área encontrada" description="Tente outro termo." /> : null}
-        </div>
-      </Modal>
-
-      <Modal open={settingsOpen} title="Configurações" description="Personalize a apresentação e a densidade deste aplicativo." onClose={() => setSettingsOpen(false)}>
+      <Modal open={settingsOpen} title="Configurações" description="Ajuste apenas a identificação visual deste aplicativo." onClose={() => setSettingsOpen(false)}>
         <form className={styles.stackForm} onSubmit={(event) => { event.preventDefault(); setSettingsOpen(false); }}>
-          <Field label="Nome exibido da empresa"><input value={preferences.company} onChange={(event) => setPreferences((current) => ({ ...current, company: event.target.value }))} /></Field>
+          <Field label="Nome da empresa"><input value={preferences.company} onChange={(event) => setPreferences((current) => ({ ...current, company: event.target.value }))} /></Field>
           <div className={brand.logoSettings}>
             <div className={brand.logoSettingsHeader}>
-              <div><strong>Logo da empresa</strong><span>Use a identidade visual da sua empresa.</span></div>
+              <div><strong>Logo da empresa</strong><span>PNG, JPEG ou WebP de até 700 KB.</span></div>
               <div className={brand.logoPreview}>{preferences.logo ? <img src={preferences.logo} alt={`Prévia da logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
             </div>
             <div className={brand.logoActions}>
-              <label className={brand.logoUploadButton}><Icon name="image" /> {preferences.logo ? "Substituir logo" : "Selecionar logo"}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} /></label>
+              <label className={brand.logoUploadButton}><Icon name="image" /> {preferences.logo ? "Trocar logo" : "Selecionar logo"}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} /></label>
               {preferences.logo ? <button type="button" className={brand.logoRemoveButton} onClick={() => setPreferences((current) => ({ ...current, logo: "" }))}><Icon name="trash" /> Remover</button> : null}
             </div>
             {logoError ? <p className={brand.logoError}>{logoError}</p> : null}
           </div>
-          <label className={styles.toggleRow}><input type="checkbox" checked={preferences.compact} onChange={(event) => setPreferences((current) => ({ ...current, compact: event.target.checked }))} /><span><strong>Modo compacto</strong><small>Reduz espaços para mostrar mais registros.</small></span></label>
-          <div className={styles.modalActions}><button type="button" className={styles.dangerButton} onClick={resetApp}>Redefinir aplicativo</button><button className={styles.primaryButton}>Salvar preferências</button></div>
+          <details className={styles.settingsDanger}>
+            <summary>Redefinir dados deste aplicativo</summary>
+            <p>Use somente para apagar os rascunhos salvos neste navegador.</p>
+            <button type="button" className={styles.dangerButton} onClick={resetApp}>Redefinir aplicativo</button>
+          </details>
+          <div className={styles.modalActions}><button className={styles.primaryButton}>Concluir</button></div>
         </form>
       </Modal>
     </div>
