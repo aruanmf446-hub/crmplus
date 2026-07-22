@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
 import { getProductMedia } from "@/lib/storefront";
@@ -14,7 +13,6 @@ export function ProductInsideGallery({ product }: { product: Product }) {
       <div className="shell">
         <div className="product-inside-heading">
           <div><h2>Veja o {product.shortName} por dentro.</h2><p>{product.outcome}</p></div>
-          <Link href={`/sistemas/${product.slug}`}>Abrir demonstração <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></Link>
         </div>
         <div className="product-inside-grid">
           {presentation.screens.map((screen, index) => {
