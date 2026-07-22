@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WorkspacePage({ params }: Props) {
   const slug = (await params).slug;
   const product = getProduct(slug);
+  if (!product) notFound();
   const workspace = getWorkspace(slug);
-  if (!product || !workspace) notFound();
   return <WorkspaceRouter product={product} workspace={workspace} />;
 }
