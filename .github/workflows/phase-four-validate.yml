@@ -1,0 +1,28 @@
+name: Validar aplicativos locais
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/phase-four-validate.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: TypeScript
+        run: npm run lint
+      - name: Build estático
+        run: npm run build
