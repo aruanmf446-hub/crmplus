@@ -5,6 +5,7 @@ import "./singular-apps.css";
 import "./catalog-media.css";
 import "./storefront-polish.css";
 import "./webdesign-upgrade.css";
+import "./commercial-cover-fix.css";
 import "./workspace-atlas.css";
 import "./workspace-ares.css";
 import "./workspace-artemis.css";
