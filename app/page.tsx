@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HomeCatalog } from "@/components/HomeCatalog";
@@ -16,7 +15,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="home-page" data-catalog-build="20260722-14">
+      <main className="home-page" data-catalog-build="20260722-15">
         <section className="home-hero" id="inicio">
           <div className="shell home-hero-grid">
             <div className="home-hero-copy">
@@ -24,7 +23,6 @@ export default function Home() {
               <p className="home-lead">Escolha um aplicativo criado para o seu tipo de negócio, veja o produto por dentro e teste o protótipo antes de decidir.</p>
               <div className="home-actions">
                 <a className="home-button home-button-primary" href="#sistemas">Explorar aplicativos</a>
-                <Link className="home-button home-button-secondary" href="/entrar">Acessar aplicativo</Link>
               </div>
               <p className="home-note">Cada aplicativo possui identidade, fluxo, conta local e área interna próprios.</p>
             </div>
@@ -33,13 +31,6 @@ export default function Home() {
         </section>
 
         <HomeCatalog products={orderedProducts} />
-
-        <section className="home-closing">
-          <div className="shell home-closing-inner">
-            <div><h2>Conheça o aplicativo antes de escolher o plano.</h2><p>Abra a demonstração, navegue pelas telas e avalie as funções do protótipo.</p></div>
-            <a className="home-button home-button-light" href="#sistemas">Ver todos os aplicativos</a>
-          </div>
-        </section>
       </main>
       <Footer />
     </>
