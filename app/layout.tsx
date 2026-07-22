@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./compact.css";
 import "./singular-apps.css";
+import "./catalog-media.css";
 import "./workspace-atlas.css";
 import "./workspace-ares.css";
 import "./workspace-artemis.css";
