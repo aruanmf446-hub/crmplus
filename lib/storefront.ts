@@ -75,7 +75,7 @@ export function getProductMedia(slug: string) {
   const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
   const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
   const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
-  const version = "20260722-13";
+  const version = "20260722-14";
   const extensions = ["png", "jpg", "jpeg", "svg"];
   const candidates = (name: string) => extensions.map((extension) => `${base}/${name}.${extension}?v=${version}`);
   const galleryCandidates = [candidates("cover"), candidates("screen-01"), candidates("screen-02")];
