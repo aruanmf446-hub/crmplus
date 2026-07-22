@@ -1,0 +1,477 @@
+/*
+ * Modo de foco dos aplicativos CRM Plus.
+ * Regra: uma tarefa principal por tela, informação secundária sob demanda.
+ */
+
+[data-product] {
+  --focus-border: #e6e9ee;
+  --focus-muted: #667085;
+  --focus-surface: #ffffff;
+  --focus-canvas: #f7f8fa;
+}
+
+/* Estrutura principal mais silenciosa */
+[data-product][class*="appShell"] {
+  grid-template-columns: 208px minmax(0, 1fr) !important;
+  background: var(--focus-canvas) !important;
+}
+
+[data-product] [class*="sidebar"] {
+  padding: 18px 12px !important;
+  background: #ffffff !important;
+  color: #253044 !important;
+  border-right: 1px solid var(--focus-border) !important;
+}
+
+[data-product] [class*="brandBlock"] {
+  grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  gap: 9px !important;
+  padding: 2px 6px 18px !important;
+}
+
+[data-product] [class*="productLogo"] {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+[data-product] [class*="productLogo"] svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+[data-product] [class*="brandBlock"] strong {
+  color: #182230 !important;
+  font-size: 14px !important;
+}
+
+[data-product] [class*="brandBlock"] span {
+  color: #7b8492 !important;
+  font-size: 11px !important;
+}
+
+[data-product] [class*="sideNav"] {
+  gap: 2px !important;
+}
+
+[data-product] [class*="sideNav"] button,
+[data-product] [class*="sidebarFooter"] button,
+[data-product] [class*="sidebarFooter"] a {
+  min-height: 42px !important;
+  padding: 0 10px !important;
+  border-radius: 8px !important;
+  color: #5d6675 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+[data-product] [class*="sideNav"] button svg,
+[data-product] [class*="sidebarFooter"] svg {
+  width: 17px !important;
+  height: 17px !important;
+  opacity: .78;
+}
+
+[data-product] [class*="sideNav"] button:hover,
+[data-product] [class*="sidebarFooter"] button:hover,
+[data-product] [class*="sidebarFooter"] a:hover {
+  background: #f3f5f7 !important;
+  color: #182230 !important;
+}
+
+[data-product] [class*="sideNav"] [class*="navActive"] {
+  background: color-mix(in srgb, var(--accent) 9%, #fff) !important;
+  color: var(--accent) !important;
+  box-shadow: inset 3px 0 var(--accent) !important;
+}
+
+[data-product] [class*="sidebarFooter"] {
+  border-top-color: var(--focus-border) !important;
+}
+
+[data-product] [class*="topbar"] {
+  min-height: 68px !important;
+  padding: 12px 24px !important;
+  border-bottom: 1px solid var(--focus-border) !important;
+  background: rgba(255,255,255,.98) !important;
+  backdrop-filter: none !important;
+}
+
+[data-product] [class*="titleBlock"] h1 {
+  margin: 0 !important;
+  font-size: 20px !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+
+/* O título já informa o contexto. A explicação repetida sai da primeira leitura. */
+[data-product] [class*="titleBlock"] p {
+  display: none !important;
+}
+
+[data-product] [class*="content"] {
+  width: 100% !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  padding: 24px 28px 56px !important;
+}
+
+/* Sem dashboards decorativos antes da tarefa */
+[data-product] [class*="metricsLine"],
+[data-product] [class*="overviewStrip"] {
+  display: none !important;
+}
+
+[data-product="atlas"] [class*="summaryGrid"],
+[data-product="ares"] [class*="summaryGrid"],
+[data-product="poseidon"] [class*="summaryGrid"],
+[data-product="zeus"] [class*="summaryGrid"] {
+  display: none !important;
+}
+
+/* Pandora mantém apenas NPS e pendências; os demais números ficam nas áreas correspondentes. */
+[data-product="pandora"] [class*="summaryGrid"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  margin-bottom: 18px !important;
+}
+[data-product="pandora"] [class*="summaryGrid"] > div:nth-child(2),
+[data-product="pandora"] [class*="summaryGrid"] > div:nth-child(4) {
+  display: none !important;
+}
+
+/* Superfícies abertas: sem cartão dentro de cartão */
+[data-product] [class*="masterDetail"],
+[data-product] [class*="salesLayout"],
+[data-product] [class*="feedbackLayout"],
+[data-product] [class*="restaurantLayout"],
+[data-product] [class*="inspectionLayout"] {
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  gap: 18px !important;
+  overflow: visible !important;
+}
+
+[data-product] [class*="masterDetail"] {
+  grid-template-columns: minmax(290px, 31%) minmax(0, 1fr) !important;
+}
+
+[data-product] [class*="listPane"],
+[data-product] [class*="feedbackInbox"],
+[data-product] [class*="salesTablePane"],
+[data-product] [class*="detailPane"],
+[data-product] [class*="feedbackDetail"],
+[data-product] [class*="salesDetail"],
+[data-product] [class*="documentPane"] {
+  border: 1px solid var(--focus-border) !important;
+  border-radius: 12px !important;
+  background: var(--focus-surface) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+[data-product] [class*="listPane"],
+[data-product] [class*="feedbackInbox"],
+[data-product] [class*="salesTablePane"] {
+  border-right: 1px solid var(--focus-border) !important;
+}
+
+[data-product] [class*="pageSheet"] {
+  max-width: 980px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-product] [class*="pageHeading"] {
+  margin-bottom: 18px !important;
+}
+[data-product] [class*="pageHeading"] [class*="eyebrow"],
+[data-product] [class*="pageHeading"] p {
+  display: none !important;
+}
+[data-product] [class*="pageHeading"] h2 {
+  margin: 0 !important;
+  font-size: 22px !important;
+}
+
+/* Listas: só o que ajuda a reconhecer e escolher */
+[data-product] [class*="recordRow"] {
+  min-height: 64px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  padding: 11px 14px !important;
+  gap: 10px !important;
+}
+[data-product] [class*="recordAvatar"] {
+  display: none !important;
+}
+[data-product] [class*="recordMain"] strong {
+  font-size: 13px !important;
+}
+[data-product] [class*="recordMain"] p {
+  max-width: 100% !important;
+  font-size: 11px !important;
+  color: #717a88 !important;
+}
+[data-product] [class*="recordMain"] > div span,
+[data-product] [class*="recordMeta"] small {
+  display: none !important;
+}
+[data-product] [class*="recordMeta"] {
+  align-self: center !important;
+}
+
+[data-product] [class*="entityIcon"] {
+  display: none !important;
+}
+[data-product] [class*="entityRow"] {
+  min-height: 68px !important;
+  grid-template-columns: minmax(0, 1fr) auto 18px !important;
+  padding: 12px 16px !important;
+  gap: 12px !important;
+}
+[data-product] [class*="entityMain"] strong {
+  font-size: 13px !important;
+}
+[data-product] [class*="entityMain"] p {
+  margin-top: 3px !important;
+  font-size: 11px !important;
+}
+[data-product] [class*="entityMain"] small,
+[data-product] [class*="entityMeta"] span {
+  display: none !important;
+}
+
+[data-product] [class*="listToolbar"],
+[data-product] [class*="listControls"],
+[data-product] [class*="directoryToolbar"] {
+  padding: 12px !important;
+  gap: 8px !important;
+  background: #fff !important;
+}
+[data-product] [class*="inputSearch"] {
+  height: 42px !important;
+  border-color: var(--focus-border) !important;
+  box-shadow: none !important;
+}
+[data-product] [class*="compactSelect"] {
+  min-height: 42px !important;
+  border-color: var(--focus-border) !important;
+}
+
+/* Cabeçalho da ficha: uma única ação principal */
+[data-product] [class*="detailHeader"] {
+  padding: 20px 22px 16px !important;
+  border-bottom-color: var(--focus-border) !important;
+}
+[data-product] [class*="detailHeader"] h2 {
+  font-size: 20px !important;
+}
+[data-product] [class*="headerButtons"] [class*="secondaryButton"] {
+  display: none !important;
+}
+
+[data-product] [class*="detailTabs"] {
+  gap: 20px !important;
+  padding: 0 22px !important;
+  border-bottom-color: var(--focus-border) !important;
+}
+[data-product] [class*="detailTabs"] button {
+  min-height: 43px !important;
+  padding: 0 !important;
+  font-size: 12px !important;
+}
+[data-product] [class*="detailTabs"] button span {
+  display: none !important;
+}
+
+[data-product] [class*="detailBody"] {
+  padding: 18px 22px 28px !important;
+}
+[data-product] [class*="infoSection"] {
+  padding: 16px 0 !important;
+  border-bottom: 1px solid #eef0f3 !important;
+}
+[data-product] [class*="sectionHeading"] {
+  margin-bottom: 10px !important;
+}
+[data-product] [class*="sectionHeading"] h3 {
+  margin: 0 !important;
+  font-size: 14px !important;
+}
+[data-product] [class*="sectionHeading"] p {
+  display: none !important;
+}
+[data-product] [class*="noteBox"] {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 14px !important;
+}
+
+/* Próximo passo sem virar um segundo dashboard */
+[data-product] [class*="nextAction"] {
+  grid-template-columns: 26px minmax(0, 1fr) auto !important;
+  padding: 12px 14px !important;
+  border: 0 !important;
+  border-left: 3px solid var(--accent) !important;
+  border-radius: 4px !important;
+  background: color-mix(in srgb, var(--accent) 6%, #fff) !important;
+}
+[data-product] [class*="nextAction"] span {
+  display: none !important;
+}
+
+/* Fluxos verticais: ficha limpa, resumo direto */
+[data-product] [class*="listSurface"],
+[data-product] [class*="detailPage"] {
+  max-width: 980px !important;
+  margin: 0 auto !important;
+}
+[data-product] [class*="listSurface"] {
+  border: 1px solid var(--focus-border) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+[data-product] [class*="backButton"] {
+  margin-bottom: 14px !important;
+  color: #5f6876 !important;
+  font-size: 12px !important;
+}
+[data-product] [class*="nextStepCard"] {
+  grid-template-columns: 1fr 1.5fr !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--focus-border) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+[data-product] [class*="nextStepCard"] > div {
+  min-height: 72px !important;
+  padding: 14px 16px !important;
+}
+[data-product] [class*="nextStepCard"] > div:nth-child(3) {
+  display: none !important;
+}
+[data-product] [class*="summarySection"] {
+  padding: 20px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+[data-product] [class*="sectionTitle"] p,
+[data-product] [class*="disclosure"] summary span {
+  display: none !important;
+}
+[data-product] [class*="factsGrid"] {
+  gap: 0 !important;
+  border-top: 1px solid var(--focus-border) !important;
+}
+[data-product] [class*="factsGrid"] > div {
+  min-height: 64px !important;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--focus-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+[data-product] [class*="disclosure"] {
+  margin-top: 8px !important;
+  border: 1px solid var(--focus-border) !important;
+  border-radius: 9px !important;
+  background: #fff !important;
+}
+[data-product] [class*="disclosure"] summary {
+  min-height: 48px !important;
+  padding: 0 14px !important;
+}
+
+/* Linhas e cartões operacionais sem excesso de molduras */
+[data-product] [class*="operationRow"],
+[data-product] [class*="resourceRow"],
+[data-product] [class*="scheduleRow"],
+[data-product] [class*="directoryRows"] > button,
+[data-product] [class*="surveyRows"] article,
+[data-product] [class*="driverCard"] {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Textos técnicos e avisos internos não pertencem à experiência do cliente. */
+[data-product] [class*="settingsDanger"] p {
+  display: none !important;
+}
+
+/* Mobile: uma coluna, ação principal estável e sem aperto */
+@media (max-width: 900px) {
+  [data-product][class*="appShell"] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-product] [class*="sidebar"] {
+    background: #fff !important;
+    box-shadow: 18px 0 50px rgba(16,24,40,.16) !important;
+  }
+  [data-product] [class*="masterDetail"],
+  [data-product] [class*="salesLayout"],
+  [data-product] [class*="feedbackLayout"],
+  [data-product] [class*="restaurantLayout"],
+  [data-product] [class*="inspectionLayout"] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-product] [class*="content"] {
+    padding: 18px 16px 40px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  [data-product] [class*="topbar"] {
+    min-height: 60px !important;
+    padding: 10px 14px !important;
+  }
+  [data-product] [class*="titleBlock"] h1 {
+    font-size: 18px !important;
+  }
+  [data-product] [class*="topActions"] button {
+    min-height: 40px !important;
+    padding-inline: 11px !important;
+    font-size: 12px !important;
+  }
+  [data-product] [class*="entityRow"] {
+    grid-template-columns: minmax(0, 1fr) 18px !important;
+  }
+  [data-product] [class*="entityMeta"] {
+    grid-column: 1 !important;
+    justify-items: start !important;
+  }
+  [data-product] [class*="nextStepCard"] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-product] [class*="nextStepCard"] > div:first-child {
+    border-bottom: 1px solid var(--focus-border) !important;
+  }
+  [data-product] [class*="detailHeader"] {
+    padding: 16px !important;
+  }
+  [data-product] [class*="detailTabs"] {
+    padding: 0 16px !important;
+  }
+  [data-product] [class*="detailBody"] {
+    padding: 14px 16px 24px !important;
+  }
+  [data-product] [class*="nextAction"] {
+    grid-template-columns: 22px minmax(0, 1fr) !important;
+  }
+  [data-product] [class*="nextAction"] button {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+}
