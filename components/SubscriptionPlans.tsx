@@ -79,7 +79,7 @@ export function SubscriptionPlans({ product }: Props) {
                 </dl>
               </div>
               <div className="plan-summary-actions">
-                <Link href={`/sistemas/${product.slug}`}>Abrir demonstração</Link>
+                <Link href={`/sistemas/${product.slug}`} style={{ color: "#fff", background: "var(--accent)", border: 0 }}>Abrir demonstração</Link>
               </div>
               <small>A seleção permanece apenas durante esta navegação e serve para validar o webdesign da futura contratação.</small>
             </aside>
