@@ -3,9 +3,9 @@
   --nav-raised: #202c43;
   --selection-bg: #f4f7fb;
   --selection-strong: #e4edff;
-  --result-bg: #f8faff;
-  --result-raised: #edf2ff;
-  --canvas-bg: #f3f5f8;
+  --result-bg: #ffffff;
+  --result-raised: #f8fafc;
+  --canvas-bg: #f5f6f8;
   --topbar-bg: #ffffff;
   --data-bg: #ffffff;
   background: var(--canvas-bg);
@@ -13,302 +13,87 @@
 
 .visualHierarchy :global(aside[data-ui="navigation"]) {
   background: var(--nav-bg);
-  border-right-color: color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow: 10px 0 32px rgba(16, 24, 40, .08);
-}
-
-.visualHierarchy :global([class*="brandBlock"]) {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 13px;
-  background: var(--nav-raised);
-  border: 1px solid rgba(255, 255, 255, .06);
-}
-
-.visualHierarchy :global([class*="productLogo"]) {
-  border-radius: 10px;
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent);
-}
-
-.visualHierarchy :global(nav[class*="sideNav"] button[aria-current="page"]) {
-  background: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 0 0 1px rgba(255, 255, 255, .14);
-}
-
-.visualHierarchy :global(nav[class*="sideNav"] button:not([aria-current="page"]):hover),
-.visualHierarchy :global([class*="sidebarFooter"] button:hover),
-.visualHierarchy :global([class*="sidebarFooter"] a:hover) {
-  background: var(--nav-raised);
+  border-right-color: rgba(255, 255, 255, .06);
 }
 
 .visualHierarchy :global(header[data-ui="context"]) {
-  background: color-mix(in srgb, var(--topbar-bg) 96%, transparent);
-  border-bottom-color: color-mix(in srgb, var(--accent) 18%, #e5e9f0);
-  box-shadow: inset 0 -3px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-.visualHierarchy :global([class*="titleBlock"] > span) {
-  display: inline-flex;
-  width: max-content;
-  align-items: center;
-  min-height: 22px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #ffffff;
-  letter-spacing: .06em;
+  background: var(--topbar-bg);
+  border-bottom-color: #e5e8ed;
 }
 
 .visualHierarchy :global(main[data-ui="workspace"]) {
   background: var(--canvas-bg);
 }
 
-.visualHierarchy :global([class*="masterDetail"]),
-.visualHierarchy :global([class*="restaurantLayout"]),
-.visualHierarchy :global([class*="salesLayout"]),
-.visualHierarchy :global([class*="feedbackLayout"]),
-.visualHierarchy :global([class*="inspectionLayout"]) {
-  border-color: color-mix(in srgb, var(--accent) 14%, #e5e9f0);
-  box-shadow: 0 12px 34px rgba(16, 24, 40, .07);
+.visualHierarchy :global(nav[class*="sideNav"] button[aria-current="page"]) {
+  background: rgba(255, 255, 255, .1);
+  color: #ffffff;
+  box-shadow: inset 3px 0 var(--accent);
 }
 
-.visualHierarchy :global(section[class*="listPane"]),
-.visualHierarchy :global(section[class*="feedbackInbox"]),
-.visualHierarchy :global(section[class*="salesTablePane"]),
-.visualHierarchy :global(section[class*="floorSheet"]),
-.visualHierarchy :global(aside[class*="inspectionIndex"]) {
-  background: var(--selection-bg);
-}
-
-.visualHierarchy :global([class*="listToolbar"]),
-.visualHierarchy :global([class*="segmented"]),
-.visualHierarchy :global([class*="feedbackFilter"]),
-.visualHierarchy :global([class*="salesHeader"]),
-.visualHierarchy :global([class*="floorLegend"]),
-.visualHierarchy :global([class*="progressBlock"]) {
-  background: color-mix(in srgb, var(--selection-bg) 78%, #ffffff);
-}
-
-.visualHierarchy :global(button[class*="recordRow"]:hover),
-.visualHierarchy :global(button[class*="salesRow"]:hover),
-.visualHierarchy :global(button[class*="feedbackRow"]:hover) {
-  background: color-mix(in srgb, var(--selection-strong) 42%, #ffffff);
+.visualHierarchy :global(nav[class*="sideNav"] button:not([aria-current="page"]):hover),
+.visualHierarchy :global([class*="sidebarFooter"] button:hover),
+.visualHierarchy :global([class*="sidebarFooter"] a:hover) {
+  background: rgba(255, 255, 255, .07);
+  color: #ffffff;
 }
 
 .visualHierarchy :global(button[class*="recordSelected"]),
 .visualHierarchy :global(button[class*="salesSelected"]),
 .visualHierarchy :global(button[class*="feedbackRow"][class*="recordSelected"]) {
   background: var(--selection-strong);
-  box-shadow: inset 5px 0 var(--accent), inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 3px 0 var(--accent);
 }
 
 .visualHierarchy :global(button[class*="recordSelected"] [class*="recordAvatar"]),
-.visualHierarchy :global(button[class*="salesSelected"] [class*="companyAvatar"]),
-.visualHierarchy :global(button[class*="feedbackRow"][class*="recordSelected"] [class*="scoreBadge"]) {
+.visualHierarchy :global(button[class*="salesSelected"] [class*="companyAvatar"]) {
   background: var(--accent);
   color: #ffffff;
 }
 
 .visualHierarchy :global([class*="segmented"] [class*="segmentActive"]),
 .visualHierarchy :global([class*="feedbackFilter"] [class*="segmentActive"]) {
-  background: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: var(--selection-strong);
+  color: var(--accent);
+  box-shadow: none;
 }
 
 .visualHierarchy :global([class*="segmented"] [class*="segmentActive"] span) {
-  color: rgba(255, 255, 255, .78);
+  color: var(--accent);
+  opacity: .75;
 }
 
 .visualHierarchy :global(button[class*="floorSelected"]) {
-  background: var(--selection-strong);
   border-color: var(--accent);
-  outline: 4px solid color-mix(in srgb, var(--accent) 14%, transparent);
-  box-shadow: inset 0 -5px var(--accent), 0 10px 22px color-mix(in srgb, var(--accent) 15%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 13%, transparent);
+  box-shadow: none;
 }
 
 .visualHierarchy :global(button[class*="checkCurrent"]) {
   background: var(--selection-strong);
-  box-shadow: inset 4px 0 var(--accent);
+  box-shadow: inset 3px 0 var(--accent);
 }
 
-.visualHierarchy :global(section[class*="detailPane"]),
-.visualHierarchy :global(section[class*="feedbackDetail"]),
-.visualHierarchy :global(aside[class*="salesDetail"]),
-.visualHierarchy :global(section[class*="documentPane"]),
-.visualHierarchy :global(aside[class*="orderSheet"]),
-.visualHierarchy :global(section[class*="inspectionStage"]) {
-  position: relative;
-  background: var(--result-bg);
-}
-
-.visualHierarchy :global(section[class*="detailPane"]::before),
-.visualHierarchy :global(section[class*="feedbackDetail"]::before),
-.visualHierarchy :global(aside[class*="salesDetail"]::before),
-.visualHierarchy :global(section[class*="documentPane"]::before),
-.visualHierarchy :global(aside[class*="orderSheet"]::before),
-.visualHierarchy :global(section[class*="inspectionStage"]::before) {
-  display: block;
-  min-height: 28px;
-  padding: 8px 18px 7px;
-  background: var(--result-raised);
-  color: var(--accent);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 16%, #e5e9f0);
-  font-size: 8px;
-  line-height: 1.4;
-  font-weight: 900;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.visualHierarchy :global(section[class*="detailPane"]::before) { content: "Registro selecionado"; }
-.visualHierarchy :global(aside[class*="orderSheet"]::before) { content: "Comanda selecionada"; }
-.visualHierarchy :global(aside[class*="salesDetail"]::before) { content: "Oportunidade selecionada"; }
-.visualHierarchy :global(section[class*="feedbackDetail"]::before) { content: "Resposta selecionada"; }
-.visualHierarchy :global(section[class*="documentPane"]::before) { content: "Resultado da seleção"; }
-.visualHierarchy :global(section[class*="inspectionStage"]::before) { content: "Item selecionado"; }
-
-.visualHierarchy :global([class*="detailHeader"]),
-.visualHierarchy :global([class*="orderHeader"]),
-.visualHierarchy :global([class*="documentToolbar"]),
-.visualHierarchy :global([class*="stageHeader"]) {
-  background: var(--result-raised);
-}
-
-.visualHierarchy :global([class*="detailTabs"]) {
-  background: color-mix(in srgb, var(--result-raised) 70%, #ffffff);
-  gap: 7px;
-  padding-top: 7px;
-}
-
-.visualHierarchy :global([class*="detailTabs"] button) {
-  padding: 9px 10px 8px;
-  border-radius: 8px 8px 0 0;
+.visualHierarchy :global([class*="detailPane"]),
+.visualHierarchy :global([class*="feedbackDetail"]),
+.visualHierarchy :global([class*="salesDetail"]),
+.visualHierarchy :global([class*="documentPane"]),
+.visualHierarchy :global([class*="orderSheet"]),
+.visualHierarchy :global([class*="inspectionStage"]) {
+  background: var(--data-bg);
 }
 
 .visualHierarchy :global([class*="detailTabs"] [class*="tabActive"]) {
-  background: var(--accent);
-  color: #ffffff;
+  color: var(--accent);
   border-bottom-color: var(--accent);
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-
-.visualHierarchy :global([class*="detailBody"]),
-.visualHierarchy :global(section[class*="feedbackDetail"]),
-.visualHierarchy :global(aside[class*="salesDetail"]),
-.visualHierarchy :global(section[class*="inspectionStage"]) {
-  color: #101828;
-}
-
-.visualHierarchy :global([class*="summaryGrid"]),
-.visualHierarchy :global([class*="noteBox"]),
-.visualHierarchy :global([class*="lineItems"]),
-.visualHierarchy :global([class*="feedbackMeta"]),
-.visualHierarchy :global([class*="opportunityValue"]),
-.visualHierarchy :global([class*="evidenceBox"]),
-.visualHierarchy :global([class*="quickComposer"]),
-.visualHierarchy :global([class*="paper"]),
-.visualHierarchy :global([class*="miniPaper"]),
-.visualHierarchy :global([class*="builderForm"]),
-.visualHierarchy :global([class*="livePreview"]),
-.visualHierarchy :global([class*="modalCard"]),
-.visualHierarchy :global([class*="dataTable"]),
-.visualHierarchy :global([class*="directoryRows"]),
-.visualHierarchy :global([class*="scheduleList"]),
-.visualHierarchy :global([class*="menuRows"]),
-.visualHierarchy :global([class*="surveyRows"] article),
-.visualHierarchy :global([class*="inspectionRows"] article),
-.visualHierarchy :global([class*="deviationRows"] article) {
-  background: var(--data-bg);
-}
-
-.visualHierarchy :global(section[class*="detailPane"] [class*="infoSection"]),
-.visualHierarchy :global(section[class*="feedbackDetail"] [class*="infoSection"]),
-.visualHierarchy :global(aside[class*="salesDetail"] [class*="infoSection"]) {
-  margin-top: 12px;
-  padding: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 10%, #e5e9f0);
-  border-radius: 12px;
-  background: var(--data-bg);
-}
-
-.visualHierarchy :global([class*="summaryGrid"] strong),
-.visualHierarchy :global([class*="noteBox"]),
-.visualHierarchy :global([class*="lineItems"] strong),
-.visualHierarchy :global([class*="fieldLabel"] input),
-.visualHierarchy :global([class*="fieldLabel"] textarea),
-.visualHierarchy :global([class*="fieldLabel"] select),
-.visualHierarchy :global([class*="paper"]),
-.visualHierarchy :global([class*="miniPaper"]),
-.visualHierarchy :global([class*="dataRow"] strong),
-.visualHierarchy :global([class*="directoryRows"] strong),
-.visualHierarchy :global([class*="scheduleRow"] h3) {
-  color: #101828;
-}
-
-.visualHierarchy :global([class*="fieldLabel"] > span),
-.visualHierarchy :global([class*="summaryGrid"] span),
-.visualHierarchy :global([class*="feedbackMeta"] span),
-.visualHierarchy :global([class*="opportunityValue"] > span) {
-  color: #475467;
+  background: transparent;
+  box-shadow: none;
 }
 
 .visualHierarchy :global([class*="inputSearch"]:focus-within),
 .visualHierarchy :global([class*="fieldLabel"] input:focus),
 .visualHierarchy :global([class*="fieldLabel"] textarea:focus),
-.visualHierarchy :global([class*="fieldLabel"] select:focus),
-.visualHierarchy :global([class*="compactSelect"]:focus) {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
-}
-
-.visualHierarchy :global([class*="pageSheet"]) {
-  background: color-mix(in srgb, var(--result-bg) 52%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 12%, #e5e9f0);
-}
-
-.visualHierarchy :global([class*="pageHeading"]) {
-  padding: 14px 16px;
-  margin: -4px -4px 18px;
-  border-radius: 11px;
-  background: var(--result-raised);
-  border: 1px solid color-mix(in srgb, var(--accent) 10%, #e5e9f0);
-}
-
-.visualHierarchy :global([class*="emptyState"]) {
-  background: color-mix(in srgb, var(--data-bg) 86%, var(--result-bg));
-  border-radius: 10px;
-}
-
-@media (max-width: 900px) {
-  .visualHierarchy :global([class*="brandBlock"]) { margin-bottom: 8px; }
-
-  .visualHierarchy :global(section[class*="detailPane"]::before),
-  .visualHierarchy :global(section[class*="feedbackDetail"]::before),
-  .visualHierarchy :global(aside[class*="salesDetail"]::before),
-  .visualHierarchy :global(section[class*="documentPane"]::before),
-  .visualHierarchy :global(aside[class*="orderSheet"]::before),
-  .visualHierarchy :global(section[class*="inspectionStage"]::before) {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-  }
-}
-
-@media (max-width: 620px) {
-  .visualHierarchy :global([class*="pageHeading"]) { padding: 12px; }
-
-  .visualHierarchy :global(section[class*="detailPane"] [class*="infoSection"]),
-  .visualHierarchy :global(section[class*="feedbackDetail"] [class*="infoSection"]),
-  .visualHierarchy :global(aside[class*="salesDetail"] [class*="infoSection"]) {
-    margin-left: 0;
-    margin-right: 0;
-    padding: 13px;
-  }
-
-  .visualHierarchy :global([class*="titleBlock"] > span) {
-    min-height: 20px;
-    font-size: 8px;
-  }
+.visualHierarchy :global([class*="fieldLabel"] select:focus) {
+  border-color: color-mix(in srgb, var(--accent) 58%, #cfd5de);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
 }
