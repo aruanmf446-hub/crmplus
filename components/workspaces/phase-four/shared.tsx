@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type 
 import type { Product } from "@/lib/apps";
 import { useLocalState } from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
+import hierarchy from "./SemanticHierarchy.module.css";
 
 export type IconName =
   | "activity" | "arrow" | "back" | "calendar" | "car" | "check" | "chevron" | "clipboard"
@@ -13,6 +14,27 @@ export type IconName =
   | "search" | "settings" | "spark" | "table" | "tag" | "trash" | "user" | "warning";
 
 export type NavItem = { label: string; icon: IconName };
+
+type VisualTheme = {
+  nav: string;
+  navRaised: string;
+  selection: string;
+  selectionStrong: string;
+  result: string;
+  resultRaised: string;
+  canvas: string;
+  topbar: string;
+  data: string;
+};
+
+const appThemes: Record<string, VisualTheme> = {
+  atlas: { nav: "#2c1b14", navRaised: "#3a241a", selection: "#fff4ec", selectionStrong: "#ffe0ca", result: "#fff9f5", resultRaised: "#ffefe3", canvas: "#f7f3f0", topbar: "#fffcfa", data: "#ffffff" },
+  artemis: { nav: "#351b1d", navRaised: "#462226", selection: "#fff2ef", selectionStrong: "#ffdcd5", result: "#fff8f6", resultRaised: "#ffeae5", canvas: "#f7f2f1", topbar: "#fffdfc", data: "#ffffff" },
+  ares: { nav: "#142344", navRaised: "#1c2f59", selection: "#f0f4ff", selectionStrong: "#dce6ff", result: "#f7f9ff", resultRaised: "#e9efff", canvas: "#f2f4f9", topbar: "#fbfcff", data: "#ffffff" },
+  poseidon: { nav: "#102d3e", navRaised: "#163d53", selection: "#edf7fb", selectionStrong: "#d5ecf6", result: "#f6fbfd", resultRaised: "#e2f2f8", canvas: "#f1f5f7", topbar: "#fbfdfe", data: "#ffffff" },
+  pandora: { nav: "#2b213e", navRaised: "#3a2b53", selection: "#f6f1fc", selectionStrong: "#e7dcf6", result: "#fbf8fe", resultRaised: "#efe7f9", canvas: "#f4f1f7", topbar: "#fdfbff", data: "#ffffff" },
+  hercules: { nav: "#302a17", navRaised: "#40371d", selection: "#fff9e8", selectionStrong: "#ffefb7", result: "#fffdf6", resultRaised: "#fff5cf", canvas: "#f7f5ed", topbar: "#fffefb", data: "#ffffff" },
+};
 
 type ShellProps = {
   product: Product;
@@ -32,7 +54,20 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   const [commandQuery, setCommandQuery] = useState("");
   const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Empresa demonstração", compact: false });
   const filteredNav = useMemo(() => nav.filter((item) => item.label.toLowerCase().includes(commandQuery.toLowerCase())), [commandQuery, nav]);
-  const shellStyle = { "--accent": product.color, "--accent-soft": product.colorSoft } as CSSProperties;
+  const visualTheme = appThemes[product.slug] ?? appThemes.ares;
+  const shellStyle = {
+    "--accent": product.color,
+    "--accent-soft": product.colorSoft,
+    "--nav-bg": visualTheme.nav,
+    "--nav-raised": visualTheme.navRaised,
+    "--selection-bg": visualTheme.selection,
+    "--selection-strong": visualTheme.selectionStrong,
+    "--result-bg": visualTheme.result,
+    "--result-raised": visualTheme.resultRaised,
+    "--canvas-bg": visualTheme.canvas,
+    "--topbar-bg": visualTheme.topbar,
+    "--data-bg": visualTheme.data,
+  } as CSSProperties;
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -58,8 +93,8 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   }
 
   return (
-    <div className={`${styles.appShell} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle}>
-      <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
+    <div className={`${styles.appShell} ${hierarchy.visualHierarchy} ${preferences.compact ? styles.compactShell : ""}`} style={shellStyle} data-product={product.slug}>
+      <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} data-ui="navigation">
         <div className={styles.brandBlock}>
           <div className={styles.productLogo}><ProductGlyph slug={product.slug} /></div>
           <div><strong>{product.shortName}</strong><span>{preferences.company}</span></div>
@@ -67,7 +102,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
         </div>
         <nav className={styles.sideNav} aria-label={`Navegação do ${product.shortName}`}>
           {nav.map((item) => (
-            <button key={item.label} type="button" className={active === item.label ? styles.navActive : ""} onClick={() => { onChange(item.label); setMenuOpen(false); }}>
+            <button key={item.label} type="button" className={active === item.label ? styles.navActive : ""} onClick={() => { onChange(item.label); setMenuOpen(false); }} aria-current={active === item.label ? "page" : undefined}>
               <Icon name={item.icon} /><span>{item.label}</span>
             </button>
           ))}
@@ -82,7 +117,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
       {menuOpen ? <button className={styles.scrim} type="button" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" /> : null}
 
       <div className={styles.workspace}>
-        <header className={styles.topbar}>
+        <header className={styles.topbar} data-ui="context">
           <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Abrir menu"><Icon name="menu" /></button>
           <div className={styles.titleBlock}><span>{product.shortName} / {active}</span><h1>{title}</h1><p>{subtitle}</p></div>
           <div className={styles.topActions}>
@@ -90,7 +125,7 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
             {action}
           </div>
         </header>
-        <main className={styles.content}>{children}</main>
+        <main className={styles.content} data-ui="workspace">{children}</main>
         <div className={styles.localNotice}>Protótipo funcional · dados salvos somente neste navegador</div>
       </div>
 
