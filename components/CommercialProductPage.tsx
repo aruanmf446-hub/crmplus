@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProductIcon } from "@/components/ProductIcon";
+import { ProductInsideGallery } from "@/components/ProductInsideGallery";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
 import { formatMonthlyPrice, getProductMedia, getStorefrontInfo } from "@/lib/storefront";
@@ -32,7 +33,6 @@ export function CommercialProductPage({ product }: Props) {
             <div className={styles.heroGrid}>
               <div className={styles.heroCopy}>
                 <div className={styles.productName}><span><ProductIcon slug={product.slug} size={25} /></span><div><small>{presentation.label}</small><strong>{product.name}</strong></div></div>
-                <p className={styles.kicker}>Produto criado para uma rotina específica</p>
                 <h1>{product.tagline}</h1>
                 <p className={styles.lead}>{presentation.benefit}</p>
                 <div className="commercial-feature-chips">{product.features.slice(0, 3).map((feature) => <span key={feature}>{feature}</span>)}</div>
@@ -48,23 +48,18 @@ export function CommercialProductPage({ product }: Props) {
 
               <div className="commercial-visual-stack">
                 <div className={styles.cover} role="img" aria-label={`Capa oficial do ${product.name}`} />
-                <div className="commercial-screen-card"><ProductIcon slug={product.slug} size={22} /><div><small>Experiência do produto</small><strong>{product.outcome}</strong></div></div>
+                <div className="commercial-screen-card"><ProductIcon slug={product.slug} size={22} /><div><small>Tela em destaque</small><strong>{presentation.screens[0].title}</strong><span>{presentation.screens[0].description}</span></div></div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className={styles.promise}>
-          <div className="shell">
-            <p className={styles.kicker}>Resultado esperado</p>
-            <h2>{product.outcome}</h2>
-          </div>
-        </section>
+        <ProductInsideGallery product={product} />
 
         <section className={styles.features}>
           <div className="shell">
             <div className={styles.sectionHead}>
-              <div><p className={styles.kicker}>Funcionalidades principais</p><h2>O que você consegue fazer com o {product.shortName}</h2></div>
+              <div><h2>O que você consegue fazer com o {product.shortName}</h2></div>
               <p>Funções apresentadas com a linguagem e a prioridade próprias deste aplicativo.</p>
             </div>
             <div className={styles.featureGrid}>
@@ -82,7 +77,7 @@ export function CommercialProductPage({ product }: Props) {
         <section className={styles.workflow}>
           <div className="shell">
             <div className={styles.sectionHead}>
-              <div><p className={styles.kicker}>Como funciona na prática</p><h2>Uma jornada clara, do primeiro registro até a conclusão.</h2></div>
+              <div><h2>Uma jornada clara, do primeiro registro até a conclusão.</h2></div>
               <p>{product.audience}</p>
             </div>
             <ol>
@@ -95,10 +90,7 @@ export function CommercialProductPage({ product }: Props) {
 
         <section className={styles.closing}>
           <div className="shell">
-            <div>
-              <p className={styles.kicker}>Conheça antes de decidir</p>
-              <h2>Abra o {product.shortName} e avalie o design e as funções do protótipo.</h2>
-            </div>
+            <div><h2>Abra o {product.shortName} e avalie o design e as funções do protótipo.</h2></div>
             <div className={styles.actions}>
               <Link className={styles.primary} href={`/sistemas/${product.slug}`}>Abrir demonstração</Link>
               <Link className={styles.light} href={`/assinar/${product.slug}`}>Ver planos</Link>
