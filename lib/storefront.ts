@@ -101,16 +101,14 @@ export function getPublicBasePath(): string {
 }
 
 export function getProductMedia(slug: string) {
-  const base = `${getPublicBasePath()}/media/apps/${slug}`;
   const hasCover = uploadedCovers.has(slug);
-  const cover = hasCover ? `${base}/cover.svg?v=20260722-3` : "";
+  const repositoryBase = `https://raw.githubusercontent.com/aruanmf446-hub/crmplus/main/public/media/apps/${slug}`;
+  const cover = hasCover ? `${repositoryBase}/cover.svg?v=20260722-5` : "";
 
   return {
     cover,
     hasCover,
-    // Mantém a navegação de imagens ativa. As posições 2 e 3 serão
-    // substituídas pelos próximos assets enviados, sem alterar o componente.
     gallery: [cover, cover, cover],
-    video: `${base}/preview.mp4?v=20260722-3`,
+    video: `${repositoryBase}/preview.mp4?v=20260722-5`,
   };
 }
