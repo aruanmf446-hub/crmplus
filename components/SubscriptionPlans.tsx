@@ -36,9 +36,8 @@ export function SubscriptionPlans({ product }: Props) {
           <div className="shell">
             <Link className={styles.back} href={`/aplicativos/${product.slug}`}>← Voltar para {product.shortName}</Link>
             <div className={styles.identity}><span><ProductIcon slug={product.slug} size={27} /></span><strong>{product.name}</strong></div>
-            <p className={styles.kicker}>Escolha como deseja assinar</p>
-            <h1>Um plano simples para colocar sua operação em ordem.</h1>
-            <p>Selecione mensal, semestral ou anual. A integração de pagamento será adicionada depois; nenhuma cobrança é realizada nesta etapa.</p>
+            <h1>Compare os períodos do protótipo comercial.</h1>
+            <p>Esta página simula a escolha do plano para avaliarmos hierarquia, valores e experiência. Nenhuma cobrança ou envio de dados acontece aqui.</p>
           </div>
         </section>
 
@@ -61,8 +60,8 @@ export function SubscriptionPlans({ product }: Props) {
                     <small>{plan.note}</small>
                     <h2>{plan.name}</h2>
                     <strong>{formatCurrency(monthlyEquivalent)}<em>/mês</em></strong>
-                    <p>{price.months === 1 ? "Cobrança mensal" : `${formatCurrency(price.total)} por ${price.months} meses`}</p>
-                    {price.discount ? <b>Economize {price.discount}%</b> : <b>Sem fidelidade longa</b>}
+                    <p>{price.months === 1 ? "Período de 1 mês" : `${formatCurrency(price.total)} pelo período de ${price.months} meses`}</p>
+                    {price.discount ? <b>Economia visual de {price.discount}%</b> : <b>Período mais curto</b>}
                   </button>
                 );
               })}
@@ -70,17 +69,20 @@ export function SubscriptionPlans({ product }: Props) {
 
             <aside className={styles.summary}>
               <div>
-                <p className={styles.kicker}>Resumo da escolha</p>
-                <h2>{product.name}</h2>
+                <h2>Plano selecionado</h2>
+                <p className="plan-prototype-note">Simulação visual para o {product.shortName}</p>
                 <dl>
                   <div><dt>Plano</dt><dd>{plans.find((plan) => plan.id === selected)?.name}</dd></div>
                   <div><dt>Período</dt><dd>{selectedPrice.months} {selectedPrice.months === 1 ? "mês" : "meses"}</dd></div>
-                  <div><dt>Desconto</dt><dd>{selectedPrice.discount ? `${selectedPrice.discount}%` : "—"}</dd></div>
-                  <div className={styles.total}><dt>Total</dt><dd>{formatCurrency(selectedPrice.total)}</dd></div>
+                  <div><dt>Economia</dt><dd>{selectedPrice.discount ? `${selectedPrice.discount}%` : "—"}</dd></div>
+                  <div className={styles.total}><dt>Total demonstrativo</dt><dd>{formatCurrency(selectedPrice.total)}</dd></div>
                 </dl>
               </div>
-              <button type="button" disabled>Pagamento com Stripe em breve</button>
-              <small>Esta tela já deixa a seleção de plano pronta, mas não solicita cartão, não gera cobrança e não envia dados para serviços externos.</small>
+              <div className="plan-summary-actions">
+                <Link href={`/sistemas/${product.slug}`}>Abrir demonstração</Link>
+                <Link href={`/aplicativos/${product.slug}`}>Voltar ao produto</Link>
+              </div>
+              <small>A seleção permanece apenas durante esta navegação e serve para validar o webdesign da futura contratação.</small>
             </aside>
           </div>
         </section>
