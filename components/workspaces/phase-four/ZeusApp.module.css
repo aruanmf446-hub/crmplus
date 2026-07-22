@@ -1,0 +1,215 @@
+.fleetSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fleetSummary > div {
+  min-height: 70px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, #e5e9f0);
+  border-radius: 11px;
+  background: #fff;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+}
+
+.fleetSummary span {
+  color: #667085;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.fleetSummary strong {
+  color: #101828;
+  font-size: 19px;
+}
+
+.vehicleIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vehicleIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+.vehicleIcon svg { width: 24px; height: 24px; }
+
+.attentionBox {
+  margin-top: 12px;
+  border: 1px solid #fedf89;
+  background: #fffcf5;
+  color: #7a2e0e;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+
+.attentionBox svg { color: #dc6803; }
+.attentionBox strong { display: block; font-size: 11px; margin-bottom: 2px; }
+.attentionBox span { color: #93370d; font-size: 9px; }
+
+.detailFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detailFields label {
+  display: grid;
+  gap: 6px;
+  color: #475467;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.detailFields input,
+.detailFields select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #e5e9f0;
+  border-radius: 9px;
+  background: #fff;
+  padding: 0 10px;
+  color: #101828;
+  outline: 0;
+}
+
+.detailFields input:focus,
+.detailFields select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.simpleRows {
+  border: 1px solid #e5e9f0;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.simpleRows > div,
+.simpleRows > button {
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 13px;
+  border: 0;
+  border-bottom: 1px solid #e5e9f0;
+  background: #fff;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+}
+
+.simpleRows > div:last-child,
+.simpleRows > button:last-child { border-bottom: 0; }
+.simpleRows > button { cursor: pointer; }
+.simpleRows > button:hover { background: var(--selection-bg); }
+
+.simpleRows strong { font-size: 11px; }
+.simpleRows p { margin: 3px 0 0; color: #667085; font-size: 9px; }
+.simpleRows small { color: #98a2b3; font-size: 8px; }
+
+.rowValue {
+  color: #101828;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mileageBar {
+  height: 7px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: #eaecf0;
+  overflow: hidden;
+}
+
+.mileageBar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.driverCard {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e9f0;
+}
+
+.driverCard:last-child { border-bottom: 0; }
+
+.driverAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.driverCard h3,
+.driverCard p { margin: 0; }
+.driverCard h3 { font-size: 11px; }
+.driverCard p { margin-top: 3px; color: #667085; font-size: 9px; }
+
+.fuelTotals {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.fuelTotals div {
+  min-width: 170px;
+  padding: 12px 14px;
+  border: 1px solid #e5e9f0;
+  border-radius: 10px;
+  background: #fff;
+  display: grid;
+  gap: 3px;
+}
+
+.fuelTotals span { color: #667085; font-size: 9px; }
+.fuelTotals strong { font-size: 16px; }
+
+.inlineActions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .fleetSummary { grid-template-columns: repeat(3, minmax(120px, 1fr)); overflow-x: auto; }
+  .fleetSummary > div { min-width: 140px; }
+}
+
+@media (max-width: 620px) {
+  .fleetSummary { grid-template-columns: 1fr; overflow: visible; }
+  .detailFields { grid-template-columns: 1fr; }
+  .simpleRows > div,
+  .simpleRows > button { grid-template-columns: 1fr auto; }
+  .simpleRows > div > :last-child,
+  .simpleRows > button > :last-child { grid-column: 2; grid-row: 1 / span 2; }
+  .fuelTotals { flex-direction: column; }
+  .fuelTotals div { min-width: 0; }
+}
