@@ -4,6 +4,7 @@ import "./compact.css";
 import "./singular-apps.css";
 import "./catalog-media.css";
 import "./storefront-polish.css";
+import "./webdesign-upgrade.css";
 import "./workspace-atlas.css";
 import "./workspace-ares.css";
 import "./workspace-artemis.css";
