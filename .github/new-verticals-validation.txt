@@ -1,0 +1,68 @@
+NEW_VERTICALS_VALIDATION=success
+NPM_CI_EXIT=0
+LINT_EXIT=0
+BUILD_EXIT=0
+VALIDATED_AT=2026-07-22T14:10:42Z
+
+
+added 31 packages, and audited 32 packages in 7s
+
+8 packages are looking for funding
+  run `npm fund` for details
+
+3 vulnerabilities (1 moderate, 2 high)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> crmplus-store@0.1.0 lint
+> tsc --noEmit
+
+
+> crmplus-store@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+▲ Next.js 16.2.11 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.6s
+  Running TypeScript ...
+  Finished TypeScript in 7.2s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/37) ...
+  Generating static pages using 3 workers (9/37) 
+  Generating static pages using 3 workers (18/37) 
+  Generating static pages using 3 workers (27/37) 
+✓ Generating static pages using 3 workers (37/37) in 486ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ● /apps/[slug]
+│ ├ /apps/atlas
+│ ├ /apps/artemis
+│ ├ /apps/poseidon
+│ └ [+12 more paths]
+├ ○ /criar-conta
+├ ○ /entrar
+├ ○ /recuperar-senha
+├ ○ /robots.txt
+└ ● /sistemas/[slug]
+  ├ /sistemas/atlas
+  ├ /sistemas/artemis
+  ├ /sistemas/poseidon
+  └ [+12 more paths]
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
