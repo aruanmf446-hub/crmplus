@@ -18,5 +18,6 @@ export function ProductIcon({ slug, size = 24 }: Props) {
   if (slug === "poseidon") return <svg {...common}><path d="M5 19V9M12 19V5M19 19v-7M3 19h18" /></svg>;
   if (slug === "hercules") return <svg {...common}><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" /></svg>;
   if (slug === "pandora") return <svg {...common}><path d="M20 15a4 4 0 0 1-4 4H9l-5 3v-7a4 4 0 0 1-1-2.6V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z" /><path d="M8 9h8M8 13h5" /></svg>;
+  if (slug === "zeus") return <svg {...common}><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="18" r="2" /><circle cx="18" cy="18" r="2" /></svg>;
   return <svg {...common}><path d="M7 3h8l4 4v14H7z" /><path d="M15 3v5h4M10 13h6M10 17h4" /></svg>;
 }
