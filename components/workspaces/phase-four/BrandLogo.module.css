@@ -1,0 +1,111 @@
+.brandLogoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 9px;
+  background: #fff;
+  padding: 4px;
+}
+
+.logoSettings {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5e9f0;
+  border-radius: 11px;
+  background: #f9fafb;
+}
+
+.logoSettingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logoSettingsHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.logoSettingsHeader strong {
+  font-size: 11px;
+  color: #344054;
+}
+
+.logoSettingsHeader span {
+  color: #667085;
+  font-size: 9px;
+}
+
+.logoPreview {
+  width: 72px;
+  height: 72px;
+  border: 1px solid #dfe4eb;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--accent);
+}
+
+.logoPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 7px;
+}
+
+.logoPreview svg {
+  width: 28px;
+  height: 28px;
+}
+
+.logoActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logoUploadButton,
+.logoRemoveButton {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logoUploadButton {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.logoRemoveButton {
+  border: 1px solid #e5e9f0;
+  background: #fff;
+  color: #475467;
+}
+
+.logoError {
+  margin: 0;
+  color: #b42318;
+  font-size: 9px;
+}
+
+@media (max-width: 620px) {
+  .logoSettingsHeader {
+    align-items: flex-start;
+  }
+
+  .logoActions > * {
+    flex: 1;
+  }
+}
