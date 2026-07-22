@@ -23,7 +23,7 @@ export const products: Product[] = [
   },
   {
     slug: "artemis", name: "CRM Plus Artemis", shortName: "Artemis", category: "Restaurantes", tagline: "Salão e cozinha no mesmo ritmo.",
-    description: "Comandas, mesas, cardápio e fila de preparo em uma experiência operacional rápida, sem caixa e sem estoque.", seoDescription: "Sistema para organizar salão, comandas, cardápio e fila de preparo em restaurantes.",
+    description: "Comandas, mesas, cardápio e fila de preparo em uma experiência operacional rápida.", seoDescription: "Sistema para organizar salão, comandas, cardápio e fila de preparo em restaurantes.",
     color: "#e95f46", colorSoft: "#fff0eb", features: ["Mapa do salão", "Comandas digitais", "Fila da cozinha", "Situação do preparo"],
     audience: "Restaurantes, lanchonetes e cafés que precisam coordenar atendimento e preparo.", outcome: "A equipe sabe qual pedido entrou, qual está em preparo e o que já pode ser servido.", workflow: ["Abrir comanda", "Enviar à cozinha", "Preparar", "Marcar pronto", "Servir"],
   },
@@ -47,7 +47,7 @@ export const products: Product[] = [
   },
   {
     slug: "zeus", name: "CRM Plus Zeus", shortName: "Zeus", category: "Gestão de frotas", tagline: "Cada veículo com responsável e próxima manutenção.",
-    description: "Gestão direta de veículos, motoristas, manutenções, documentos e abastecimentos, sem rastreamento externo.", seoDescription: "Sistema para organizar frota, motoristas, manutenções, documentos e abastecimentos.",
+    description: "Gestão direta de veículos, motoristas, manutenções, documentos e abastecimentos.", seoDescription: "Sistema para organizar frota, motoristas, manutenções, documentos e abastecimentos.",
     color: "#16866d", colorSoft: "#e8f7f2", features: ["Cadastro da frota", "Manutenção preventiva", "Motoristas e documentos", "Abastecimentos registrados"],
     audience: "Pequenas empresas que precisam organizar veículos e evitar manutenção ou documento vencido.", outcome: "O gestor identifica qual veículo está disponível, em uso ou precisa de atenção.", workflow: ["Cadastrar veículo", "Atribuir motorista", "Atualizar quilometragem", "Registrar manutenção", "Controlar documentos"],
   },
@@ -77,7 +77,7 @@ export const products: Product[] = [
   },
   {
     slug: "hermes", name: "CRM Plus Hermes", shortName: "Hermes", category: "Eventos", tagline: "Planejamento, credenciamento e presença.",
-    description: "Eventos, programação, participantes, equipe, check-in e ocorrências sem venda de ingressos.", seoDescription: "Sistema para planejar eventos, programação, participantes, equipe e presença.",
+    description: "Eventos, programação, participantes, equipe, check-in e ocorrências.", seoDescription: "Sistema para planejar eventos, programação, participantes, equipe e presença.",
     color: "#d06a2e", colorSoft: "#fff0e6", features: ["Programação por espaço", "Inscrições e capacidade", "Check-in e credenciais", "Ocorrências e presença"],
     audience: "Organizadores de treinamentos, feiras, congressos e eventos corporativos.", outcome: "A organização acompanha capacidade, programação, confirmação e presença sem listas soltas.", workflow: ["Planejar evento", "Abrir inscrições", "Confirmar participantes", "Credenciar", "Executar", "Encerrar"],
   },
@@ -89,19 +89,19 @@ export const products: Product[] = [
   },
   {
     slug: "gaia", name: "CRM Plus Gaia", shortName: "Gaia", category: "Produção rural", tagline: "Safras e campo em uma linha do tempo clara.",
-    description: "Propriedades, áreas, culturas, atividades, observações técnicas e colheitas sem estoque de insumos.", seoDescription: "Sistema para organizar safras, áreas, atividades de campo e observações técnicas.",
+    description: "Propriedades, áreas, culturas, atividades e observações técnicas em uma linha do tempo de campo.", seoDescription: "Sistema para organizar safras, áreas, atividades de campo e observações técnicas.",
     color: "#4f7c35", colorSoft: "#edf6e8", features: ["Safras e talhões", "Atividades de campo", "Observações técnicas", "Áreas e máquinas"],
     audience: "Produtores e equipes técnicas que precisam registrar o planejado e o executado por área.", outcome: "Cada safra mostra cultura, área, atividade, ocorrência e resultado de campo.", workflow: ["Criar safra", "Planejar", "Plantar", "Registrar manejos", "Observar", "Colher"],
   },
   {
     slug: "pegasus", name: "CRM Plus Pegasus", shortName: "Pegasus", category: "Pet shops", tagline: "Cada pet com rotina, cuidado e histórico.",
-    description: "Tutores, pets, agenda, banho e tosa, hospedagem, vacinas e comunicação manual.", seoDescription: "Sistema para organizar pets, tutores, atendimentos, vacinas e cuidados especiais.",
-    color: "#c4577b", colorSoft: "#fbeaf0", features: ["Perfis dos pets", "Agenda de serviços", "Hotel e creche", "Vacinas e restrições"],
-    audience: "Pet shops, banho e tosa, hotéis e creches que precisam preservar preferências e cuidados.", outcome: "A equipe identifica o serviço, alertas, comportamento e responsável pela retirada.", workflow: ["Cadastrar pet", "Agendar", "Receber", "Atender ou hospedar", "Atualizar tutor", "Entregar"],
+    description: "Tutores, pets, agenda de atendimentos, vacinas, cuidados e comunicação manual.", seoDescription: "Sistema para organizar pets, tutores, atendimentos, vacinas e cuidados especiais.",
+    color: "#c4577b", colorSoft: "#fbeaf0", features: ["Perfis dos pets", "Agenda e atendimentos", "Vacinas e documentos", "Cuidados e restrições"],
+    audience: "Pet shops e serviços de banho e tosa que precisam preservar preferências e cuidados.", outcome: "A equipe identifica o serviço, alertas, comportamento e responsável pela retirada.", workflow: ["Cadastrar pet", "Agendar", "Receber", "Atender", "Atualizar tutor", "Entregar"],
   },
   {
     slug: "titans", name: "CRM Plus Titans", shortName: "Titans", category: "Construtoras", tagline: "Obra, decisão e evidência no mesmo lugar.",
-    description: "Execução física, cronograma, diário, RDO, projetos, pendências e entrega sem financeiro ou estoque.", seoDescription: "Sistema para acompanhar obras, etapas, diário, projetos e pendências técnicas.",
+    description: "Execução física, cronograma, diário, RDO, projetos, pendências e entrega.", seoDescription: "Sistema para acompanhar obras, etapas, diário, projetos e pendências técnicas.",
     color: "#b67a24", colorSoft: "#fbf1df", features: ["Etapas e avanço físico", "Diário e RDO", "Projetos e revisões", "Pendências e decisões"],
     audience: "Construtoras e equipes de obra que precisam conectar escritório, campo e histórico técnico.", outcome: "A equipe identifica a versão vigente, o avanço físico, a pendência e a decisão responsável.", workflow: ["Cadastrar obra", "Planejar etapas", "Registrar diário", "Controlar documentos", "Resolver pendências", "Entregar"],
   },
