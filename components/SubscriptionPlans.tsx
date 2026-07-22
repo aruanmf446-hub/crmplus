@@ -34,7 +34,7 @@ export function SubscriptionPlans({ product }: Props) {
       <main>
         <section className={styles.hero}>
           <div className="shell">
-            <Link className={styles.back} href={`/aplicativos/${product.slug}`}>← Voltar para {product.shortName}</Link>
+            <Link className={styles.back} href={`/aplicativos/${product.slug}`}>← Voltar</Link>
             <div className={styles.identity}><span><ProductIcon slug={product.slug} size={27} /></span><strong>{product.name}</strong></div>
             <h1>Compare os períodos do protótipo comercial.</h1>
             <p>Esta página simula a escolha do plano para avaliarmos hierarquia, valores e experiência. Nenhuma cobrança ou envio de dados acontece aqui.</p>
@@ -80,7 +80,6 @@ export function SubscriptionPlans({ product }: Props) {
               </div>
               <div className="plan-summary-actions">
                 <Link href={`/sistemas/${product.slug}`}>Abrir demonstração</Link>
-                <Link href={`/aplicativos/${product.slug}`}>Voltar ao produto</Link>
               </div>
               <small>A seleção permanece apenas durante esta navegação e serve para validar o webdesign da futura contratação.</small>
             </aside>
