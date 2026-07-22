@@ -64,13 +64,14 @@ export function HomeCatalog({ products }: Props) {
 
 function ProductCard({ product }: { product: Product }) {
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [coverCandidateIndex, setCoverCandidateIndex] = useState(0);
   const [videoActive, setVideoActive] = useState(false);
   const [videoUnavailable, setVideoUnavailable] = useState(false);
   const [coverUnavailable, setCoverUnavailable] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const info = getStorefrontInfo(product.slug);
   const media = getProductMedia(product.slug);
-  const currentSlide = media.gallery[galleryIndex];
+  const currentCover = media.coverCandidates[coverCandidateIndex];
   const mediaStyle = { "--product-color": product.color, "--product-soft": product.colorSoft } as CSSProperties;
 
   async function startVideo() {
@@ -96,24 +97,35 @@ function ProductCard({ product }: { product: Product }) {
 
   function moveGallery(direction: -1 | 1) {
     stopVideo(true);
-    setGalleryIndex((current) => (current + direction + media.gallery.length) % media.gallery.length);
+    setGalleryIndex((current) => (current + direction + 3) % 3);
+  }
+
+  function tryNextCover() {
+    setCoverCandidateIndex((current) => {
+      const next = current + 1;
+      if (next >= media.coverCandidates.length) {
+        setCoverUnavailable(true);
+        return current;
+      }
+      return next;
+    });
   }
 
   return (
     <article className={styles.card} style={mediaStyle}>
       <div className={`${styles.media} crm-media`} onClick={toggleVideo} role="button" tabIndex={0} onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => { if (event.key === "Enter" || event.key === " ") toggleVideo(); }} aria-label={`Abrir prévia em vídeo do ${product.name}`}>
-        {media.hasCover && currentSlide && !coverUnavailable ? (
-          <img className="crm-cover-image" src={currentSlide} alt={`Capa do ${product.name}`} loading="lazy" onError={() => setCoverUnavailable(true)} />
+        {!coverUnavailable && currentCover ? (
+          <img className="crm-cover-image" src={currentCover} alt={`Capa do ${product.name}`} loading="lazy" onError={tryNextCover} />
         ) : (
           <div className="crm-cover-fallback"><ProductIcon slug={product.slug} size={62} /><strong>{product.shortName}</strong></div>
         )}
 
-        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={currentSlide || undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-hidden="true" />
+        <video ref={videoRef} className={videoActive ? styles.videoActive : undefined} src={media.video} poster={!coverUnavailable ? currentCover : undefined} muted loop playsInline preload="none" onError={() => { setVideoUnavailable(true); setVideoActive(false); }} aria-hidden="true" />
 
         <button className={`${styles.mediaArrow} ${styles.mediaArrowLeft}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Imagem anterior">‹</button>
         <button className={`${styles.mediaArrow} ${styles.mediaArrowRight}`} type="button" onClick={(event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); moveGallery(1); }} aria-label="Próxima imagem">›</button>
         <span className={styles.playBadge} aria-hidden="true">{videoActive ? "Ⅱ" : "▶"}</span>
-        <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de ${media.gallery.length}`}>{media.gallery.map((item, index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={`${item || product.slug}-${index}`} />)}</div>
+        <div className={styles.dots} aria-label={`Imagem ${galleryIndex + 1} de 3`}>{[0, 1, 2].map((index) => <i className={index === galleryIndex ? styles.dotActive : undefined} key={`${product.slug}-${index}`} />)}</div>
       </div>
 
       <div className={styles.cardBody}><div className={styles.cardIdentity}><span><ProductIcon slug={product.slug} size={21} /></span><div><h3>{product.name}</h3><strong>{formatMonthlyPrice(info.monthlyPrice)}</strong></div></div><p>{product.description}</p><div className={styles.cardActions}><Link className={styles.learnMore} href={`/aplicativos/${product.slug}`}>Saiba mais</Link><Link className={styles.subscribe} href={`/assinar/${product.slug}`}>Assinar agora</Link></div></div>
