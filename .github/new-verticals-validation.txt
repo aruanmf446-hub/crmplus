@@ -2,10 +2,10 @@ NEW_VERTICALS_VALIDATION=success
 NPM_CI_EXIT=0
 LINT_EXIT=0
 BUILD_EXIT=0
-VALIDATED_AT=2026-07-22T14:10:42Z
+VALIDATED_AT=2026-07-22T14:14:04Z
 
 
-added 31 packages, and audited 32 packages in 7s
+added 31 packages, and audited 32 packages in 11s
 
 8 packages are looking for funding
   run `npm fund` for details
@@ -33,15 +33,15 @@ https://nextjs.org/telemetry
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 2.6s
+✓ Compiled successfully in 2.7s
   Running TypeScript ...
-  Finished TypeScript in 7.2s ...
+  Finished TypeScript in 7.6s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/37) ...
   Generating static pages using 3 workers (9/37) 
   Generating static pages using 3 workers (18/37) 
   Generating static pages using 3 workers (27/37) 
-✓ Generating static pages using 3 workers (37/37) in 486ms
+✓ Generating static pages using 3 workers (37/37) in 548ms
   Finalizing page optimization ...
 
 Route (app)
