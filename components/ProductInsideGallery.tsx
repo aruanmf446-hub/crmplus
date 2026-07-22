@@ -12,7 +12,7 @@ export function ProductInsideGallery({ product }: { product: Product }) {
     <section className="product-inside-section">
       <div className="shell">
         <div className="product-inside-heading">
-          <div><h2>Veja o {product.shortName} por dentro.</h2><p>{product.outcome}</p></div>
+          <div><h2>Veja o {product.shortName} por dentro.</h2></div>
         </div>
         <div className="product-inside-grid">
           {presentation.screens.map((screen, index) => {
