@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "files": {
+    "cover": "cover.webp",
+    "gallery": ["gallery-1.webp", "gallery-2.webp"],
+    "video": "preview.mp4"
+  },
+  "requirements": {
+    "images": "1:1, recomendado 1080x1080, formato WebP",
+    "video": "MP4/H.264, 6 a 15 segundos, preparado para reprodução sem som"
+  },
+  "apps": [
+    "atlas",
+    "ares",
+    "artemis",
+    "pandora",
+    "poseidon",
+    "hercules",
+    "zeus",
+    "alexandria",
+    "olympus",
+    "argus",
+    "hermes",
+    "athena",
+    "gaia",
+    "pegasus",
+    "titans"
+  ],
+  "pathPattern": "/media/apps/{slug}/{file}"
+}
