@@ -15,16 +15,16 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="home-page" data-catalog-build="20260722-16">
+      <main className="home-page" data-catalog-build="20260722-17">
         <section className="home-hero" id="inicio">
           <div className="shell home-hero-grid">
             <div className="home-hero-copy">
               <h1>Sistemas simples para <em>rotinas específicas.</em></h1>
-              <p className="home-lead">Escolha um aplicativo criado para o seu tipo de negócio, veja o produto por dentro e teste o protótipo antes de decidir.</p>
+              <p className="home-lead">Escolha um aplicativo criado para o seu tipo de negócio, veja o produto por dentro e conheça as funções antes de decidir.</p>
               <div className="home-actions">
                 <a className="home-button home-button-primary" href="#sistemas">Explorar aplicativos</a>
               </div>
-              <p className="home-note">Cada aplicativo possui identidade, fluxo, conta local e área interna próprios.</p>
+              <p className="home-note">Cada aplicativo possui identidade, fluxo e área de acesso próprios.</p>
             </div>
             <HomeProductShowcase />
           </div>
