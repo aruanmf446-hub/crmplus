@@ -1,4 +1,4 @@
-/* Auditoria de legibilidade e responsividade das áreas internas. */
+/* Auditoria de legibilidade, hierarquia e responsividade das áreas internas. */
 [data-product] [class*="titleBlock"] > span,
 [data-product] [class*="eyebrow"] { font-size: 11px; }
 [data-product] [class*="titleBlock"] p,
@@ -22,9 +22,74 @@
 [data-product] [class*="dataHead"] { font-size: 10px; }
 [data-product] [class*="dataRow"] span { font-size: 12px; }
 
-/* Evita repetir ações que já estão disponíveis no cabeçalho do aplicativo. */
-[data-product="pandora"] [class*="pageHeading"] > button,
-[data-product="hercules"] [class*="pageHeading"] > button { display: none; }
+[data-product] [class*="summaryGrid"] { margin-bottom: 14px; }
+[data-product] [class*="overviewItem"] span,
+[data-product] [class*="focusHeader"] span,
+[data-product] [class*="focusGrid"] span { font-size: 10px; }
+[data-product] [class*="overviewItem"] small { font-size: 10px; line-height: 1.35; }
+[data-product] [class*="overviewItem"] strong { font-size: 22px; }
+[data-product] [class*="entityMain"] strong,
+[data-product] [class*="operationRow"] strong,
+[data-product] [class*="resourceRow"] strong { font-size: 12px; }
+[data-product] [class*="entityMain"] p,
+[data-product] [class*="operationRow"] p,
+[data-product] [class*="resourceRow"] p { font-size: 10px; }
+[data-product] [class*="primaryTable"] [class*="tableRow"] strong,
+[data-product] [class*="primaryTable"] [class*="tableRow"] span { font-size: 11px; }
+[data-product] [class*="documentPane"] > [class*="noteBox"] { margin: 14px 18px 0; }
+
+/* Elementos clicáveis de conteúdo não devem parecer botões soltos. */
+[data-product="artemis"] [class*="menuRows"] > div > button:first-child {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  gap: 3px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+[data-product="artemis"] [class*="menuRows"] > div > button:first-child:hover strong { color: var(--accent); }
+[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2) {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  cursor: pointer;
+}
+[data-product="poseidon"] [class*="scheduleRow"] > button:nth-child(2):hover h3 { color: var(--accent); }
+[data-product="zeus"] [class*="driverCard"] > button:nth-child(2) {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  cursor: pointer;
+}
+[data-product="zeus"] [class*="driverCard"] > button:nth-child(2):hover h3 { color: var(--accent); }
+[data-product="hercules"] [class*="builderLineAdvanced"] {
+  grid-template-columns: 28px minmax(180px, 1fr) minmax(180px, 1fr) 38px;
+}
+
+[data-product] [class*="topActions"] > button,
+[data-product] [class*="headerButtons"] > button,
+[data-product] [class*="modalActions"] > button { min-height: 40px; }
+[data-product] [class*="pageSubsection"] + [class*="pageSubsection"] { margin-top: 22px; }
+[data-product] [class*="directoryToolbar"],
+[data-product] [class*="listToolbar"] { align-items: center; }
+
+@media (max-width: 900px) {
+  [data-product] [class*="overviewStrip"] { grid-template-columns: repeat(3, minmax(150px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
+  [data-product] [class*="overviewItem"] { min-width: 170px; }
+}
 
 @media (max-width: 620px) {
   [data-product] [class*="topbar"] { gap: 12px; }
@@ -36,4 +101,11 @@
   [data-product] [class*="modalActions"] { flex-direction: column-reverse; }
   [data-product] [class*="modalActions"] > * { width: 100%; min-height: 46px; }
   [data-product] [class*="photoGrid"] { grid-template-columns: 1fr; }
+  [data-product] [class*="directoryToolbar"],
+  [data-product] [class*="listToolbar"] { align-items: stretch; flex-direction: column; }
+  [data-product] [class*="compactSelect"] { min-height: 42px; width: 100%; }
+  [data-product="hercules"] [class*="builderLineAdvanced"] { grid-template-columns: 28px minmax(0, 1fr) 38px; }
+  [data-product="hercules"] [class*="builderLineAdvanced"] input:nth-of-type(2) { grid-column: 2; }
+  [data-product="artemis"] [class*="orderFooter"] { flex-direction: column; }
+  [data-product="zeus"] [class*="driverCard"] { align-items: flex-start; }
 }
