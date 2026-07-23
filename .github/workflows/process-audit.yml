@@ -54,7 +54,9 @@ jobs:
 
       - name: Iniciar site local isolado
         run: |
-          python3 -m http.server 4173 -d out > /tmp/crmplus-process-server.log 2>&1 &
+          mkdir -p preview/crmplus
+          cp -a out/. preview/crmplus/
+          python3 -m http.server 4173 -d preview > /tmp/crmplus-process-server.log 2>&1 &
           for attempt in {1..40}; do
             if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
               exit 0
