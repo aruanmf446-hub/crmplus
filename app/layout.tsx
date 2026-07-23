@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { WorkspaceMenuToggle } from "@/components/WorkspaceMenuToggle";
+import { ColorModeToggle } from "@/components/ColorModeToggle";
 import "./globals.css";
 import "./compact.css";
 import "./singular-apps.css";
@@ -18,6 +19,7 @@ import "./isolated-access.css";
 import "./workspace-ux-audit.css";
 import "./app-footer.css";
 import "./sidebar-toggle.css";
+import "./dark-mode.css";
 
 export const metadata: Metadata = {
   title: { default: "CRMPlus+ | Sistemas para pequenas empresas", template: "%s | CRMPlus+" },
@@ -32,5 +34,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body>{children}<WorkspaceMenuToggle /></body></html>;
+  return <html lang="pt-BR"><body>{children}<WorkspaceMenuToggle /><ColorModeToggle /></body></html>;
 }
