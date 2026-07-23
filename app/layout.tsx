@@ -20,6 +20,7 @@ import "./workspace-ux-audit.css";
 import "./app-footer.css";
 import "./sidebar-toggle.css";
 import "./dark-mode.css";
+import "./list-navigation.css";
 
 export const metadata: Metadata = {
   title: { default: "CRMPlus+ | Sistemas para pequenas empresas", template: "%s | CRMPlus+" },

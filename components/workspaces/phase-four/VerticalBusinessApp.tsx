@@ -80,7 +80,7 @@ export type VerticalConfig = {
   allowDuplicate?: boolean;
 };
 
-type RecordScope = "Ativos" | "Arquivados";
+type RecordScope = "Em andamento" | "Finalizados" | "Arquivados";
 type RecordView = "list" | "detail";
 type ModalName = "record" | "operation" | "resource" | "transition" | "operationStatus" | "resourceStatus" | null;
 
@@ -94,13 +94,14 @@ type ItemTransition = {
 export function VerticalBusinessApp({ product, config }: { product: Product; config: VerticalConfig }) {
   const [active, setActive] = useState(config.entityPlural);
   const [view, setView] = useState<RecordView>("list");
-  const [scope, setScope] = useState<RecordScope>("Ativos");
+  const [scope, setScope] = useState<RecordScope>("Em andamento");
   const [records, setRecords] = useLocalState<MainRecord[]>(`crmplus.${config.slug}.records.v2`, config.seed);
   const [related, setRelated] = useLocalState<RelatedRecord[]>(`crmplus.${config.slug}.related.v2`, config.relatedSeed);
   const [resources, setResources] = useLocalState<ResourceRecord[]>(`crmplus.${config.slug}.resources.v2`, config.resourceSeed);
   const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const [recordSort, setRecordSort] = useState<"Mais recentes" | "Nome" | "Responsável" | "Etapa">("Mais recentes");
   const [modal, setModal] = useState<ModalName>(null);
   const [toast, setToast] = useState("");
   const [note, setNote] = useState("");
@@ -119,20 +120,32 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     { label: config.resourcePlural, icon: resourceIcon(config.slug) },
   ];
 
+  const finalStatus = config.statuses.at(-1) ?? "";
   const visibleRecords = useMemo(() => {
     const value = query.trim().toLowerCase();
-    const archived = scope === "Arquivados";
-    return records.filter((record) => record.archived === archived && (statusFilter === "Todos" || record.status === statusFilter) && (!value || `${record.title} ${record.subtitle} ${record.owner} ${Object.values(record.data).join(" ")}`.toLowerCase().includes(value)));
-  }, [query, records, scope, statusFilter]);
+    const filtered = records.filter((record) => {
+      const matchesScope = scope === "Arquivados"
+        ? record.archived
+        : !record.archived && (scope === "Finalizados" ? record.status === finalStatus : record.status !== finalStatus);
+      return matchesScope && (statusFilter === "Todos" || record.status === statusFilter) && (!value || `${record.title} ${record.subtitle} ${record.owner} ${Object.values(record.data).join(" ")}`.toLowerCase().includes(value));
+    });
+    return [...filtered].sort((a, b) => {
+      if (recordSort === "Nome") return a.title.localeCompare(b.title, "pt-BR");
+      if (recordSort === "Responsável") return a.owner.localeCompare(b.owner, "pt-BR");
+      if (recordSort === "Etapa") return config.statuses.indexOf(a.status) - config.statuses.indexOf(b.status);
+      return records.indexOf(a) - records.indexOf(b);
+    });
+  }, [config.statuses, finalStatus, query, recordSort, records, scope, statusFilter]);
 
   const selectedOperations = selected ? related.filter((item) => item.parentId === selected.id) : [];
   const selectedResources = selected ? resources.filter((item) => item.parentId === selected.id) : [];
   const keyFacts = selected ? config.fields.filter((field) => selected.data[field.key]?.trim()).slice(0, 8) : [];
-  const finalStatus = config.statuses.at(-1) ?? "";
   const currentStatusIndex = selected ? config.statuses.indexOf(selected.status) : -1;
   const nextStatus = selected && linearFlow && currentStatusIndex >= 0 && selected.status !== finalStatus ? config.statuses[currentStatusIndex + 1] : "";
   const attentionResources = selectedResources.filter((item) => ["Pendente", "Vencendo", "Vencido", "Aguardando", "Aberto", "Atenção", "Solicitada"].some((term) => item.status.includes(term))).length;
   const archivedCount = records.filter((record) => record.archived).length;
+  const finalizedCount = records.filter((record) => !record.archived && record.status === finalStatus).length;
+  const openCount = records.filter((record) => !record.archived && record.status !== finalStatus).length;
 
   function changeArea(label: string) {
     setActive(label);
@@ -182,7 +195,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     setRecordDraft({ title: "", subtitle: "", owner: "" });
     setModal(null);
     setActive(config.entityPlural);
-    setScope("Ativos");
+    setScope("Em andamento");
     openRecord(next);
     setToast(`${config.entityLabel} criado`);
   }
@@ -226,7 +239,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     const willArchive = !selected.archived;
     if (willArchive && !window.confirm(`Arquivar “${selected.title}”? O registro sairá da lista ativa, mas o histórico será preservado.`)) return;
     updateSelected({ archived: willArchive }, willArchive ? "Registro arquivado" : "Registro restaurado");
-    setScope(willArchive ? "Arquivados" : "Ativos");
+    setScope(willArchive ? "Arquivados" : "Em andamento");
     returnToList();
     setToast(willArchive ? "Registro arquivado" : "Registro restaurado");
   }
@@ -376,9 +389,9 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
         <div className={vertical.listControls}>
           <label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.entityPlural.toLowerCase()}`} /></label>
           <select className={styles.compactSelect} value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setSelectedId(""); }} aria-label="Filtrar por situação"><option value="Todos">Todas as situações</option>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select>
-          <div className={vertical.scopeSwitch} aria-label="Tipo de registro"><button type="button" className={scope === "Ativos" ? vertical.scopeActive : ""} onClick={() => { setScope("Ativos"); setSelectedId(""); }}>Ativos</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setSelectedId(""); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
+          <div className={vertical.scopeSwitch} aria-label="Tipo de registro"><button type="button" className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setSelectedId(""); }}>Ativos</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setSelectedId(""); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
         </div>
-        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {record.status === finalStatus ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Ativos" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
+        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {record.status === finalStatus ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" || scope === "Finalizados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : scope === "Finalizados" ? "Nenhum processo finalizado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Em andamento" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
       </section>
     </> : null}
 
@@ -409,8 +422,8 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     </section> : null}
 
     {active === config.entityPlural && view === "list" && records.length > 0 ? null : null}
-    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
-    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" statuses={config.operationStatuses} finalStatus={config.operationStatuses.at(-1) ?? ""} items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} statuses={config.resourceStatuses} finalStatus={config.resourceStatuses.at(-1) ?? ""} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
 
     <Modal open={modal === "record"} title={config.primaryAction} description="Comece com o essencial. O processo abrirá na primeira etapa." onClose={() => setModal(null)}><Form onSubmit={createRecord}><Field label={`Nome do ${config.entityLabel.toLowerCase()}`}><input autoFocus required value={recordDraft.title} onChange={(event) => setRecordDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição curta" hint="Use uma frase que ajude a reconhecer este registro."><input value={recordDraft.subtitle} onChange={(event) => setRecordDraft((current) => ({ ...current, subtitle: event.target.value }))} /></Field><Field label="Responsável"><input required value={recordDraft.owner} onChange={(event) => setRecordDraft((current) => ({ ...current, owner: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar na etapa {config.statuses[0]}</button></div></Form></Modal>
 
@@ -436,10 +449,19 @@ function renderField(field: FieldDefinition, value: string, onChange: (value: st
 
 type ListingItem = { id: string; title: string; subtitle: string; status: string; date: string; parentId: string };
 
-function ListingPage({ title, description, icon, items, onRow }: { title: string; description: string; icon: IconName; items: ListingItem[]; onRow: (item: ListingItem) => void }) {
+function ListingPage({ title, description, icon, items, statuses, finalStatus, onRow }: { title: string; description: string; icon: IconName; items: ListingItem[]; statuses: string[]; finalStatus: string; onRow: (item: ListingItem) => void }) {
   const [query, setQuery] = useState("");
-  const filtered = items.filter((item) => `${item.title} ${item.subtitle} ${item.status} ${item.date}`.toLowerCase().includes(query.trim().toLowerCase()));
-  return <section className={vertical.listSurface}><div className={vertical.consolidatedHeader}><div><h2>{title}</h2><p>{description}</p></div><strong>{filtered.length}</strong></div><div className={vertical.listControls}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar em ${title.toLowerCase()}`} /></label></div><div className={vertical.entityList}>{filtered.map((item) => <button key={item.id} type="button" className={vertical.entityRow} onClick={() => onRow(item)}><span className={vertical.entityIcon}><Icon name={icon} /></span><div className={vertical.entityMain}><strong>{item.title}</strong><p>{item.subtitle}</p><small>{item.date}</small></div><div className={vertical.entityMeta}><StatusPill status={item.status} /></div><Icon name="chevron" /></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhum registro encontrado" description={items.length ? "Altere a busca." : "Os registros aparecerão aqui quando forem criados."} /> : null}</div></section>;
+  const [scope, setScope] = useState<"Em andamento" | "Finalizados">("Em andamento");
+  const [status, setStatus] = useState("Todos");
+  const [sort, setSort] = useState<"Mais recentes" | "Nome" | "Data" | "Situação">("Mais recentes");
+  const filtered = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    const scoped = items.filter((item) => (scope === "Finalizados" ? item.status === finalStatus : item.status !== finalStatus) && (status === "Todos" || item.status === status) && `${item.title} ${item.subtitle} ${item.status} ${item.date}`.toLowerCase().includes(value));
+    return [...scoped].sort((a, b) => sort === "Nome" ? a.title.localeCompare(b.title, "pt-BR") : sort === "Data" ? a.date.localeCompare(b.date, "pt-BR") : sort === "Situação" ? statuses.indexOf(a.status) - statuses.indexOf(b.status) : items.indexOf(a) - items.indexOf(b));
+  }, [finalStatus, items, query, scope, sort, status, statuses]);
+  const openCount = items.filter((item) => item.status !== finalStatus).length;
+  const finishedCount = items.filter((item) => item.status === finalStatus).length;
+  return <section className={vertical.listSurface}><div className={vertical.consolidatedHeader}><div><h2>{title}</h2><p>{description}</p></div><strong>{filtered.length}</strong></div><div className={vertical.listControls}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar em ${title.toLowerCase()}`} /></label><select className={styles.compactSelect} value={status} onChange={(event) => setStatus(event.target.value)}><option>Todos</option>{statuses.map((item) => <option key={item}>{item}</option>)}</select><select className={styles.compactSelect} value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option>Mais recentes</option><option>Nome</option><option>Data</option><option>Situação</option></select><div className={vertical.scopeSwitch}><button className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatus("Todos"); }}>Em andamento ({openCount})</button><button className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatus("Todos"); }}>Finalizados ({finishedCount})</button></div></div><div className={vertical.entityList}>{filtered.map((item) => <button key={item.id} type="button" className={vertical.entityRow} onClick={() => onRow(item)}><span className={vertical.entityIcon}><Icon name={icon} /></span><div className={vertical.entityMain}><strong>{item.title}</strong><p>{item.subtitle}</p><small>{item.date}</small></div><div className={vertical.entityMeta}><StatusPill status={item.status} /></div><Icon name="chevron" /></button>)}{!filtered.length ? <EmptyState icon={scope === "Finalizados" ? "history" : "search"} title={scope === "Finalizados" ? "Nenhuma atividade finalizada" : "Nenhum registro em andamento"} description={items.length ? "Altere a busca, o filtro ou a classificação." : "Os registros aparecerão aqui quando forem criados."} /> : null}</div></section>;
 }
 
 function resourceIcon(slug: string): IconName {

@@ -1,0 +1,28 @@
+/* Controles de listas e históricos em todos os aplicativos */
+body[data-crmplus-app="true"] [class*="listToolbar"],
+body[data-crmplus-app="true"] [class*="listControls"] {
+  flex-wrap: wrap;
+}
+
+body[data-crmplus-app="true"] [class*="listToolbar"] > select,
+body[data-crmplus-app="true"] [class*="listControls"] > select {
+  min-height: 40px;
+}
+
+body[data-crmplus-app="true"] [class*="scopeSwitch"] {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+  body[data-crmplus-app="true"] [class*="listToolbar"] > label,
+  body[data-crmplus-app="true"] [class*="listControls"] > label {
+    flex-basis: 100%;
+  }
+
+  body[data-crmplus-app="true"] [class*="listToolbar"] > select,
+  body[data-crmplus-app="true"] [class*="listControls"] > select {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+}
