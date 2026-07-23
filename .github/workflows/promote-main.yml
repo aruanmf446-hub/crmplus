@@ -1,0 +1,177 @@
+name: Promover pacote validado ao main
+
+on:
+  push:
+    branches:
+      - fix/arquitetura-ux-integridade
+    paths-ignore:
+      - audits/promotion-failure.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crmplus-final-promotion
+  cancel-in-progress: true
+
+jobs:
+  qualify-and-promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/arquitetura-ux-integridade
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Aplicar migrações pendentes
+        id: patches
+        continue-on-error: true
+        run: |
+          shopt -s nullglob
+          for patch in scripts/apply-*.mjs; do
+            node "$patch"
+            rm "$patch"
+          done
+
+      - name: Atualizar lockfile e instalar
+        id: install
+        if: steps.patches.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm install --package-lock-only
+          npm ci
+
+      - name: Auditar dependências de produção
+        id: security
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm audit --omit=dev
+
+      - name: Executar ESLint e TypeScript
+        id: static
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm run check
+
+      - name: Gerar build estático
+        id: build
+        if: steps.static.outcome == 'success'
+        continue-on-error: true
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_BUILD_SHA: final-qualification
+
+      - name: Instalar Chromium fixado
+        id: browser
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright@1.55.0 install --with-deps chromium
+
+      - name: Iniciar prévia isolada
+        id: preview
+        if: steps.browser.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p preview/crmplus
+          cp -a out/. preview/crmplus/
+          python3 -m http.server 4173 -d preview > /tmp/server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/server.log
+          exit 1
+
+      - name: Auditar processos
+        id: process
+        if: steps.preview.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/audit-processes.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Auditar webdesign
+        id: visual
+        if: steps.preview.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/audit-visual.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Guardar evidências finais
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crmplus-final-qualification-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: warn
+
+      - name: Registrar falha sem tocar no main
+        if: always() && (steps.patches.outcome != 'success' || steps.install.outcome != 'success' || steps.security.outcome != 'success' || steps.static.outcome != 'success' || steps.build.outcome != 'success' || steps.browser.outcome != 'success' || steps.preview.outcome != 'success' || steps.process.outcome != 'success' || steps.visual.outcome != 'success')
+        env:
+          PATCHES: ${{ steps.patches.outcome }}
+          INSTALL: ${{ steps.install.outcome }}
+          SECURITY: ${{ steps.security.outcome }}
+          STATIC: ${{ steps.static.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+          PREVIEW: ${{ steps.preview.outcome }}
+          PROCESS: ${{ steps.process.outcome }}
+          VISUAL: ${{ steps.visual.outcome }}
+        run: |
+          mkdir -p audits
+          {
+            echo "PATCHES=${PATCHES}"
+            echo "INSTALL=${INSTALL}"
+            echo "SECURITY=${SECURITY}"
+            echo "STATIC=${STATIC}"
+            echo "BUILD=${BUILD}"
+            echo "BROWSER=${BROWSER}"
+            echo "PREVIEW=${PREVIEW}"
+            echo "PROCESS=${PROCESS}"
+            echo "VISUAL=${VISUAL}"
+            echo
+            cat artifacts/process-audit/report.txt 2>/dev/null || true
+            echo
+            cat artifacts/visual-audit/report.txt 2>/dev/null || true
+          } > audits/promotion-failure.txt
+          git config user.name "crmplus-quality-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add audits/promotion-failure.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Registrar bloqueio da promoção final"
+            git push origin HEAD:fix/arquitetura-ux-integridade
+          fi
+
+      - name: Limpar ferramentas temporárias e promover
+        if: steps.patches.outcome == 'success' && steps.install.outcome == 'success' && steps.security.outcome == 'success' && steps.static.outcome == 'success' && steps.build.outcome == 'success' && steps.browser.outcome == 'success' && steps.preview.outcome == 'success' && steps.process.outcome == 'success' && steps.visual.outcome == 'success'
+        run: |
+          rm -f .github/workflows/branch-validation.yml
+          rm -f .github/workflows/compact-branch-status.yml
+          rm -f .github/workflows/promote-main.yml
+          rm -f audits/branch-validation.txt
+          rm -f audits/branch-validation-status.txt
+          rm -f audits/promotion-failure.txt
+          rm -f audits/process-audit-latest.txt
+          rm -f scripts/apply-*.mjs
+          git config user.name "crmplus-quality-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -u
+          git add package-lock.json
+          if [ -f app/workspace-foundation.css ]; then git add app/workspace-foundation.css; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Concluir arquitetura, QA e publicação do CRM Plus"
+          fi
+          git push origin HEAD:fix/arquitetura-ux-integridade
+          git push origin HEAD:main
