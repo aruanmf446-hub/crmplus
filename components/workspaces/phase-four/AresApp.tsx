@@ -42,9 +42,9 @@ export function AresApp({ product }: { product: Product }) {
   const [decisionNote, setDecisionNote] = useState("");
   const [toast, setToast] = useState("");
 
-  const selected = quotes.find((quote) => quote.id === selectedId);
   const nav: NavItem[] = [{ label: "Propostas", icon: "document" }, { label: "Criar proposta", icon: "plus" }, { label: "Clientes", icon: "people" }, { label: "Modelos", icon: "clipboard" }];
   const normalizedQuotes = useMemo(() => quotes.map((quote) => isExpired(quote.validity) && !["Aprovado", "Recusado"].includes(quote.status) ? { ...quote, status: "Expirado" as QuoteStatus } : quote), [quotes]);
+  const selected = normalizedQuotes.find((quote) => quote.id === selectedId);
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
     const scoped = normalizedQuotes.filter((quote) => (scope === "Finalizadas" ? finalQuoteStatuses.includes(quote.status) : !finalQuoteStatuses.includes(quote.status)) && (statusFilter === "Todas" || quote.status === statusFilter) && (!value || `${quote.id} ${quote.client} ${quote.title}`.toLowerCase().includes(value)));
@@ -81,14 +81,14 @@ export function AresApp({ product }: { product: Product }) {
     if (!quote.client.trim() || !quote.title.trim()) return "Informe o cliente e o título da proposta";
     if (!quote.items.length || quote.items.some((item) => !item.description.trim())) return "Revise os itens antes de continuar";
     if (quote.items.some((item) => item.quantity <= 0 || item.unitPrice < 0)) return "Revise quantidade e valores";
-    if (finalize && !quote.validity) return "Informe a validade da proposta";
+    if (finalize && (!quote.validity || isExpired(quote.validity))) return "Informe uma validade futura para a proposta";
     return "";
   }
 
   function saveQuote(quote: Quote, finalize = false) {
     const error = validateQuote(quote, finalize);
     if (error) { setToast(error); return; }
-    const nextStatus: QuoteStatus = finalize ? "Pronto" : quote.status === "Expirado" ? "Rascunho" : quote.status;
+    const nextStatus: QuoteStatus = finalize ? "Pronto" : "Rascunho";
     const normalized: Quote = { ...quote, client: quote.client.trim(), title: quote.title.trim(), notes: quote.notes.trim(), updated: "agora", status: nextStatus, history: [{ text: finalize ? "Proposta revisada e pronta para envio" : "Rascunho salvo", date: todayLabel() }, ...quote.history] };
     setQuotes((current) => current.some((item) => item.id === normalized.id) ? current.map((item) => item.id === normalized.id ? normalized : item) : [normalized, ...current]);
     setSelectedId(normalized.id);

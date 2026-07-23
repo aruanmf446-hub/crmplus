@@ -78,6 +78,12 @@ export type VerticalConfig = {
   primaryAction: string;
   linearFlow?: boolean;
   allowDuplicate?: boolean;
+  finalStatuses?: string[];
+  operationFinalStatuses?: string[];
+  resourceFinalStatuses?: string[];
+  transitions?: Record<string, string[]>;
+  operationTransitions?: Record<string, string[]>;
+  resourceTransitions?: Record<string, string[]>;
 };
 
 type RecordScope = "Em andamento" | "Finalizados" | "Arquivados";
@@ -89,6 +95,7 @@ type ItemTransition = {
   title: string;
   current: string;
   target: string;
+  options: string[];
 };
 
 export function VerticalBusinessApp({ product, config }: { product: Product; config: VerticalConfig }) {
@@ -109,7 +116,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const [operationDraft, setOperationDraft] = useState({ title: "", description: "", date: "", status: config.operationStatuses[0] ?? "Aberto" });
   const [resourceDraft, setResourceDraft] = useState({ title: "", category: "", reference: "", due: "", status: config.resourceStatuses[0] ?? "Ativo" });
   const [transitionTarget, setTransitionTarget] = useState("");
-  const [itemTransition, setItemTransition] = useState<ItemTransition>({ id: "", title: "", current: "", target: "" });
+  const [itemTransition, setItemTransition] = useState<ItemTransition>({ id: "", title: "", current: "", target: "", options: [] });
 
   const selected = records.find((record) => record.id === selectedId);
   const linearFlow = config.linearFlow !== false;
@@ -121,12 +128,16 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   ];
 
   const finalStatus = config.statuses.at(-1) ?? "";
+  const finalStatuses = config.finalStatuses ?? [finalStatus];
+  const operationFinalStatuses = config.operationFinalStatuses ?? [config.operationStatuses.at(-1) ?? ""];
+  const resourceFinalStatuses = config.resourceFinalStatuses ?? [config.resourceStatuses.at(-1) ?? ""];
+  const isFinalRecord = (record: MainRecord) => finalStatuses.includes(record.status);
   const visibleRecords = useMemo(() => {
     const value = query.trim().toLowerCase();
     const filtered = records.filter((record) => {
       const matchesScope = scope === "Arquivados"
         ? record.archived
-        : !record.archived && (scope === "Finalizados" ? record.status === finalStatus : record.status !== finalStatus);
+        : !record.archived && (scope === "Finalizados" ? isFinalRecord(record) : !isFinalRecord(record));
       return matchesScope && (statusFilter === "Todos" || record.status === statusFilter) && (!value || `${record.title} ${record.subtitle} ${record.owner} ${Object.values(record.data).join(" ")}`.toLowerCase().includes(value));
     });
     return [...filtered].sort((a, b) => {
@@ -141,11 +152,11 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const selectedResources = selected ? resources.filter((item) => item.parentId === selected.id) : [];
   const keyFacts = selected ? config.fields.filter((field) => selected.data[field.key]?.trim()).slice(0, 8) : [];
   const currentStatusIndex = selected ? config.statuses.indexOf(selected.status) : -1;
-  const nextStatus = selected && linearFlow && currentStatusIndex >= 0 && selected.status !== finalStatus ? config.statuses[currentStatusIndex + 1] : "";
+  const nextStatus = selected && linearFlow && currentStatusIndex >= 0 && !isFinalRecord(selected) ? config.statuses[currentStatusIndex + 1] : "";
   const attentionResources = selectedResources.filter((item) => ["Pendente", "Vencendo", "Vencido", "Aguardando", "Aberto", "Atenção", "Solicitada"].some((term) => item.status.includes(term))).length;
   const archivedCount = records.filter((record) => record.archived).length;
-  const finalizedCount = records.filter((record) => !record.archived && record.status === finalStatus).length;
-  const openCount = records.filter((record) => !record.archived && record.status !== finalStatus).length;
+  const finalizedCount = records.filter((record) => !record.archived && isFinalRecord(record)).length;
+  const openCount = records.filter((record) => !record.archived && !isFinalRecord(record)).length;
 
   function changeArea(label: string) {
     setActive(label);
@@ -202,8 +213,11 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   function transitionOptions() {
     if (!selected) return [];
-    if (linearFlow) return nextStatus ? [nextStatus] : [];
-    return config.statuses.filter((status) => status !== selected.status);
+    if (isFinalRecord(selected)) return [];
+    const configured = config.transitions?.[selected.status];
+    if (configured) return configured.filter((status) => config.statuses.includes(status));
+    const fallback = config.statuses[currentStatusIndex + 1];
+    return fallback ? [fallback] : [];
   }
 
   function openTransition() {
@@ -220,7 +234,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     if (!selected.owner.trim() || selected.owner === "Não atribuído") return "Defina um responsável antes de mudar a etapa";
     if (!selected.subtitle.trim()) return "Preencha a descrição do registro antes de continuar";
     if (currentStatusIndex === 0 && !keyFacts.length) return "Preencha ao menos uma informação principal antes de avançar";
-    if (target === finalStatus && attentionResources > 0) return `Resolva ${attentionResources} item(ns) com atenção antes de concluir`;
+    if (finalStatuses.includes(target) && attentionResources > 0) return `Resolva ${attentionResources} item(ns) com atenção antes de concluir`;
     return "";
   }
 
@@ -261,17 +275,25 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     setToast(`${config.entityLabel} duplicado`);
   }
 
+  function allowedItemTargets(statuses: string[], finals: string[], configured: Record<string, string[]> | undefined, current: string) {
+    if (finals.includes(current)) return [];
+    const mapped = configured?.[current];
+    if (mapped) return mapped.filter((status) => statuses.includes(status));
+    const next = statuses[statuses.indexOf(current) + 1];
+    return next ? [next] : [];
+  }
+
   function openOperationStatus(item: RelatedRecord) {
-    const target = config.operationStatuses.find((status) => status !== item.status) ?? "";
-    if (!target) return;
-    setItemTransition({ id: item.id, title: item.title, current: item.status, target });
+    const options = allowedItemTargets(config.operationStatuses, operationFinalStatuses, config.operationTransitions, item.status);
+    if (!options.length) { setToast(`${config.operationLabel} já está em uma situação final`); return; }
+    setItemTransition({ id: item.id, title: item.title, current: item.status, target: options[0], options });
     setModal("operationStatus");
   }
 
   function openResourceStatus(item: ResourceRecord) {
-    const target = config.resourceStatuses.find((status) => status !== item.status) ?? "";
-    if (!target) return;
-    setItemTransition({ id: item.id, title: item.title, current: item.status, target });
+    const options = allowedItemTargets(config.resourceStatuses, resourceFinalStatuses, config.resourceTransitions, item.status);
+    if (!options.length) { setToast(`${config.resourceLabel} já está em uma situação final`); return; }
+    setItemTransition({ id: item.id, title: item.title, current: item.status, target: options[0], options });
     setModal("resourceStatus");
   }
 
@@ -392,7 +414,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
           <select className={styles.compactSelect} value={recordSort} onChange={(event) => setRecordSort(event.target.value as typeof recordSort)} aria-label="Classificar registros"><option>Mais recentes</option><option>Nome</option><option>Responsável</option><option>Etapa</option></select>
           <div className={vertical.scopeSwitch} aria-label="Andamento dos registros"><button type="button" className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatusFilter("Todos"); setSelectedId(""); }}>Em andamento ({openCount})</button><button type="button" className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatusFilter("Todos"); setSelectedId(""); }}>Finalizados ({finalizedCount})</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setStatusFilter("Todos"); setSelectedId(""); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
         </div>
-        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {record.status === finalStatus ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" || scope === "Finalizados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : scope === "Finalizados" ? "Nenhum processo finalizado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Em andamento" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
+        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {isFinalRecord(record) ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" || scope === "Finalizados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : scope === "Finalizados" ? "Nenhum processo finalizado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Em andamento" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
       </section>
     </> : null}
 
@@ -423,8 +445,8 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     </section> : null}
 
     {active === config.entityPlural && view === "list" && records.length > 0 ? null : null}
-    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" statuses={config.operationStatuses} finalStatus={config.operationStatuses.at(-1) ?? ""} items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
-    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} statuses={config.resourceStatuses} finalStatus={config.resourceStatuses.at(-1) ?? ""} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" statuses={config.operationStatuses} finalStatuses={operationFinalStatuses} items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} statuses={config.resourceStatuses} finalStatuses={resourceFinalStatuses} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
 
     <Modal open={modal === "record"} title={config.primaryAction} description="Comece com o essencial. O processo abrirá na primeira etapa." onClose={() => setModal(null)}><Form onSubmit={createRecord}><Field label={`Nome do ${config.entityLabel.toLowerCase()}`}><input autoFocus required value={recordDraft.title} onChange={(event) => setRecordDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição curta" hint="Use uma frase que ajude a reconhecer este registro."><input value={recordDraft.subtitle} onChange={(event) => setRecordDraft((current) => ({ ...current, subtitle: event.target.value }))} /></Field><Field label="Responsável"><input required value={recordDraft.owner} onChange={(event) => setRecordDraft((current) => ({ ...current, owner: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar na etapa {config.statuses[0]}</button></div></Form></Modal>
 
@@ -434,9 +456,9 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
     <Modal open={modal === "resource"} title={`Adicionar ${config.resourceLabel.toLowerCase()}`} description={selected ? `Em ${selected.title}` : undefined} onClose={() => setModal(null)}><Form onSubmit={createResource}><Field label="Nome ou identificação"><input autoFocus required value={resourceDraft.title} onChange={(event) => setResourceDraft((current) => ({ ...current, title: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Categoria"><input value={resourceDraft.category} onChange={(event) => setResourceDraft((current) => ({ ...current, category: event.target.value }))} /></Field><Field label="Referência"><input value={resourceDraft.reference} onChange={(event) => setResourceDraft((current) => ({ ...current, reference: event.target.value }))} /></Field><Field label="Data ou validade"><input type="date" value={resourceDraft.due} onChange={(event) => setResourceDraft((current) => ({ ...current, due: event.target.value }))} /></Field><Field label="Situação inicial"><select value={resourceDraft.status} onChange={(event) => setResourceDraft((current) => ({ ...current, status: event.target.value }))}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Adicionar</button></div></Form></Modal>
 
-    <Modal open={modal === "operationStatus"} title={`Atualizar ${config.operationLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{config.operationStatuses.filter((status) => status !== itemTransition.current).map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de realizar a ação correspondente.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("operation")}>Confirmar atualização</button></div></Modal>
+    <Modal open={modal === "operationStatus"} title={`Atualizar ${config.operationLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{itemTransition.options.map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de realizar a ação correspondente.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("operation")}>Confirmar atualização</button></div></Modal>
 
-    <Modal open={modal === "resourceStatus"} title={`Atualizar ${config.resourceLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{config.resourceStatuses.filter((status) => status !== itemTransition.current).map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de verificar a situação real deste item.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("resource")}>Confirmar atualização</button></div></Modal>
+    <Modal open={modal === "resourceStatus"} title={`Atualizar ${config.resourceLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{itemTransition.options.map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de verificar a situação real deste item.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("resource")}>Confirmar atualização</button></div></Modal>
 
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
@@ -450,18 +472,18 @@ function renderField(field: FieldDefinition, value: string, onChange: (value: st
 
 type ListingItem = { id: string; title: string; subtitle: string; status: string; date: string; parentId: string };
 
-function ListingPage({ title, description, icon, items, statuses, finalStatus, onRow }: { title: string; description: string; icon: IconName; items: ListingItem[]; statuses: string[]; finalStatus: string; onRow: (item: ListingItem) => void }) {
+function ListingPage({ title, description, icon, items, statuses, finalStatuses, onRow }: { title: string; description: string; icon: IconName; items: ListingItem[]; statuses: string[]; finalStatuses: string[]; onRow: (item: ListingItem) => void }) {
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<"Em andamento" | "Finalizados">("Em andamento");
   const [status, setStatus] = useState("Todos");
   const [sort, setSort] = useState<"Mais recentes" | "Nome" | "Data" | "Situação">("Mais recentes");
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
-    const scoped = items.filter((item) => (scope === "Finalizados" ? item.status === finalStatus : item.status !== finalStatus) && (status === "Todos" || item.status === status) && `${item.title} ${item.subtitle} ${item.status} ${item.date}`.toLowerCase().includes(value));
+    const scoped = items.filter((item) => (scope === "Finalizados" ? finalStatuses.includes(item.status) : !finalStatuses.includes(item.status)) && (status === "Todos" || item.status === status) && `${item.title} ${item.subtitle} ${item.status} ${item.date}`.toLowerCase().includes(value));
     return [...scoped].sort((a, b) => sort === "Nome" ? a.title.localeCompare(b.title, "pt-BR") : sort === "Data" ? a.date.localeCompare(b.date, "pt-BR") : sort === "Situação" ? statuses.indexOf(a.status) - statuses.indexOf(b.status) : items.indexOf(a) - items.indexOf(b));
-  }, [finalStatus, items, query, scope, sort, status, statuses]);
-  const openCount = items.filter((item) => item.status !== finalStatus).length;
-  const finishedCount = items.filter((item) => item.status === finalStatus).length;
+  }, [finalStatuses, items, query, scope, sort, status, statuses]);
+  const openCount = items.filter((item) => !finalStatuses.includes(item.status)).length;
+  const finishedCount = items.filter((item) => finalStatuses.includes(item.status)).length;
   return <section className={vertical.listSurface}><div className={vertical.consolidatedHeader}><div><h2>{title}</h2><p>{description}</p></div><strong>{filtered.length}</strong></div><div className={vertical.listControls}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar em ${title.toLowerCase()}`} /></label><select className={styles.compactSelect} value={status} onChange={(event) => setStatus(event.target.value)}><option>Todos</option>{statuses.map((item) => <option key={item}>{item}</option>)}</select><select className={styles.compactSelect} value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option>Mais recentes</option><option>Nome</option><option>Data</option><option>Situação</option></select><div className={vertical.scopeSwitch}><button className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatus("Todos"); }}>Em andamento ({openCount})</button><button className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatus("Todos"); }}>Finalizados ({finishedCount})</button></div></div><div className={vertical.entityList}>{filtered.map((item) => <button key={item.id} type="button" className={vertical.entityRow} onClick={() => onRow(item)}><span className={vertical.entityIcon}><Icon name={icon} /></span><div className={vertical.entityMain}><strong>{item.title}</strong><p>{item.subtitle}</p><small>{item.date}</small></div><div className={vertical.entityMeta}><StatusPill status={item.status} /></div><Icon name="chevron" /></button>)}{!filtered.length ? <EmptyState icon={scope === "Finalizados" ? "history" : "search"} title={scope === "Finalizados" ? "Nenhuma atividade finalizada" : "Nenhum registro em andamento"} description={items.length ? "Altere a busca, o filtro ou a classificação." : "Os registros aparecerão aqui quando forem criados."} /> : null}</div></section>;
 }
 

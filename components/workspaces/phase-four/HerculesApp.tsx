@@ -11,10 +11,10 @@ type CheckItem = { id: string; label: string; helper: string; result?: Result; n
 type InspectionStatus = "Em execução" | "Concluída" | "Programada";
 type Inspection = { id: string; title: string; location: string; responsible: string; scheduledAt: string; status: InspectionStatus; items: CheckItem[]; completedAt?: string };
 type DeviationStatus = "Aberto" | "Em correção" | "Validar" | "Encerrado";
-type Deviation = { id: string; inspectionId: string; itemId: string; description: string; priority: "Alta" | "Média" | "Baixa"; responsible: string; due: string; status: DeviationStatus; action: string; evidence: string[] };
+type Deviation = { id: string; inspectionId: string; itemId: string; description: string; priority: "Alta" | "Média" | "Baixa"; responsible: string; due: string; status: DeviationStatus; action: string; validation: string; evidence: string[] };
 type ModelItem = { id: string; label: string; helper: string };
 type ChecklistModel = { id: string; name: string; items: Array<{ label: string; helper: string }> };
-type DeviationDraft = { id: string; description: string; priority: Deviation["priority"]; responsible: string; due: string; action: string };
+type DeviationDraft = { id: string; description: string; priority: Deviation["priority"]; responsible: string; due: string; action: string; validation: string };
 type ConfirmAction = { kind: "start" | "finish" | "deviation"; title: string; from: string; to: string; consequence: string; inspectionId?: string; deviationId?: string };
 
 const baseItems = [
@@ -45,8 +45,8 @@ export function HerculesApp({ product }: { product: Product }) {
   const [modal, setModal] = useState<"schedule" | "deviation" | "editDeviation" | "model" | "instruction" | "confirm" | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [toast, setToast] = useState("");
-  const [scheduleDraft, setScheduleDraft] = useState({ title: initialModels[0].name, location: "", responsible: "", scheduledAt: "" });
-  const [deviationDraft, setDeviationDraft] = useState<DeviationDraft>({ id: "", description: "", priority: "Alta", responsible: "", due: "", action: "" });
+  const [scheduleDraft, setScheduleDraft] = useState({ title: "", location: "", responsible: "", scheduledAt: "" });
+  const [deviationDraft, setDeviationDraft] = useState<DeviationDraft>({ id: "", description: "", priority: "Alta", responsible: "", due: "", action: "", validation: "" });
   const [modelDraft, setModelDraft] = useState<{ id: string; name: string; items: ModelItem[] }>({ id: "", name: "", items: [{ id: uid("MDI"), label: "", helper: "" }] });
   const [inspectionScope, setInspectionScope] = useState<"Em andamento" | "Histórico">("Em andamento");
   const [inspectionQuery, setInspectionQuery] = useState("");
@@ -89,10 +89,12 @@ export function HerculesApp({ product }: { product: Product }) {
 
   function answer(result: Result) {
     if (!currentItem || !inspection || readOnly) return;
+    const linkedDeviation = deviations.find((deviation) => deviation.inspectionId === inspection.id && deviation.itemId === currentItem.id);
+    if (currentItem.result === "Não conforme" && result !== "Não conforme" && linkedDeviation) { setToast("O item possui um desvio registrado; valide e encerre a correção antes de alterar o resultado observado"); return; }
     updateItem({ result });
     if (result === "Não conforme") {
       const existing = deviations.find((deviation) => deviation.inspectionId === inspection.id && deviation.itemId === currentItem.id && deviation.status !== "Encerrado");
-      if (!existing) { setDeviationDraft({ id: "", description: currentItem.label, priority: "Alta", responsible: inspection.responsible, due: "", action: currentItem.note }); setModal("deviation"); }
+      if (!existing) { setDeviationDraft({ id: "", description: currentItem.label, priority: "Alta", responsible: inspection.responsible, due: "", action: currentItem.note, validation: "" }); setModal("deviation"); }
     }
   }
 
@@ -121,18 +123,19 @@ export function HerculesApp({ product }: { product: Product }) {
 
   function createDeviation() {
     if (!currentItem || !inspection || !validateDeviationDraft()) return;
-    const deviation: Deviation = { id: uid("NC"), inspectionId: inspection.id, itemId: currentItem.id, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, status: "Aberto", action: deviationDraft.action.trim(), evidence: currentItem.evidence };
+    const deviation: Deviation = { id: uid("NC"), inspectionId: inspection.id, itemId: currentItem.id, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, status: "Aberto", action: deviationDraft.action.trim(), validation: "", evidence: currentItem.evidence };
     setDeviations((current) => [deviation, ...current]); setModal(null); setToast("Desvio criado na etapa Aberto");
   }
 
-  function openDeviation(deviation: Deviation) { setDeviationDraft({ id: deviation.id, description: deviation.description, priority: deviation.priority, responsible: deviation.responsible, due: deviation.due, action: deviation.action }); setModal("editDeviation"); }
-  function saveDeviation() { if (!deviationDraft.id || !validateDeviationDraft()) return; setDeviations((current) => current.map((item) => item.id === deviationDraft.id ? { ...item, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, action: deviationDraft.action.trim() } : item)); setModal(null); setToast("Desvio atualizado"); }
+  function openDeviation(deviation: Deviation) { setDeviationDraft({ id: deviation.id, description: deviation.description, priority: deviation.priority, responsible: deviation.responsible, due: deviation.due, action: deviation.action, validation: deviation.validation ?? "" }); setModal("editDeviation"); }
+  function saveDeviation() { if (!deviationDraft.id || !validateDeviationDraft()) return; setDeviations((current) => current.map((item) => item.id === deviationDraft.id ? { ...item, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, action: deviationDraft.action.trim(), validation: deviationDraft.validation.trim() } : item)); setModal(null); setToast("Desvio atualizado"); }
 
   function requestDeviationAdvance(deviation: Deviation) {
     const flow: DeviationStatus[] = ["Aberto", "Em correção", "Validar", "Encerrado"];
     const index = flow.indexOf(deviation.status); const next = flow[index + 1];
     if (!next) return;
     if ((next === "Validar" || next === "Encerrado") && !deviation.action.trim()) { openDeviation(deviation); setToast("Registre a ação corretiva antes de avançar"); return; }
+    if (next === "Encerrado" && !deviation.validation.trim()) { openDeviation(deviation); setToast("Registre como a correção foi verificada antes de encerrar"); return; }
     setConfirmAction({ kind: "deviation", deviationId: deviation.id, title: "Confirmar etapa do desvio", from: deviation.status, to: next, consequence: next === "Em correção" ? "O responsável assumirá a execução da ação corretiva." : next === "Validar" ? "A correção ficará aguardando verificação antes do encerramento." : "O desvio será encerrado como verificado." }); setModal("confirm");
   }
 
@@ -157,8 +160,8 @@ export function HerculesApp({ product }: { product: Product }) {
   }
 
   function scheduleInspection() {
-    const model = models.find((item) => item.name === scheduleDraft.title) ?? models[0];
-    if (!model) { setToast("Crie um modelo antes de programar"); return; }
+    const model = models.find((item) => item.name === scheduleDraft.title);
+    if (!model) { setToast("Escolha um modelo antes de programar"); return; }
     if (!scheduleDraft.location.trim() || !scheduleDraft.responsible.trim() || !scheduleDraft.scheduledAt) { setToast("Informe local, responsável e data"); return; }
     const next: Inspection = { id: uid("INS"), title: model.name, location: scheduleDraft.location.trim(), responsible: scheduleDraft.responsible.trim(), scheduledAt: scheduleDraft.scheduledAt, status: "Programada", items: createItems(model) };
     setInspections((current) => [...current, next]); setModal(null); setActive("Programadas"); setToast("Inspeção programada");
@@ -187,7 +190,7 @@ export function HerculesApp({ product }: { product: Product }) {
     {active === "Modelos" ? <section className={styles.pageSheet}><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={modelQuery} onChange={(event) => setModelQuery(event.target.value)} placeholder="Buscar modelo" /></label><select className={styles.compactSelect} value={modelSort} onChange={(event) => setModelSort(event.target.value as typeof modelSort)}><option>Nome</option><option>Mais itens</option></select></div><div className={styles.templateGrid}>{visibleModels.map((model) => <article key={model.id}><div className={styles.templateIcon}><Icon name="clipboard" /></div><h3>{model.name}</h3><p>{model.items.length} item(ns)</p><div><button className={styles.secondaryButton} onClick={() => openEditModel(model)}>Editar</button><button className={styles.iconButton} onClick={() => removeModel(model)}><Icon name="trash" /></button></div></article>)}</div></section> : null}
 
     <Modal open={modal === "confirm"} title={confirmAction?.title ?? "Confirmar etapa"} onClose={() => setModal(null)}>{confirmAction ? <><div className={styles.noteBox}><strong>{confirmAction.from}</strong> → <strong>{confirmAction.to}</strong><br />{confirmAction.consequence}</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={confirmProcessAction}>Confirmar mudança</button></div></> : null}</Modal>
-    <Modal open={modal === "schedule"} title="Programar inspeção" onClose={() => setModal(null)}><Form onSubmit={scheduleInspection}><Field label="Modelo"><select required value={scheduleDraft.title} onChange={(event) => setScheduleDraft((current) => ({ ...current, title: event.target.value }))}>{models.map((model) => <option key={model.id}>{model.name}</option>)}</select></Field><Field label="Local ou ativo"><input required value={scheduleDraft.location} onChange={(event) => setScheduleDraft((current) => ({ ...current, location: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Responsável"><input required value={scheduleDraft.responsible} onChange={(event) => setScheduleDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Data e horário"><input required type="datetime-local" value={scheduleDraft.scheduledAt} onChange={(event) => setScheduleDraft((current) => ({ ...current, scheduledAt: event.target.value }))} /></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Programar</button></div></Form></Modal>
+    <Modal open={modal === "schedule"} title="Programar inspeção" onClose={() => setModal(null)}><Form onSubmit={scheduleInspection}><Field label="Modelo"><select required value={scheduleDraft.title} onChange={(event) => setScheduleDraft((current) => ({ ...current, title: event.target.value }))}><option value="">Selecione o modelo</option>{models.map((model) => <option key={model.id}>{model.name}</option>)}</select></Field><Field label="Local ou ativo"><input required value={scheduleDraft.location} onChange={(event) => setScheduleDraft((current) => ({ ...current, location: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Responsável"><input required value={scheduleDraft.responsible} onChange={(event) => setScheduleDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Data e horário"><input required type="datetime-local" value={scheduleDraft.scheduledAt} onChange={(event) => setScheduleDraft((current) => ({ ...current, scheduledAt: event.target.value }))} /></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Programar</button></div></Form></Modal>
     <Modal open={modal === "deviation"} title="Abrir desvio" description="O item continuará não conforme até a correção ser validada." onClose={() => setModal(null)}><Form onSubmit={createDeviation}><DeviationFields draft={deviationDraft} setDraft={setDeviationDraft} /><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar em Aberto</button></div></Form></Modal>
     <Modal open={modal === "editDeviation"} title="Editar desvio" onClose={() => setModal(null)}><Form onSubmit={saveDeviation}><DeviationFields draft={deviationDraft} setDraft={setDeviationDraft} /><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar</button></div></Form></Modal>
     <Modal open={modal === "model"} title={modelDraft.id ? "Editar modelo" : "Novo modelo"} onClose={() => setModal(null)} wide><Form onSubmit={saveModel}><Field label="Nome"><input required value={modelDraft.name} onChange={(event) => setModelDraft((current) => ({ ...current, name: event.target.value }))} /></Field><div className={styles.builderItems}>{modelDraft.items.map((item, index) => <div className={styles.builderLineAdvanced} key={item.id}><span>{index + 1}</span><input required value={item.label} onChange={(event) => patchModelItem(item.id, { label: event.target.value })} placeholder="Item" /><input value={item.helper} onChange={(event) => patchModelItem(item.id, { helper: event.target.value })} placeholder="Orientação" /><button type="button" className={styles.iconButton} disabled={modelDraft.items.length === 1} onClick={() => setModelDraft((current) => ({ ...current, items: current.items.filter((entry) => entry.id !== item.id) }))}><Icon name="trash" /></button></div>)}</div><button type="button" className={styles.secondaryButton} onClick={() => setModelDraft((current) => ({ ...current, items: [...current.items, { id: uid("MDI"), label: "", helper: "" }] }))}>Adicionar item</button><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar modelo</button></div></Form></Modal>
@@ -197,7 +200,7 @@ export function HerculesApp({ product }: { product: Product }) {
 }
 
 function DeviationFields({ draft, setDraft }: { draft: DeviationDraft; setDraft: Dispatch<SetStateAction<DeviationDraft>> }) {
-  return <><Field label="Descrição"><input required value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Prioridade"><select value={draft.priority} onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as Deviation["priority"] }))}><option>Alta</option><option>Média</option><option>Baixa</option></select></Field><Field label="Responsável"><input required value={draft.responsible} onChange={(event) => setDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Prazo"><input required type="date" value={draft.due} onChange={(event) => setDraft((current) => ({ ...current, due: event.target.value }))} /></Field></div><Field label="Ação corretiva"><textarea value={draft.action} onChange={(event) => setDraft((current) => ({ ...current, action: event.target.value }))} /></Field></>;
+  return <><Field label="Descrição"><input required value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Prioridade"><select value={draft.priority} onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as Deviation["priority"] }))}><option>Alta</option><option>Média</option><option>Baixa</option></select></Field><Field label="Responsável"><input required value={draft.responsible} onChange={(event) => setDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Prazo"><input required type="date" value={draft.due} onChange={(event) => setDraft((current) => ({ ...current, due: event.target.value }))} /></Field></div><Field label="Ação corretiva"><textarea value={draft.action} onChange={(event) => setDraft((current) => ({ ...current, action: event.target.value }))} /></Field><Field label="Como a correção foi verificada" hint="Obrigatório antes do encerramento"><textarea value={draft.validation} onChange={(event) => setDraft((current) => ({ ...current, validation: event.target.value }))} /></Field></>;
 }
 function deviationAction(status: DeviationStatus) { if (status === "Aberto") return "Confirmar início da correção"; if (status === "Em correção") return "Enviar para validação"; if (status === "Validar") return "Confirmar encerramento"; return "Encerrado"; }
 

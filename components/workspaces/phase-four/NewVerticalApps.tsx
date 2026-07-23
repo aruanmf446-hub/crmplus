@@ -55,6 +55,10 @@ const alexandria: VerticalConfig = {
   primaryAction: "Nova obra",
   linearFlow: false,
   allowDuplicate: false,
+  finalStatuses: ["Arquivada"],
+  operationFinalStatuses: ["Devolvido", "Cancelado"],
+  resourceFinalStatuses: ["Extraviado"],
+  transitions: { "Em catalogação": ["Disponível"], "Disponível": ["Sem exemplar disponível", "Arquivada"], "Sem exemplar disponível": ["Disponível", "Arquivada"] },
 };
 
 const olympus: VerticalConfig = {
@@ -97,6 +101,10 @@ const olympus: VerticalConfig = {
   ],
   primaryAction: "Novo imóvel",
   linearFlow: false,
+  finalStatuses: ["Indisponível", "Negócio concluído"],
+  operationFinalStatuses: ["Aceita", "Recusada", "Cancelada"],
+  resourceFinalStatuses: ["Sem interesse", "Concluído"],
+  transitions: { "Em captação": ["Aguardando informações"], "Aguardando informações": ["Disponível"], "Disponível": ["Em negociação", "Indisponível"], "Em negociação": ["Disponível", "Indisponível", "Negócio concluído"], "Indisponível": ["Disponível"] },
 };
 
 const argus: VerticalConfig = {
@@ -138,6 +146,10 @@ const argus: VerticalConfig = {
   primaryAction: "Novo bem",
   linearFlow: false,
   allowDuplicate: false,
+  finalStatuses: ["Baixado"],
+  operationFinalStatuses: ["Concluída", "Cancelada"],
+  resourceFinalStatuses: [],
+  transitions: { "Disponível": ["Em uso", "Emprestado", "Em manutenção", "Não localizado", "Baixado"], "Em uso": ["Disponível", "Em manutenção", "Não localizado", "Baixado"], "Emprestado": ["Disponível", "Em manutenção", "Não localizado", "Baixado"], "Em manutenção": ["Disponível", "Baixado"], "Não localizado": ["Disponível", "Baixado"] },
 };
 
 const hermes: VerticalConfig = {
@@ -178,6 +190,10 @@ const hermes: VerticalConfig = {
   ],
   primaryAction: "Novo evento",
   linearFlow: false,
+  finalStatuses: ["Encerrado", "Cancelado"],
+  operationFinalStatuses: ["Concluída", "Cancelada"],
+  resourceFinalStatuses: ["Não participará", "Presente", "Ausente"],
+  transitions: { "Em planejamento": ["Convites enviados", "Cancelado"], "Convites enviados": ["Em preparação", "Cancelado"], "Em preparação": ["Em realização", "Cancelado"], "Em realização": ["Encerrado"] },
 };
 
 const athena: VerticalConfig = {
@@ -220,6 +236,11 @@ const athena: VerticalConfig = {
   ],
   primaryAction: "Nova oportunidade",
   linearFlow: false,
+  finalStatuses: ["Não participar", "Vencedora", "Perdida", "Cancelada"],
+  operationFinalStatuses: ["Concluído", "Não se aplica"],
+  resourceFinalStatuses: ["Não se aplica"],
+  transitions: { "Nova oportunidade": ["Em triagem"], "Em triagem": ["Não participar", "Preparando proposta"], "Preparando proposta": ["Proposta enviada", "Cancelada"], "Proposta enviada": ["Em sessão", "Cancelada"], "Em sessão": ["Habilitação", "Perdida", "Cancelada"], "Habilitação": ["Vencedora", "Perdida", "Cancelada"] },
+  operationTransitions: { "Pendente": ["Em preparação", "Não se aplica"], "Em preparação": ["Aguardando informação", "Enviado", "Concluído"], "Aguardando informação": ["Em preparação", "Atrasado"], "Enviado": ["Concluído"], "Atrasado": ["Em preparação", "Concluído"] },
 };
 
 const gaia: VerticalConfig = {
@@ -265,6 +286,10 @@ const gaia: VerticalConfig = {
   ],
   primaryAction: "Novo ciclo",
   linearFlow: false,
+  finalStatuses: ["Concluído", "Interrompido"],
+  operationFinalStatuses: ["Executada", "Resolvida", "Cancelada"],
+  resourceFinalStatuses: ["Arquivado"],
+  transitions: { "Planejado": ["Em preparação", "Interrompido"], "Em preparação": ["Em produção", "Interrompido"], "Em produção": ["Produção prevista", "Concluído", "Interrompido"], "Produção prevista": ["Concluído", "Interrompido"], "Interrompido": ["Em preparação"] },
 };
 
 const pegasus: VerticalConfig = {
@@ -308,6 +333,10 @@ const pegasus: VerticalConfig = {
   primaryAction: "Novo pet",
   linearFlow: false,
   allowDuplicate: false,
+  finalStatuses: ["Inativo"],
+  operationFinalStatuses: ["Entregue", "Faltou", "Cancelado"],
+  resourceFinalStatuses: ["Concluído", "Cancelado"],
+  transitions: { "Ativo": ["Atenção especial", "Inativo"], "Atenção especial": ["Ativo", "Inativo"], "Inativo": ["Ativo"] },
 };
 
 const titans: VerticalConfig = {
@@ -349,6 +378,10 @@ const titans: VerticalConfig = {
   ],
   primaryAction: "Nova obra",
   linearFlow: false,
+  finalStatuses: ["Entregue", "Cancelada"],
+  operationFinalStatuses: ["Concluída", "Cancelada"],
+  resourceFinalStatuses: ["Recusada", "Substituída"],
+  transitions: { "Orçamento": ["Em planejamento", "Cancelada"], "Em planejamento": ["Em execução", "Cancelada"], "Em execução": ["Em vistoria", "Cancelada"], "Em vistoria": ["Em correção", "Entregue"], "Em correção": ["Em vistoria", "Entregue"] },
 };
 
 export function AlexandriaApp({ product }: { product: Product }) { return <VerticalBusinessApp product={product} config={alexandria} />; }
