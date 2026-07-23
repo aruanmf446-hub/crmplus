@@ -1,5 +1,5 @@
 name: Publicar CRMPlus no GitHub Pages
-run-name: Publicar catálogo completo do CRMPlus
+run-name: Validar e publicar CRMPlus+
 
 on:
   push:
@@ -16,9 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
@@ -41,9 +41,47 @@ jobs:
       - name: Gerar site estático
         run: npm run build
         env:
+          NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
 
-      - name: Enviar artefato
+      - name: Instalar navegador fixado do QA
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright@1.55.0 install --with-deps chromium
+
+      - name: Iniciar prévia isolada
+        run: |
+          mkdir -p preview/crmplus
+          cp -a out/. preview/crmplus/
+          python3 -m http.server 4173 -d preview > /tmp/crmplus-pages-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/crmplus-pages-server.log
+          exit 1
+
+      - name: Validar processos obrigatórios
+        run: node scripts/audit-processes.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Validar webdesign e responsividade
+        run: node scripts/audit-visual.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Publicar evidências do QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crmplus-quality-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: warn
+
+      - name: Enviar artefato do site
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
@@ -54,7 +92,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: build
+    needs: build-and-quality
     steps:
       - name: Publicar
         id: deployment
