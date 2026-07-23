@@ -287,9 +287,19 @@ export function Modal({ open, title, description, onClose, children, wide = fals
     previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const root = backdropRef.current?.closest("[data-product]");
-    const inertElements = root ? Array.from(root.children).filter((element) => element !== backdropRef.current) as HTMLElement[] : [];
-    inertElements.forEach((element) => { element.inert = true; });
+    const root = backdropRef.current?.closest<HTMLElement>("[data-product]") ?? null;
+    const inertStates: Array<{ element: HTMLElement; inert: boolean }> = [];
+    let activeBranch: HTMLElement | null = backdropRef.current;
+
+    while (activeBranch?.parentElement && activeBranch !== root) {
+      const parent = activeBranch.parentElement;
+      for (const sibling of Array.from(parent.children)) {
+        if (sibling === activeBranch || !(sibling instanceof HTMLElement)) continue;
+        inertStates.push({ element: sibling, inert: sibling.inert });
+        sibling.inert = true;
+      }
+      activeBranch = parent;
+    }
 
     const focusableSelector = 'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const frame = window.requestAnimationFrame(() => {
@@ -317,7 +327,7 @@ export function Modal({ open, title, description, onClose, children, wide = fals
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = previousOverflow;
-      inertElements.forEach((element) => { element.inert = false; });
+      inertStates.forEach(({ element, inert }) => { element.inert = inert; });
       previousFocus.current?.focus();
     };
   }, [onClose, open]);
