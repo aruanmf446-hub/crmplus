@@ -1,0 +1,43 @@
+name: Aplicar ajuste único dos seletores de QA
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - scripts/apply-process-selector-fix.mjs
+      - .github/workflows/apply-process-selector-fix.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crmplus-process-selector-maintenance
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Aplicar seletores validados
+        run: node scripts/apply-process-selector-fix.mjs
+      - name: Validar código alterado
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+      - name: Remover auxiliares e publicar ajuste
+        run: |
+          rm scripts/apply-process-selector-fix.mjs
+          rm .github/workflows/apply-process-selector-fix.yml
+          git config user.name "crmplus-maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Alinhar seletores acessíveis do QA funcional"
+          git push origin HEAD:main
