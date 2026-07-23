@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WorkspaceRouter } from "@/components/WorkspaceRouter";
 import { getProduct, products } from "@/lib/apps";
-import { getWorkspace } from "@/lib/workspaces";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -22,9 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function WorkspacePage({ params }: Props) {
-  const slug = (await params).slug;
-  const product = getProduct(slug);
+  const product = getProduct((await params).slug);
   if (!product) notFound();
-  const workspace = getWorkspace(slug);
-  return <WorkspaceRouter product={product} workspace={workspace} />;
+  return <WorkspaceRouter product={product} />;
 }
