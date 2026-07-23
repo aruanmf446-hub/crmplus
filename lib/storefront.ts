@@ -8,6 +8,12 @@ export type StorefrontInfo = {
   aliases: string[];
 };
 
+type ProductMediaEntry = {
+  cover?: string;
+  screens: string[];
+  video?: string;
+};
+
 export const segmentFilters = [
   { id: "all", label: "Todos" },
   { id: "automotivo", label: "Automotivo" },
@@ -36,6 +42,24 @@ const storefront: Record<string, StorefrontInfo> = {
   athena: { monthlyPrice: 79, segment: "eventos-publico", aliases: ["licitação", "editais", "prazos", "propostas"] },
   gaia: { monthlyPrice: 69, segment: "campo", aliases: ["produção rural", "fazenda", "safra", "talhão"] },
   pegasus: { monthlyPrice: 59, segment: "pet-shop", aliases: ["pet shop", "banho e tosa", "pets", "hotel para animais"] },
+};
+
+const mediaManifest: Record<string, ProductMediaEntry> = {
+  atlas: { screens: [] },
+  ares: { screens: [] },
+  artemis: { screens: [] },
+  pandora: { screens: [] },
+  poseidon: { screens: [] },
+  hercules: { screens: [] },
+  zeus: { screens: [] },
+  alexandria: { screens: [] },
+  olympus: { screens: [] },
+  argus: { screens: [] },
+  hermes: { screens: [] },
+  athena: { screens: [] },
+  gaia: { screens: [] },
+  pegasus: { screens: [] },
+  titans: { screens: [] },
 };
 
 const fallback: StorefrontInfo = { monthlyPrice: 49, segment: "vendas-servicos", aliases: [] };
@@ -71,20 +95,23 @@ export function getPublicBasePath(): string {
   return process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 }
 
+function publicAsset(path?: string) {
+  if (!path) return undefined;
+  return `${getPublicBasePath()}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export function getProductMedia(slug: string) {
-  const productionBase = `https://aruanmf446-hub.github.io/crmplus/media/apps/${slug}`;
-  const localBase = `${getPublicBasePath()}/media/apps/${slug}`;
-  const base = process.env.NODE_ENV === "production" ? productionBase : localBase;
-  const version = "20260722-14";
-  const extensions = ["png", "jpg", "jpeg", "svg"];
-  const candidates = (name: string) => extensions.map((extension) => `${base}/${name}.${extension}?v=${version}`);
-  const galleryCandidates = [candidates("cover"), candidates("screen-01"), candidates("screen-02")];
+  const entry = mediaManifest[slug] ?? { screens: [] };
+  const cover = publicAsset(entry.cover);
+  const screens = entry.screens.map((path) => publicAsset(path)).filter((path): path is string => Boolean(path));
+  const galleryCandidates: string[][] = [[...(cover ? [cover] : [])], ...screens.map((path) => [path])];
+  while (galleryCandidates.length < 3) galleryCandidates.push([]);
 
   return {
-    cover: galleryCandidates[0][0],
-    coverCandidates: galleryCandidates[0],
+    cover: cover ?? "",
+    coverCandidates: cover ? [cover] : [],
     galleryCandidates,
-    hasCover: true,
-    video: `${base}/preview.mp4?v=${version}`,
+    hasCover: Boolean(cover),
+    video: publicAsset(entry.video) ?? "",
   };
 }
