@@ -45,26 +45,32 @@ async function inspectColors(page) {
     };
     const neutral = (color, tolerance = 18) => Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) <= tolerance;
     const luminance = (color) => (color.r * 0.2126) + (color.g * 0.7152) + (color.b * 0.0722);
+    const effectiveLuminance = (color) => luminance(color) * color.a;
     const visible = (element) => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0.03;
     };
+    const compactClass = (element) => typeof element?.className === "string" ? element.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
     const selectorFor = (element) => {
       const tag = element.tagName.toLowerCase();
-      const className = typeof element.className === "string" ? element.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
+      const className = compactClass(element);
+      const parentClass = compactClass(element.parentElement);
       const role = element.getAttribute("role");
       const label = element.getAttribute("aria-label");
-      return `${tag}${className ? `.${className}` : ""}${role ? `[role=${role}]` : ""}${label ? `[aria-label=${label}]` : ""}`.slice(0, 180);
+      const ownText = [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent?.trim()).filter(Boolean).join(" ").slice(0, 45);
+      return `${parentClass ? `.${parentClass}>` : ""}${tag}${className ? `.${className}` : ""}${role ? `[role=${role}]` : ""}${label ? `[aria-label=${label}]` : ""}${ownText ? `{${ownText}}` : ""}`.slice(0, 220);
     };
 
     for (const element of root.querySelectorAll("*")) {
       if (!visible(element)) continue;
       const style = getComputedStyle(element);
       const selector = selectorFor(element);
+      const rect = element.getBoundingClientRect();
       const background = parse(style.backgroundColor);
       if (background && background.a > 0.04) {
-        if (!neutral(background) || luminance(background) > 105) {
+        const tinyNeutralIndicator = neutral(background) && rect.width <= 32 && rect.height <= 32;
+        if (!neutral(background) || (!tinyNeutralIndicator && effectiveLuminance(background) > 105)) {
           issues.push({ kind: "fundo", selector, value: style.backgroundColor });
         }
       }
@@ -72,7 +78,7 @@ async function inspectColors(page) {
       const hasOwnText = [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
       if (hasOwnText) {
         const color = parse(style.color);
-        if (color && color.a > 0.04 && luminance(color) < 145) {
+        if (color && color.a > 0.04 && effectiveLuminance(color) < 125) {
           issues.push({ kind: "texto", selector, value: style.color });
         }
       }
