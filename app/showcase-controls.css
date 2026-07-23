@@ -1,0 +1,37 @@
+.showcase-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.showcase-control-row span {
+  color: #667085;
+  font-size: 11px;
+}
+
+.showcase-control-row button {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid #d7dde6;
+  border-radius: 9px;
+  color: #344054;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.showcase-control-row button:hover,
+.showcase-control-row button:focus-visible {
+  border-color: color-mix(in srgb, var(--showcase-accent) 42%, #d7dde6);
+  outline: 3px solid color-mix(in srgb, var(--showcase-accent) 20%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .showcase-control-row { align-items: flex-start; flex-direction: column; }
+  .showcase-control-row button { width: 100%; }
+}
