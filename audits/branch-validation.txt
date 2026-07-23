@@ -1,4 +1,4 @@
-COMMIT VALIDADO: 91a22efd5fae61729a360f599122aede4a5d2446
+COMMIT VALIDADO: 48b1fd0fe49d0324ab1c2c4dfc1abf929b1f5c88
 DEPENDÊNCIAS: success
 AUDITORIA PRODUÇÃO: success
 AUDITORIA COMPLETA: success
@@ -12,7 +12,7 @@ WEBDESIGN: failure
 
 === LOCKFILE ===
 
-up to date, audited 404 packages in 829ms
+up to date, audited 404 packages in 1s
 
 166 packages are looking for funding
   run `npm fund` for details
@@ -64,15 +64,15 @@ found 0 vulnerabilities
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 3.0s
+✓ Compiled successfully in 3.2s
   Running TypeScript ...
-  Finished TypeScript in 7.8s ...
+  Finished TypeScript in 8.1s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/69) ...
   Generating static pages using 3 workers (17/69) 
   Generating static pages using 3 workers (34/69) 
   Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 835ms
+✓ Generating static pages using 3 workers (69/69) in 797ms
   Finalizing page optimization ...
 
 Route (app)

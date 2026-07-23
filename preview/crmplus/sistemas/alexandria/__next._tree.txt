@@ -2,4 +2,4 @@
 :HL["/crmplus/_next/static/chunks/0r7856aq2l2f9.css","style"]
 :HL["/crmplus/_next/static/chunks/07n2acdva_w5i.css","style"]
 :HL["/crmplus/_next/static/chunks/366meqgs6le-r.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":20,"slots":{"children":{"name":"sistemas","param":null,"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"alexandria","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"DEWIy_aCN-aplRAB_wljX"}
+0:{"tree":{"name":"","param":null,"prefetchHints":20,"slots":{"children":{"name":"sistemas","param":null,"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"alexandria","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"IedEB8guCn-m7MwTMOJyx"}
