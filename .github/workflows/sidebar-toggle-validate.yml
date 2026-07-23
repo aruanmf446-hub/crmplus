@@ -1,0 +1,23 @@
+name: Validar menu recolhível
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - components/WorkspaceMenuToggle.tsx
+      - app/sidebar-toggle.css
+      - app/layout.tsx
+      - .github/workflows/sidebar-toggle-validate.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
