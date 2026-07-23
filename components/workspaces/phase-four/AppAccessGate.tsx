@@ -66,6 +66,10 @@ export function AppAccessGate({ product, children }: { product: Product; childre
     { label: "um número", passed: /\d/.test(draft.password) },
   ];
   const passwordIsValid = passwordRules.every((rule) => rule.passed);
+  const confirmationStarted = draft.confirmPassword.length > 0;
+  const passwordsMatch = confirmationStarted && draft.password === draft.confirmPassword;
+  const signupFieldsReady = Boolean(draft.name.trim() && draft.company.trim() && draft.email.trim());
+  const signupReady = signupFieldsReady && passwordIsValid && passwordsMatch;
 
   function changeMode(nextMode: Mode) {
     setMode(nextMode);
@@ -101,7 +105,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
         setError("Crie uma senha que atenda aos três requisitos.");
         return;
       }
-      if (draft.password !== draft.confirmPassword) {
+      if (!passwordsMatch) {
         setError("A confirmação da senha não confere.");
         return;
       }
@@ -201,10 +205,16 @@ export function AppAccessGate({ product, children }: { product: Product; childre
             <label className={styles.field}><span>Senha</span><input required aria-describedby={mode === "signup" ? `password-rules-${product.slug}` : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} type="password" minLength={mode === "signup" ? 8 : 1} value={draft.password} onChange={(event) => setDraft((current) => ({ ...current, password: event.target.value }))} /></label>
             {mode === "signup" ? <>
               <div id={`password-rules-${product.slug}`} className={styles.passwordRules} aria-live="polite">{passwordRules.map((rule) => <span key={rule.label} className={rule.passed ? styles.ruleOk : ""}>{rule.passed ? "✓" : "○"} {rule.label}</span>)}</div>
-              <label className={styles.field}><span>Confirmar senha</span><input required autoComplete="new-password" type="password" minLength={8} value={draft.confirmPassword} onChange={(event) => setDraft((current) => ({ ...current, confirmPassword: event.target.value }))} /></label>
+              <label className={styles.field}>
+                <span>Confirmar senha</span>
+                <input required aria-invalid={confirmationStarted && !passwordsMatch} aria-describedby={`password-confirmation-${product.slug}`} autoComplete="new-password" type="password" minLength={8} value={draft.confirmPassword} onChange={(event) => setDraft((current) => ({ ...current, confirmPassword: event.target.value }))} />
+                <small id={`password-confirmation-${product.slug}`} className={`${styles.confirmStatus} ${confirmationStarted ? (passwordsMatch ? styles.confirmOk : styles.confirmError) : ""}`} aria-live="polite">
+                  {!confirmationStarted ? "Repita a senha para confirmar." : passwordsMatch ? "✓ As senhas conferem." : "As senhas não conferem."}
+                </small>
+              </label>
             </> : null}
             {error ? <div className={styles.error} role="alert">{error}</div> : null}
-            <button className={styles.submit} type="submit" disabled={!storageAvailable || (mode === "signup" && Boolean(storedAccount))}>{mode === "login" ? `Entrar no ${product.shortName}` : "Criar conta e entrar"}</button>
+            <button className={styles.submit} type="submit" disabled={!storageAvailable || (mode === "signup" && (Boolean(storedAccount) || !signupReady))}>{mode === "login" ? `Entrar no ${product.shortName}` : "Criar conta e entrar"}</button>
             <p className={styles.storageNote}>Conta, sessão e registros ficam somente neste navegador. Nenhum dado é enviado ao GitHub.</p>
           </form>
         </div>
