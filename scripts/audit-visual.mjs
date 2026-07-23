@@ -75,21 +75,19 @@ async function inspectPage(page) {
       critical.push(`overflow horizontal do documento: ${root.scrollWidth}px em viewport de ${window.innerWidth}px`);
     }
 
-    const appShell = document.querySelector("[data-product]");
-    if (appShell) {
+    const sidebar = document.querySelector('[data-product] > aside[data-ui="navigation"]');
+    const appShell = sidebar?.parentElement ?? null;
+    if (appShell && sidebar) {
       const shellRect = appShell.getBoundingClientRect();
       const shellGap = Math.round(window.innerHeight - shellRect.bottom);
       if (shellRect.top < -2 || Math.abs(shellGap) > 2 || shellRect.height < 120) {
         critical.push(`shell não ocupa a área disponível: topo ${Math.round(shellRect.top)}px, altura ${Math.round(shellRect.height)}px, diferença inferior ${shellGap}px`);
       }
 
-      const sidebar = appShell.querySelector(':scope > aside[data-ui="navigation"]');
-      if (sidebar) {
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const sidebarGap = Math.round(window.innerHeight - sidebarRect.bottom);
-        if (Math.abs(sidebarGap) > 2 || sidebarRect.height < 120) {
-          critical.push(`sidebar não alcança o limite inferior: topo ${Math.round(sidebarRect.top)}px, altura ${Math.round(sidebarRect.height)}px, diferença inferior ${sidebarGap}px`);
-        }
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const sidebarGap = Math.round(window.innerHeight - sidebarRect.bottom);
+      if (Math.abs(sidebarGap) > 2 || sidebarRect.height < 120) {
+        critical.push(`sidebar não alcança o limite inferior: topo ${Math.round(sidebarRect.top)}px, altura ${Math.round(sidebarRect.height)}px, diferença inferior ${sidebarGap}px`);
       }
     }
 
