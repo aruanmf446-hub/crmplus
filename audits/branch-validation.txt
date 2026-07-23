@@ -1,4 +1,4 @@
-COMMIT VALIDADO: c8a692818542991a8034b360f58b896e6253a3a1
+COMMIT VALIDADO: cd3128d38684f30b1c2dfb16f541069d116284a4
 DEPENDÊNCIAS: success
 AUDITORIA PRODUÇÃO: success
 AUDITORIA COMPLETA: success
@@ -8,7 +8,7 @@ BUILD: success
 
 === LOCKFILE ===
 
-up to date, audited 404 packages in 806ms
+up to date, audited 404 packages in 2s
 
 166 packages are looking for funding
   run `npm fund` for details
@@ -78,9 +78,6 @@ found 0 vulnerabilities
 > eslint . --max-warnings=0
 
 
-/home/runner/work/crmplus/crmplus/components/workspaces/hercules/HerculesWorkspace.tsx
-  3:10  warning  'useMemo' is defined but never used  @typescript-eslint/no-unused-vars
-
 /home/runner/work/crmplus/crmplus/components/workspaces/phase-four/HerculesApp.tsx
   5:20  warning  'EmptyState' is defined but never used  @typescript-eslint/no-unused-vars
 
@@ -126,7 +123,7 @@ Calling setState synchronously within an effect body causes cascading renders th
   112 |     setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
   113 |     return subscribeStorageStatus((detail) => {  react-hooks/set-state-in-effect
 
-✖ 6 problems (4 errors, 2 warnings)
+✖ 5 problems (4 errors, 1 warning)
 
 
 === TYPESCRIPT ===
@@ -144,15 +141,15 @@ Calling setState synchronously within an effect body causes cascading renders th
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 3.2s
+✓ Compiled successfully in 3.0s
   Running TypeScript ...
-  Finished TypeScript in 8.4s ...
+  Finished TypeScript in 7.8s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/69) ...
   Generating static pages using 3 workers (17/69) 
   Generating static pages using 3 workers (34/69) 
   Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 825ms
+✓ Generating static pages using 3 workers (69/69) in 765ms
   Finalizing page optimization ...
 
 Route (app)
