@@ -1,0 +1,79 @@
+COMMIT VALIDADO: 4c3d1d480708b11fa3d15ebd34c0885d7efe32b7
+DEPENDÊNCIAS: success
+TYPESCRIPT: success
+BUILD: success
+
+=== INSTALAÇÃO ===
+
+added 31 packages, and audited 32 packages in 9s
+
+8 packages are looking for funding
+  run `npm fund` for details
+
+3 high severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+=== TYPESCRIPT ===
+
+> crmplus-store@0.1.0 lint
+> tsc --noEmit
+
+
+=== BUILD ===
+
+> crmplus-store@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+▲ Next.js 16.2.11 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.0s
+  Running TypeScript ...
+  Finished TypeScript in 8.1s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/69) ...
+  Generating static pages using 3 workers (17/69) 
+  Generating static pages using 3 workers (34/69) 
+  Generating static pages using 3 workers (51/69) 
+✓ Generating static pages using 3 workers (69/69) in 848ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ● /aplicativos/[slug]
+│ ├ /aplicativos/atlas
+│ ├ /aplicativos/artemis
+│ ├ /aplicativos/poseidon
+│ └ [+12 more paths]
+├ ● /apps/[slug]
+│ ├ /apps/atlas
+│ ├ /apps/artemis
+│ ├ /apps/poseidon
+│ └ [+12 more paths]
+├ ● /assinar/[slug]
+│ ├ /assinar/atlas
+│ ├ /assinar/artemis
+│ ├ /assinar/poseidon
+│ └ [+12 more paths]
+├ ○ /criar-conta
+├ ○ /entrar
+├ ○ /privacidade
+├ ○ /recuperar-senha
+├ ○ /robots.txt
+├ ● /sistemas/[slug]
+│ ├ /sistemas/atlas
+│ ├ /sistemas/artemis
+│ ├ /sistemas/poseidon
+│ └ [+12 more paths]
+└ ○ /termos
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
