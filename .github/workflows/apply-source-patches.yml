@@ -49,7 +49,20 @@ jobs:
         run: npm ci
 
       - name: Validar TypeScript
-        run: npm run lint
+        run: |
+          set +e
+          npm run lint > /tmp/lint-report.txt 2>&1
+          status=$?
+          cat /tmp/lint-report.txt
+          if [ "$status" -ne 0 ]; then
+            {
+              echo "## Erros encontrados no TypeScript"
+              echo '```text'
+              tail -n 120 /tmp/lint-report.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit "$status"
+          fi
 
       - name: Gerar site estático
         run: npm run build
