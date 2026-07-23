@@ -7,21 +7,7 @@ import { copyText, downloadCsv, todayLabel, uid, useLocalState } from "./localSt
 import styles from "./PhaseFourWorkspace.module.css";
 
 type FeedbackStatus = "Novo" | "Em análise" | "Aguardando retorno" | "Tratado";
-type Feedback = {
-  id: string;
-  customer: string;
-  score: number;
-  channel: string;
-  date: string;
-  comment: string;
-  theme: string;
-  status: FeedbackStatus;
-  priority: boolean;
-  treatment: string;
-  owner: string;
-  dueDate: string;
-  customerReturn: string;
-};
+type Feedback = { id: string; customer: string; score: number; channel: string; date: string; comment: string; theme: string; status: FeedbackStatus; priority: boolean; treatment: string; owner: string; dueDate: string; customerReturn: string };
 type Survey = { id: string; name: string; question: string; active: boolean; createdAt: string };
 
 const initialFeedbacks: Feedback[] = [
@@ -39,11 +25,12 @@ export function PandoraApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Respostas");
   const [feedbacks, setFeedbacks] = useLocalState<Feedback[]>("crmplus.pandora.feedbacks.v2", initialFeedbacks);
   const [surveys, setSurveys] = useLocalState<Survey[]>("crmplus.pandora.surveys.v2", initialSurveys);
-  const [selectedId, setSelectedId] = useState(feedbacks[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<"Todas" | "Detratores" | "Neutros" | "Promotores">("Todas");
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "Todas">("Todas");
-  const [modal, setModal] = useState<"survey" | "theme" | "response" | "poster" | null>(null);
+  const [modal, setModal] = useState<"survey" | "theme" | "response" | "poster" | "transition" | null>(null);
+  const [transitionTarget, setTransitionTarget] = useState<FeedbackStatus>("Em análise");
   const [toast, setToast] = useState("");
   const [surveyDraft, setSurveyDraft] = useState({ id: "", name: "", question: "De 0 a 10, quanto você recomendaria nossa empresa?" });
   const [themeDraft, setThemeDraft] = useState("");
@@ -51,9 +38,8 @@ export function PandoraApp({ product }: { product: Product }) {
   const [responseSurvey, setResponseSurvey] = useState<Survey | null>(null);
   const [responseDraft, setResponseDraft] = useState({ customer: "", score: 8, comment: "", theme: "Atendimento" });
 
-  const selected = feedbacks.find((item) => item.id === selectedId) ?? feedbacks[0];
+  const selected = feedbacks.find((item) => item.id === selectedId);
   const nav: NavItem[] = [{ label: "Respostas", icon: "inbox" }, { label: "Pesquisas", icon: "clipboard" }, { label: "Compartilhar", icon: "arrow" }, { label: "Temas", icon: "tag" }];
-
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
     return feedbacks.filter((feedback) => {
@@ -61,16 +47,11 @@ export function PandoraApp({ product }: { product: Product }) {
       return (group === "Todas" || group === scoreGroup) && (statusFilter === "Todas" || feedback.status === statusFilter) && (!value || `${feedback.customer} ${feedback.comment} ${feedback.theme} ${feedback.channel} ${feedback.owner}`.toLowerCase().includes(value));
     });
   }, [feedbacks, group, query, statusFilter]);
-
   const themeStats = useMemo(() => {
     const counts = new Map<string, { count: number; score: number; pending: number }>();
-    feedbacks.forEach((feedback) => {
-      const current = counts.get(feedback.theme) ?? { count: 0, score: 0, pending: 0 };
-      counts.set(feedback.theme, { count: current.count + 1, score: current.score + feedback.score, pending: current.pending + (feedback.status === "Tratado" ? 0 : 1) });
-    });
+    feedbacks.forEach((feedback) => { const current = counts.get(feedback.theme) ?? { count: 0, score: 0, pending: 0 }; counts.set(feedback.theme, { count: current.count + 1, score: current.score + feedback.score, pending: current.pending + (feedback.status === "Tratado" ? 0 : 1) }); });
     return Array.from(counts.entries()).map(([name, data]) => ({ name, count: data.count, pending: data.pending, average: data.score / data.count })).sort((a, b) => b.count - a.count);
   }, [feedbacks]);
-
   const promoters = feedbacks.filter((item) => item.score >= 9).length;
   const detractors = feedbacks.filter((item) => item.score <= 6).length;
   const nps = feedbacks.length ? Math.round(((promoters - detractors) / feedbacks.length) * 100) : 0;
@@ -78,147 +59,81 @@ export function PandoraApp({ product }: { product: Product }) {
   const priorityCount = feedbacks.filter((item) => item.priority && item.status !== "Tratado").length;
   const overdueCount = feedbacks.filter((item) => item.status !== "Tratado" && item.dueDate && isPast(item.dueDate)).length;
 
-  function surveyResponseCount(survey: Survey) {
-    return feedbacks.filter((feedback) => feedback.channel === survey.name).length;
+  function updateSelected(patch: Partial<Feedback>) { if (selected) setFeedbacks((current) => current.map((feedback) => feedback.id === selected.id ? { ...feedback, ...patch } : feedback)); }
+  function changeArea(value: string) { setActive(value); setSelectedId(""); }
+  function surveyResponseCount(survey: Survey) { return feedbacks.filter((feedback) => feedback.channel === survey.name).length; }
+
+  function allowedTargets(feedback: Feedback): FeedbackStatus[] {
+    if (feedback.status === "Novo") return ["Em análise"];
+    if (feedback.status === "Em análise") return ["Aguardando retorno", "Tratado"];
+    if (feedback.status === "Aguardando retorno") return ["Tratado", "Em análise"];
+    return ["Em análise"];
   }
 
-  function updateSelected(patch: Partial<Feedback>) {
+  function openTransition(target?: FeedbackStatus) {
     if (!selected) return;
-    setFeedbacks((current) => current.map((feedback) => feedback.id === selected.id ? { ...feedback, ...patch } : feedback));
+    const options = allowedTargets(selected);
+    setTransitionTarget(target && options.includes(target) ? target : options[0]);
+    setModal("transition");
   }
 
-  function concludeTreatment() {
-    if (!selected?.treatment.trim()) { setToast("Descreva a ação realizada"); return; }
-    if (!selected.owner.trim()) { setToast("Defina quem ficou responsável"); return; }
-    if (!selected.dueDate) { setToast("Defina o prazo da ação"); return; }
-    if (selected.score <= 6 && !selected.customerReturn.trim()) { setToast("Registre o retorno dado ou planejado ao cliente"); return; }
-    updateSelected({ status: "Tratado", priority: false });
-    setToast("Feedback concluído com ação, responsável e prazo registrados");
-  }
-
-  function reopenTreatment() {
-    updateSelected({ status: "Em análise" });
-    setToast("Feedback reaberto para análise");
-  }
-
-  function openTheme() {
+  function confirmTransition() {
     if (!selected) return;
-    setThemeDraft(selected.theme);
-    setModal("theme");
+    if (transitionTarget === "Em análise" && (!selected.owner.trim() || !selected.dueDate)) { setModal(null); setToast("Defina responsável e prazo antes de iniciar ou reabrir a análise"); return; }
+    if (["Aguardando retorno", "Tratado"].includes(transitionTarget) && !selected.treatment.trim()) { setModal(null); setToast("Descreva a ação realizada ou planejada antes de continuar"); return; }
+    if (["Aguardando retorno", "Tratado"].includes(transitionTarget) && (!selected.owner.trim() || !selected.dueDate)) { setModal(null); setToast("Defina responsável e prazo antes de continuar"); return; }
+    if (transitionTarget === "Tratado" && selected.score <= 6 && !selected.customerReturn.trim()) { setModal(null); setToast("Registre o retorno dado ou planejado ao cliente"); return; }
+    const previous = selected.status;
+    updateSelected({ status: transitionTarget, priority: transitionTarget === "Tratado" ? false : selected.priority });
+    setModal(null); setToast(`${previous} → ${transitionTarget} confirmado`);
   }
 
-  function saveTheme() {
-    if (!themeDraft.trim()) return;
-    updateSelected({ theme: themeDraft.trim(), status: selected?.status === "Novo" ? "Em análise" : selected?.status });
-    setThemeDraft("");
-    setModal(null);
-    setToast("Tema atualizado");
-  }
-
-  function openNewSurvey() {
-    setSurveyDraft({ id: "", name: "", question: "De 0 a 10, quanto você recomendaria nossa empresa?" });
-    setModal("survey");
-  }
-
-  function openEditSurvey(survey: Survey) {
-    setSurveyDraft({ id: survey.id, name: survey.name, question: survey.question });
-    setModal("survey");
-  }
-
+  function openTheme() { if (selected) { setThemeDraft(selected.theme); setModal("theme"); } }
+  function saveTheme() { if (!themeDraft.trim()) return; updateSelected({ theme: themeDraft.trim() }); setModal(null); setToast("Tema atualizado"); }
+  function openNewSurvey() { setSurveyDraft({ id: "", name: "", question: "De 0 a 10, quanto você recomendaria nossa empresa?" }); setModal("survey"); }
+  function openEditSurvey(survey: Survey) { setSurveyDraft({ id: survey.id, name: survey.name, question: survey.question }); setModal("survey"); }
   function saveSurvey() {
-    const name = surveyDraft.name.trim();
-    const question = surveyDraft.question.trim();
+    const name = surveyDraft.name.trim(); const question = surveyDraft.question.trim();
     if (!name || !question) { setToast("Informe nome e pergunta da pesquisa"); return; }
     if (surveyDraft.id) {
       const previousName = surveys.find((survey) => survey.id === surveyDraft.id)?.name;
       setSurveys((current) => current.map((survey) => survey.id === surveyDraft.id ? { ...survey, name, question } : survey));
       if (previousName && previousName !== name) setFeedbacks((current) => current.map((feedback) => feedback.channel === previousName ? { ...feedback, channel: name } : feedback));
-      setToast("Pesquisa atualizada");
-    } else {
-      setSurveys((current) => [{ id: uid("PESQ"), name, question, active: true, createdAt: todayLabel() }, ...current]);
-      setToast("Pesquisa criada");
-    }
-    setSurveyDraft({ id: "", name: "", question: "De 0 a 10, quanto você recomendaria nossa empresa?" });
-    setModal(null);
-    setActive("Pesquisas");
+    } else setSurveys((current) => [{ id: uid("PESQ"), name, question, active: true, createdAt: todayLabel() }, ...current]);
+    setModal(null); setActive("Pesquisas"); setToast(surveyDraft.id ? "Pesquisa atualizada" : "Pesquisa criada");
   }
-
-  function removeSurvey(survey: Survey) {
-    if (!window.confirm(`Remover a pesquisa “${survey.name}”? As respostas recebidas continuarão preservadas.`)) return;
-    setSurveys((current) => current.filter((item) => item.id !== survey.id));
-    setToast("Pesquisa removida");
-  }
-
-  async function copyInvite(survey: Survey) {
-    await copyText(`Olá! Queremos ouvir você. ${survey.question} Envie uma nota de 0 a 10 e, se desejar, um comentário.`);
-    setToast("Convite copiado");
-  }
-
-  async function copyQuestion(survey: Survey) {
-    await copyText(survey.question);
-    setToast("Pergunta copiada");
-  }
-
-  function exportResponses() {
-    downloadCsv("respostas-pandora.csv", [
-      ["Código", "Cliente", "Nota", "Pesquisa", "Tema", "Situação", "Prioridade", "Responsável", "Prazo", "Comentário", "Ação", "Retorno ao cliente"],
-      ...feedbacks.map((item) => [item.id, item.customer, item.score, item.channel, item.theme, item.status, item.priority ? "Sim" : "Não", item.owner, item.dueDate, item.comment, item.treatment, item.customerReturn]),
-    ]);
-    setToast("Planilha de respostas gerada");
-  }
-
-  function openResponse(survey: Survey) {
-    if (!survey.active) { setToast("Ative a pesquisa antes de receber novas respostas"); return; }
-    setResponseSurvey(survey);
-    setResponseDraft({ customer: "", score: 8, comment: "", theme: "Atendimento" });
-    setModal("response");
-  }
-
+  function toggleSurvey(survey: Survey) { const action = survey.active ? "Pausar" : "Ativar"; if (!window.confirm(`${action} a pesquisa “${survey.name}”?`)) return; setSurveys((current) => current.map((item) => item.id === survey.id ? { ...item, active: !item.active } : item)); }
+  function removeSurvey(survey: Survey) { if (!window.confirm(`Remover a pesquisa “${survey.name}”? As respostas continuarão preservadas.`)) return; setSurveys((current) => current.filter((item) => item.id !== survey.id)); }
+  async function copyInvite(survey: Survey) { await copyText(`Olá! Queremos ouvir você. ${survey.question} Envie uma nota de 0 a 10 e, se desejar, um comentário.`); setToast("Convite copiado"); }
+  async function copyQuestion(survey: Survey) { await copyText(survey.question); setToast("Pergunta copiada"); }
+  function exportResponses() { downloadCsv("respostas-pandora.csv", [["Código", "Cliente", "Nota", "Pesquisa", "Tema", "Situação", "Prioridade", "Responsável", "Prazo", "Comentário", "Ação", "Retorno ao cliente"], ...feedbacks.map((item) => [item.id, item.customer, item.score, item.channel, item.theme, item.status, item.priority ? "Sim" : "Não", item.owner, item.dueDate, item.comment, item.treatment, item.customerReturn])]); setToast("Planilha de respostas gerada"); }
+  function openResponse(survey: Survey) { if (!survey.active) { setToast("Ative a pesquisa antes de receber respostas"); return; } setResponseSurvey(survey); setResponseDraft({ customer: "", score: 8, comment: "", theme: "Atendimento" }); setModal("response"); }
   function saveResponse() {
-    if (!responseSurvey?.active) { setToast("Esta pesquisa está pausada"); return; }
-    if (!responseDraft.comment.trim()) { setToast("Informe o comentário da resposta"); return; }
+    if (!responseSurvey?.active || !responseDraft.comment.trim()) { setToast("Informe o comentário da resposta"); return; }
     const feedback: Feedback = { id: uid("R"), customer: responseDraft.customer.trim() || "Cliente não identificado", score: responseDraft.score, channel: responseSurvey.name, date: todayLabel(), comment: responseDraft.comment.trim(), theme: responseDraft.theme, status: "Novo", priority: responseDraft.score <= 6, treatment: "", owner: "", dueDate: "", customerReturn: "" };
-    setFeedbacks((current) => [feedback, ...current]);
-    setSelectedId(feedback.id);
-    setResponseSurvey(null);
-    setModal(null);
-    setActive("Respostas");
-    setToast("Resposta adicionada à caixa de entrada");
+    setFeedbacks((current) => [feedback, ...current]); setSelectedId(feedback.id); setModal(null); setActive("Respostas"); setToast("Resposta adicionada na etapa Novo");
   }
 
-  function openPoster(survey: Survey) {
-    setPosterSurvey(survey);
-    setModal("poster");
-  }
+  const headerAction = active === "Pesquisas" ? <button className={styles.primaryButton} onClick={openNewSurvey}><Icon name="plus" /> Nova pesquisa</button> : active === "Respostas" ? <button className={styles.secondaryButton} disabled={!feedbacks.length} onClick={exportResponses}><Icon name="download" /> Exportar</button> : undefined;
 
-  const headerAction = active === "Pesquisas"
-    ? <button className={styles.primaryButton} onClick={openNewSurvey}><Icon name="plus" /> Nova pesquisa</button>
-    : active === "Respostas" ? <button className={styles.secondaryButton} disabled={!feedbacks.length} onClick={exportResponses}><Icon name="download" /> Exportar</button> : undefined;
+  return <AppShell product={product} nav={nav} active={active} onChange={changeArea} title={active} subtitle="Uma resposta por vez: analisar, agir, retornar e concluir." action={headerAction}>
+    {active === "Respostas" ? <><div className={styles.summaryGrid}><div><span>NPS atual</span><strong>{nps}</strong></div><div><span>Aguardando ação</span><strong>{pendingCount}</strong></div><div><span>Prioridades abertas</span><strong>{priorityCount}</strong></div><div><span>Prazos vencidos</span><strong>{overdueCount}</strong></div></div><div className={styles.feedbackLayout}><section className={styles.feedbackInbox}><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, tema ou responsável" /></label><select className={styles.compactSelect} value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value as FeedbackStatus | "Todas"); setSelectedId(""); }}><option>Todas</option><option>Novo</option><option>Em análise</option><option>Aguardando retorno</option><option>Tratado</option></select></div><div className={styles.feedbackFilter}>{(["Todas", "Detratores", "Neutros", "Promotores"] as const).map((item) => <button key={item} className={group === item ? styles.segmentActive : ""} onClick={() => { setGroup(item); setSelectedId(""); }}>{item}</button>)}</div>{filtered.map((feedback) => <button key={feedback.id} className={`${styles.feedbackRow} ${selected?.id === feedback.id ? styles.recordSelected : ""}`} onClick={() => setSelectedId(feedback.id)}><ScoreBadge score={feedback.score} /><div><div><strong>{feedback.customer}</strong><span>{feedback.date}</span></div><p>{feedback.comment}</p><small>Próxima ação: {feedbackNext(feedback)}</small></div><StatusPill status={feedback.status} /></button>)}</section>{selected ? <section className={styles.feedbackDetail}><div className={styles.detailHeader}><div><span className={styles.eyebrow}>{selected.id} · etapa atual</span><h2>{selected.customer}</h2><p>{selected.channel}</p></div><StatusPill status={selected.status} /></div><blockquote>“{selected.comment}”</blockquote><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Trabalho desta etapa</h3><p>{feedbackGuidance(selected)}</p></div></div><div className={styles.formGrid}><Field label="Responsável"><input value={selected.owner} onChange={(event) => updateSelected({ owner: event.target.value })} /></Field><Field label="Prazo"><input type="date" value={selected.dueDate} onChange={(event) => updateSelected({ dueDate: event.target.value })} /></Field></div>{selected.status !== "Novo" ? <Field label="Ação realizada ou planejada"><textarea value={selected.treatment} onChange={(event) => updateSelected({ treatment: event.target.value })} /></Field> : null}{selected.status === "Aguardando retorno" || selected.status === "Tratado" ? <Field label="Retorno ao cliente"><textarea value={selected.customerReturn} onChange={(event) => updateSelected({ customerReturn: event.target.value })} /></Field> : null}<div className={styles.alignRight}>{allowedTargets(selected).map((target) => <button key={target} className={target === "Tratado" ? styles.primaryButton : styles.secondaryButton} onClick={() => openTransition(target)}>{feedbackAction(target)}</button>)}</div></section><details><summary>Classificação e dados originais</summary><section className={styles.infoSection}><div className={styles.feedbackMeta}><div><span>Tema</span><strong>{selected.theme}</strong></div><div><span>Nota</span><ScoreBadge score={selected.score} /></div></div><button className={styles.secondaryButton} onClick={openTheme}>Alterar tema</button><button className={styles.secondaryButton} onClick={() => updateSelected({ priority: !selected.priority })}>{selected.priority ? "Remover prioridade" : "Marcar prioridade"}</button></section></details></section> : <EmptyState icon="inbox" title="Nenhuma resposta selecionada" description="Escolha uma resposta para visualizar somente a etapa atual." />}</div></> : null}
 
-  return <AppShell product={product} nav={nav} active={active} onChange={setActive} title={active} subtitle="Feedback organizado até virar ação, responsável e retorno ao cliente." action={headerAction}>
-    {active === "Respostas" ? <>
-      <div className={styles.summaryGrid}><div><span>NPS atual</span><strong>{nps}</strong></div><div><span>Aguardando ação</span><strong>{pendingCount}</strong></div><div><span>Prioridades abertas</span><strong>{priorityCount}</strong></div><div><span>Prazos vencidos</span><strong>{overdueCount}</strong></div></div>
-      <div className={styles.feedbackLayout}>
-        <section className={styles.feedbackInbox}><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, tema ou responsável" /></label><select className={styles.compactSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as FeedbackStatus | "Todas")}><option>Todas</option><option>Novo</option><option>Em análise</option><option>Aguardando retorno</option><option>Tratado</option></select></div><div className={styles.feedbackFilter}>{(["Todas", "Detratores", "Neutros", "Promotores"] as const).map((item) => <button key={item} className={group === item ? styles.segmentActive : ""} onClick={() => setGroup(item)}>{item}</button>)}</div>{filtered.map((feedback) => <button key={feedback.id} className={`${styles.feedbackRow} ${selected?.id === feedback.id ? styles.recordSelected : ""}`} onClick={() => setSelectedId(feedback.id)}><ScoreBadge score={feedback.score} /><div><div><strong>{feedback.customer}</strong><span>{feedback.priority ? "Prioridade · " : ""}{feedback.date}</span></div><p>{feedback.comment}</p><small>{feedback.channel} · {feedback.theme}{feedback.owner ? ` · ${feedback.owner}` : ""}</small></div><StatusPill status={feedback.status} /></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhuma resposta" description="Altere os filtros para visualizar outros comentários." /> : null}</section>
-        {selected ? <section className={styles.feedbackDetail}><div className={styles.detailHeader}><div><span className={styles.eyebrow}>{selected.id} · {selected.channel}</span><h2>{selected.customer}</h2><p>{selected.date}</p></div><ScoreBadge score={selected.score} large /></div><blockquote>“{selected.comment}”</blockquote><div className={styles.feedbackMeta}><div><span>Tema identificado</span><strong>{selected.theme}</strong></div><div><span>Situação</span><StatusPill status={selected.status} /></div></div><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Classificação</h3><p>Organize o assunto e destaque respostas que exigem rapidez.</p></div><button onClick={openTheme}>Alterar tema</button></div><div className={styles.classification}><StatusPill status={selected.theme} /><button className={selected.priority ? styles.classificationActive : ""} onClick={() => updateSelected({ priority: !selected.priority })}>{selected.priority ? "Prioridade ativa" : "Marcar prioridade"}</button></div></section><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Ação de melhoria</h3><p>Defina o que será feito, por quem e até quando.</p></div></div><div className={styles.formGrid}><Field label="Responsável"><input value={selected.owner} onChange={(event) => updateSelected({ owner: event.target.value, status: event.target.value && selected.status === "Novo" ? "Em análise" : selected.status })} placeholder="Quem vai conduzir?" /></Field><Field label="Prazo"><input required type="date" value={selected.dueDate} onChange={(event) => updateSelected({ dueDate: event.target.value, status: selected.status === "Novo" ? "Em análise" : selected.status })} /></Field></div><Field label="Ação realizada ou planejada"><textarea className={styles.responseArea} value={selected.treatment} onChange={(event) => updateSelected({ treatment: event.target.value, status: event.target.value && selected.status === "Novo" ? "Em análise" : selected.status })} placeholder="O que será corrigido ou melhorado?" /></Field><Field label="Retorno ao cliente"><textarea value={selected.customerReturn} onChange={(event) => updateSelected({ customerReturn: event.target.value, status: event.target.value && selected.status !== "Tratado" ? "Aguardando retorno" : selected.status })} placeholder="O que foi explicado, agradecido ou combinado com o cliente?" /></Field><div className={styles.alignRight}>{selected.status === "Tratado" ? <button className={styles.secondaryButton} onClick={reopenTreatment}>Reabrir análise</button> : <button className={styles.primaryButton} onClick={concludeTreatment}>Concluir tratamento</button>}</div></section></section> : <EmptyState icon="inbox" title="Nenhuma resposta selecionada" description="Escolha uma resposta para iniciar o tratamento." />}
-      </div>
-    </> : null}
+    {active === "Pesquisas" ? <section className={styles.pageSheet}><div className={styles.surveyRows}>{surveys.map((survey) => <article key={survey.id}><div><StatusPill status={survey.active ? "Ativa" : "Pausada"} /><h3>{survey.name}</h3><p>{survey.question}</p><small>{surveyResponseCount(survey)} resposta(s)</small></div><div><button className={styles.primaryButton} disabled={!survey.active} onClick={() => openResponse(survey)}>Registrar resposta</button><button className={styles.secondaryButton} onClick={() => openEditSurvey(survey)}>Editar</button><button className={styles.secondaryButton} onClick={() => toggleSurvey(survey)}>{survey.active ? "Pausar" : "Ativar"}</button><button className={styles.iconButton} onClick={() => removeSurvey(survey)}><Icon name="trash" /></button></div></article>)}</div></section> : null}
+    {active === "Compartilhar" ? <section className={styles.pageSheet}><div className={styles.distributionGrid}>{surveys.filter((survey) => survey.active).map((survey) => <article key={survey.id}><div><h3>{survey.name}</h3><p>{survey.question}</p></div><div className={styles.linkRows}><button onClick={() => copyInvite(survey)}><Icon name="message" /><span><strong>Convite</strong></span></button><button onClick={() => copyQuestion(survey)}><Icon name="document" /><span><strong>Pergunta</strong></span></button><button onClick={() => { setPosterSurvey(survey); setModal("poster"); }}><Icon name="print" /><span><strong>Cartaz</strong></span></button></div></article>)}</div></section> : null}
+    {active === "Temas" ? <section className={styles.pageSheet}><div className={styles.themeRows}>{themeStats.map((theme) => <div key={theme.name}><div><strong>{theme.name}</strong><span>{theme.count} resposta(s) · {theme.pending} aberta(s)</span></div><StatusPill status={theme.average >= 9 ? "Positivo" : theme.average <= 6 ? "Atenção" : "Neutro"} /><button onClick={() => { setQuery(theme.name); setActive("Respostas"); setSelectedId(""); }}>Abrir respostas</button></div>)}</div></section> : null}
 
-    {active === "Pesquisas" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Pesquisas</span><h2>Coletas ativas</h2><p>Uma pergunta clara e espaço para o cliente explicar a nota.</p></div></div><div className={styles.surveyRows}>{surveys.map((survey) => <article key={survey.id}><div><StatusPill status={survey.active ? "Ativa" : "Pausada"} /><h3>{survey.name}</h3><p>{survey.question}</p><small>{surveyResponseCount(survey)} resposta(s) · criada em {survey.createdAt}</small></div><div><button className={styles.primaryButton} disabled={!survey.active} onClick={() => openResponse(survey)}>{survey.active ? "Registrar resposta" : "Pesquisa pausada"}</button><button className={styles.secondaryButton} onClick={() => openEditSurvey(survey)}>Editar</button><button className={styles.secondaryButton} onClick={() => setSurveys((current) => current.map((item) => item.id === survey.id ? { ...item, active: !item.active } : item))}>{survey.active ? "Pausar" : "Ativar"}</button><button className={styles.iconButton} aria-label={`Remover ${survey.name}`} onClick={() => removeSurvey(survey)}><Icon name="trash" /></button></div></article>)}{!surveys.length ? <EmptyState icon="clipboard" title="Nenhuma pesquisa criada" description="Crie uma pesquisa para começar a registrar respostas." action={<button className={styles.primaryButton} onClick={openNewSurvey}>Criar pesquisa</button>} /> : null}</div></section> : null}
-
-    {active === "Compartilhar" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Compartilhamento</span><h2>Convites e materiais</h2><p>Copie a mensagem, a pergunta ou prepare um material para impressão.</p></div></div><div className={styles.distributionGrid}>{surveys.filter((survey) => survey.active).map((survey) => <article key={survey.id}><div><StatusPill status="Ativa" /><h3>{survey.name}</h3><p>{survey.question}</p></div><div className={styles.linkRows}><button onClick={() => copyInvite(survey)}><Icon name="message" /><span><strong>Convite</strong><small>Copiar mensagem</small></span><Icon name="chevron" /></button><button onClick={() => copyQuestion(survey)}><Icon name="document" /><span><strong>Pergunta</strong><small>Copiar texto</small></span><Icon name="chevron" /></button><button onClick={() => openPoster(survey)}><Icon name="print" /><span><strong>Cartaz</strong><small>Preparar para impressão</small></span><Icon name="chevron" /></button></div></article>)}{!surveys.some((survey) => survey.active) ? <EmptyState icon="arrow" title="Nenhuma pesquisa ativa" description="Ative uma pesquisa para liberar os materiais." /> : null}</div></section> : null}
-
-    {active === "Temas" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Classificação</span><h2>Assuntos mais citados</h2><p>Volume, média das notas e respostas ainda abertas.</p></div></div><div className={styles.themeRows}>{themeStats.map((theme) => <div key={theme.name}><div><strong>{theme.name}</strong><span>{theme.count} resposta(s) · {theme.pending} aberta(s)</span></div><StatusPill status={theme.average >= 9 ? "Positivo" : theme.average <= 6 ? "Atenção" : "Neutro"} /><button onClick={() => { setQuery(theme.name); setGroup("Todas"); setStatusFilter("Todas"); setActive("Respostas"); }}>Abrir respostas <Icon name="chevron" /></button></div>)}{!themeStats.length ? <EmptyState icon="tag" title="Nenhum tema identificado" description="Os temas aparecerão quando as respostas forem classificadas." /> : null}</div></section> : null}
-
-    <Modal open={modal === "response"} title={`Registrar resposta · ${responseSurvey?.name ?? "Pesquisa"}`} description={responseSurvey?.question} onClose={() => { setModal(null); setResponseSurvey(null); }}><Form onSubmit={saveResponse}><Field label="Cliente"><input value={responseDraft.customer} onChange={(event) => setResponseDraft((current) => ({ ...current, customer: event.target.value }))} placeholder="Opcional" /></Field><Field label="Nota de 0 a 10"><input type="number" min="0" max="10" value={responseDraft.score} onChange={(event) => setResponseDraft((current) => ({ ...current, score: Math.min(10, Math.max(0, Number(event.target.value) || 0)) }))} /></Field><Field label="Comentário"><textarea required value={responseDraft.comment} onChange={(event) => setResponseDraft((current) => ({ ...current, comment: event.target.value }))} /></Field><Field label="Tema"><select value={responseDraft.theme} onChange={(event) => setResponseDraft((current) => ({ ...current, theme: event.target.value }))}><option>Atendimento</option><option>Tempo de resposta</option><option>Comunicação</option><option>Agilidade</option><option>Qualidade</option><option>Preço</option><option>Prazo</option></select></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Registrar resposta</button></div></Form></Modal>
-    <Modal open={modal === "survey"} title={surveyDraft.id ? "Editar pesquisa" : "Nova pesquisa"} description="Defina uma pergunta curta e clara para o cliente." onClose={() => setModal(null)}><Form onSubmit={saveSurvey}><Field label="Nome da pesquisa"><input required value={surveyDraft.name} onChange={(event) => setSurveyDraft((current) => ({ ...current, name: event.target.value }))} /></Field><Field label="Pergunta principal"><textarea required value={surveyDraft.question} onChange={(event) => setSurveyDraft((current) => ({ ...current, question: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>{surveyDraft.id ? "Salvar alterações" : "Criar pesquisa"}</button></div></Form></Modal>
-    <Modal open={modal === "theme"} title="Alterar tema" description={selected?.id} onClose={() => setModal(null)}><Form onSubmit={saveTheme}><Field label="Tema"><input required value={themeDraft} onChange={(event) => setThemeDraft(event.target.value)} placeholder="Ex.: Prazo de entrega" /></Field><div className={styles.suggestionChips}>{["Atendimento", "Tempo de resposta", "Comunicação", "Agilidade", "Qualidade", "Preço", "Prazo"].map((theme) => <button type="button" key={theme} onClick={() => setThemeDraft(theme)}>{theme}</button>)}</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar tema</button></div></Form></Modal>
-    <Modal open={modal === "poster"} title={`Cartaz · ${posterSurvey?.name ?? "Pesquisa"}`} description="Imprima ou salve este material para usar durante o atendimento." onClose={() => { setModal(null); setPosterSurvey(null); }}><div className={styles.qrPreview}><Icon name="message" /><h2>{posterSurvey?.name}</h2><p>{posterSurvey?.question}</p><strong>Responda com uma nota de 0 a 10 e um comentário.</strong><button className={styles.primaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir cartaz</button></div></Modal>
+    <Modal open={modal === "transition"} title="Confirmar mudança de etapa" description={selected?.customer} onClose={() => setModal(null)}>{selected ? <><div className={styles.noteBox}><strong>{selected.status}</strong> → <strong>{transitionTarget}</strong><br />{feedbackConsequence(transitionTarget)}</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={confirmTransition}>Confirmar mudança</button></div></> : null}</Modal>
+    <Modal open={modal === "response"} title={`Registrar resposta · ${responseSurvey?.name ?? "Pesquisa"}`} onClose={() => setModal(null)}><Form onSubmit={saveResponse}><Field label="Cliente"><input value={responseDraft.customer} onChange={(event) => setResponseDraft((current) => ({ ...current, customer: event.target.value }))} /></Field><Field label="Nota"><input type="number" min="0" max="10" value={responseDraft.score} onChange={(event) => setResponseDraft((current) => ({ ...current, score: Math.min(10, Math.max(0, Number(event.target.value) || 0)) }))} /></Field><Field label="Comentário"><textarea required value={responseDraft.comment} onChange={(event) => setResponseDraft((current) => ({ ...current, comment: event.target.value }))} /></Field><Field label="Tema"><select value={responseDraft.theme} onChange={(event) => setResponseDraft((current) => ({ ...current, theme: event.target.value }))}><option>Atendimento</option><option>Tempo de resposta</option><option>Comunicação</option><option>Agilidade</option><option>Qualidade</option><option>Preço</option><option>Prazo</option></select></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Registrar em Novo</button></div></Form></Modal>
+    <Modal open={modal === "survey"} title={surveyDraft.id ? "Editar pesquisa" : "Nova pesquisa"} onClose={() => setModal(null)}><Form onSubmit={saveSurvey}><Field label="Nome"><input required value={surveyDraft.name} onChange={(event) => setSurveyDraft((current) => ({ ...current, name: event.target.value }))} /></Field><Field label="Pergunta"><textarea required value={surveyDraft.question} onChange={(event) => setSurveyDraft((current) => ({ ...current, question: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar</button></div></Form></Modal>
+    <Modal open={modal === "theme"} title="Alterar tema" onClose={() => setModal(null)}><Form onSubmit={saveTheme}><Field label="Tema"><input required value={themeDraft} onChange={(event) => setThemeDraft(event.target.value)} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar tema</button></div></Form></Modal>
+    <Modal open={modal === "poster"} title={`Cartaz · ${posterSurvey?.name ?? "Pesquisa"}`} onClose={() => setModal(null)}><div className={styles.qrPreview}><h2>{posterSurvey?.name}</h2><p>{posterSurvey?.question}</p><button className={styles.primaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir cartaz</button></div></Modal>
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
 }
 
-function isPast(value: string) {
-  if (!value) return false;
-  return new Date(`${value}T23:59:59`).getTime() < Date.now();
-}
+function isPast(value: string) { if (!value) return false; return new Date(`${value}T23:59:59`).getTime() < Date.now(); }
+function feedbackNext(item: Feedback) { if (item.status === "Novo") return "Definir responsável e iniciar análise"; if (item.status === "Em análise") return "Registrar ação e preparar retorno"; if (item.status === "Aguardando retorno") return "Retornar ao cliente e concluir"; return "Consultar tratamento"; }
+function feedbackGuidance(item: Feedback) { if (item.status === "Novo") return "Classifique o tema, defina responsável e prazo antes de iniciar."; if (item.status === "Em análise") return "Registre a ação que será feita antes de avançar."; if (item.status === "Aguardando retorno") return item.score <= 6 ? "Registre o retorno ao cliente antes de concluir." : "Confirme o retorno ou a ação final antes de concluir."; return "O tratamento foi concluído. Reabra somente quando houver nova ação necessária."; }
+function feedbackAction(target: FeedbackStatus) { if (target === "Em análise") return "Iniciar ou reabrir análise"; if (target === "Aguardando retorno") return "Enviar para retorno"; return "Concluir tratamento"; }
+function feedbackConsequence(target: FeedbackStatus) { if (target === "Em análise") return "A resposta ficará sob responsabilidade e prazo definidos."; if (target === "Aguardando retorno") return "A ação ficará registrada e o próximo trabalho será retornar ao cliente."; return "A resposta será encerrada como tratada e sairá das pendências."; }
