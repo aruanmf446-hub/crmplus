@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/patch-*.py'
+      - '.github/workflows/apply-source-patches.yml'
   workflow_dispatch:
 
 permissions:
@@ -31,9 +32,18 @@ jobs:
 
       - name: Aplicar patches
         run: |
+          failed=0
           for script in scripts/patch-*.py; do
-            python "$script"
+            echo "::group::Aplicando $script"
+            if python "$script"; then
+              echo "Aplicado: $script"
+            else
+              echo "::warning file=$script::Este grupo não correspondeu integralmente ao código atual. Os outros grupos continuarão."
+              failed=$((failed + 1))
+            fi
+            echo "::endgroup::"
           done
+          echo "Grupos com correspondência pendente: $failed"
 
       - name: Instalar dependências
         run: npm ci
