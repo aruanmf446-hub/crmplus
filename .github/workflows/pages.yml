@@ -40,6 +40,8 @@ jobs:
 
       - name: Gerar site estático
         run: npm run build
+        env:
+          NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
 
       - name: Enviar artefato
         uses: actions/upload-pages-artifact@v3
@@ -51,9 +53,39 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: build
     steps:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Confirmar commit publicado
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          for attempt in {1..30}; do
+            html="$(curl --fail --silent --show-error --location "${PAGE_URL}?build=${EXPECTED_SHA}" || true)"
+            if printf '%s' "$html" | grep --fixed-strings --quiet "data-build-sha=\"${EXPECTED_SHA}\""; then
+              echo "Versão ${EXPECTED_SHA} confirmada em ${PAGE_URL}"
+              exit 0
+            fi
+            echo "Tentativa ${attempt}/30: aguardando propagação da versão ${EXPECTED_SHA}"
+            sleep 10
+          done
+          echo "A página pública não corresponde ao commit ${EXPECTED_SHA}."
+          exit 1
+
+      - name: Validar rotas essenciais
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          home="$(curl --fail --silent --show-error --location "${PAGE_URL}?qa=${EXPECTED_SHA}")"
+          recovery="$(curl --fail --silent --show-error --location "${PAGE_URL}recuperar-senha/?qa=${EXPECTED_SHA}")"
+          atlas="$(curl --fail --silent --show-error --location "${PAGE_URL}sistemas/atlas/?qa=${EXPECTED_SHA}")"
+          printf '%s' "$home" | grep --fixed-strings --quiet "Sistemas simples para"
+          printf '%s' "$recovery" | grep --fixed-strings --quiet "recuperar a senha"
+          printf '%s' "$atlas" | grep --fixed-strings --quiet "Entrar no aplicativo"
+          echo "Home, recuperação de senha e bloqueio de acesso validados na produção."
