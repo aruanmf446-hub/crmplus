@@ -11,7 +11,7 @@ type CheckItem = { id: string; label: string; helper: string; result?: Result; n
 type InspectionStatus = "Em execução" | "Concluída" | "Programada";
 type Inspection = { id: string; title: string; location: string; responsible: string; scheduledAt: string; status: InspectionStatus; items: CheckItem[]; completedAt?: string };
 type DeviationStatus = "Aberto" | "Em correção" | "Validar" | "Encerrado";
-type Deviation = { id: string; inspectionId: string; itemId: string; description: string; priority: "Alta" | "Média" | "Baixa"; responsible: string; due: string; status: DeviationStatus; action: string; validation: string; evidence: string[] };
+type Deviation = { id: string; inspectionId: string; itemId: string; description: string; priority: "Alta" | "Média" | "Baixa"; responsible: string; due: string; status: DeviationStatus; action: string; validation?: string; evidence: string[] };
 type ModelItem = { id: string; label: string; helper: string };
 type ChecklistModel = { id: string; name: string; items: Array<{ label: string; helper: string }> };
 type DeviationDraft = { id: string; description: string; priority: Deviation["priority"]; responsible: string; due: string; action: string; validation: string };
@@ -135,7 +135,7 @@ export function HerculesApp({ product }: { product: Product }) {
     const index = flow.indexOf(deviation.status); const next = flow[index + 1];
     if (!next) return;
     if ((next === "Validar" || next === "Encerrado") && !deviation.action.trim()) { openDeviation(deviation); setToast("Registre a ação corretiva antes de avançar"); return; }
-    if (next === "Encerrado" && !deviation.validation.trim()) { openDeviation(deviation); setToast("Registre como a correção foi verificada antes de encerrar"); return; }
+    if (next === "Encerrado" && !(deviation.validation ?? "").trim()) { openDeviation(deviation); setToast("Registre como a correção foi verificada antes de encerrar"); return; }
     setConfirmAction({ kind: "deviation", deviationId: deviation.id, title: "Confirmar etapa do desvio", from: deviation.status, to: next, consequence: next === "Em correção" ? "O responsável assumirá a execução da ação corretiva." : next === "Validar" ? "A correção ficará aguardando verificação antes do encerramento." : "O desvio será encerrado como verificado." }); setModal("confirm");
   }
 
