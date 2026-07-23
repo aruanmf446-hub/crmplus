@@ -1,0 +1,52 @@
+name: Resumir validação da branch
+
+on:
+  push:
+    branches:
+      - fix/arquitetura-ux-integridade
+    paths-ignore:
+      - audits/branch-validation-status.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crmplus-branch-status
+  cancel-in-progress: true
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/arquitetura-ux-integridade
+          fetch-depth: 0
+
+      - name: Gerar resumo pequeno
+        run: |
+          mkdir -p audits
+          if [ ! -f audits/branch-validation.txt ]; then
+            echo "RELATÓRIO COMPLETO: ausente" > audits/branch-validation-status.txt
+          else
+            {
+              sed -n '1,14p' audits/branch-validation.txt
+              echo
+              echo "=== FALHAS DE PROCESSOS ==="
+              grep '^FALHOU' audits/branch-validation.txt | head -n 40 || true
+              echo
+              echo "=== FALHAS DE WEBDESIGN ==="
+              awk '/^=== WEBDESIGN ===/{capture=1; next} capture && NF {print}' audits/branch-validation.txt | head -n 80 || true
+            } > audits/branch-validation-status.txt
+          fi
+
+      - name: Salvar resumo somente na branch técnica
+        run: |
+          git config user.name "crmplus-quality-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add audits/branch-validation-status.txt
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Registrar resumo compacto da validação"
+          git push origin HEAD:fix/arquitetura-ux-integridade
