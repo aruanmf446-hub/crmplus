@@ -1,0 +1,82 @@
+.editToolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 15px;
+  border-top: 1px solid var(--ui-border, #dfe4ea);
+}
+
+.editState {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ui-muted, #667085);
+  font-size: 11px;
+}
+
+.editState i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #98a2b3;
+}
+
+.editState[data-dirty="true"] { color: #996000; }
+.editState[data-dirty="true"] i { background: #e59a17; box-shadow: 0 0 0 4px rgba(229,154,23,.12); }
+
+.editActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.editActions button { min-height: 42px; }
+
+.undoBar {
+  position: fixed;
+  z-index: 1190;
+  left: 50%;
+  bottom: 22px;
+  width: min(620px, calc(100vw - 32px));
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px 8px 16px;
+  border: 1px solid var(--ui-border, #dfe4ea);
+  border-radius: 12px;
+  color: var(--ink, #172033);
+  background: var(--data-bg, #fff);
+  box-shadow: 0 20px 58px rgba(16,24,40,.18);
+  transform: translateX(-50%);
+}
+
+.undoBar span { min-width: 0; font-size: 12px; line-height: 1.45; }
+.undoBar button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-border, #dfe4ea);
+  border-radius: 8px;
+  color: var(--ink, #172033);
+  background: var(--data-bg, #fff);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 780;
+}
+.undoBar button:first-of-type { color: #fff; background: var(--accent); border-color: var(--accent); }
+.undoBar .undoClose { width: 40px; padding: 0; display: grid; place-items: center; color: var(--ui-muted, #667085); }
+.undoClose svg { width: 17px; height: 17px; }
+
+.attachmentLimit {
+  margin: 10px 0 0;
+  color: var(--ui-muted, #667085);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media (max-width: 620px) {
+  .editToolbar { align-items: stretch; flex-direction: column; }
+  .editActions { display: grid; grid-template-columns: 1fr 1fr; }
+  .undoBar { bottom: 14px; grid-template-columns: minmax(0,1fr) auto; }
+  .undoBar span { grid-column: 1 / -1; }
+}
