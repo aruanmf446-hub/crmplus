@@ -40,6 +40,6 @@ jobs:
           fi
           git config user.name 'crmplus-process-agent'
           git config user.email 'actions@users.noreply.github.com'
-          git add components/workspaces/phase-four/HerculesApp.tsx components/workspaces/phase-four/VerticalBusinessApp.tsx
-          git commit -m 'Permitir reativação controlada de processos históricos'
+          git add components/workspaces/phase-four/HerculesApp.tsx components/workspaces/phase-four/VerticalBusinessApp.tsx components/workspaces/phase-four/ZeusApp.tsx
+          git commit -m 'Corrigir continuidade e conferência dos processos'
           git push origin main
