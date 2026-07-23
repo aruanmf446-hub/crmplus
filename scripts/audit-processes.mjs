@@ -210,6 +210,39 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
   await page.close();
 }
 
+// Conta local: recuperação deve validar o e-mail, trocar a senha e iniciar a sessão.
+{
+  const authContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await authContext.addInitScript(() => {
+    localStorage.setItem("crmplus.color-mode", "light");
+    localStorage.setItem("crmplus.access.atlas.account", JSON.stringify({ name: "Usuário QA", company: "Empresa QA", email: "recuperacao@example.com", password: "Senha1234" }));
+    localStorage.removeItem("crmplus.access.atlas.session");
+  });
+  const page = await authContext.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  try {
+    await page.goto(`${baseUrl}/sistemas/atlas/?modo=recuperar-senha`, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.getByRole("heading", { name: "Redefinir senha" }).waitFor({ timeout: 30_000 });
+    await assert("acesso", "recuperação abre no modo correto", await page.getByRole("heading", { name: "Redefinir senha" }).count() === 1, "a rota abriu no login comum", page);
+    await page.getByLabel("E-mail").fill("recuperacao@example.com");
+    await page.getByLabel("Nova senha").fill("NovaSenha123");
+    await page.getByLabel("Confirmar nova senha").fill("NovaSenha123");
+    await page.getByRole("button", { name: "Redefinir senha e entrar" }).click();
+    await page.waitForSelector('[data-product="atlas"]', { timeout: 30_000 });
+    const recoveryState = await page.evaluate(() => ({
+      account: JSON.parse(localStorage.getItem("crmplus.access.atlas.account") || "null"),
+      session: localStorage.getItem("crmplus.access.atlas.session"),
+    }));
+    await assert("acesso", "nova senha salva localmente", recoveryState.account?.password === "NovaSenha123", "a senha armazenada não foi substituída", page);
+    await assert("acesso", "sessão iniciada após recuperação", recoveryState.session === "active", "a recuperação não abriu o aplicativo", page);
+    await assert("acesso", "recuperação sem erro de navegador", errors.length === 0, errors.join(" | "), page);
+  } catch (error) { fail("acesso", "recuperação local", error); }
+  await page.close();
+  await authContext.close();
+}
+
 await browser.close();
 const report = [
   `PASSARAM: ${passes.length}`,
