@@ -1,0 +1,100 @@
+.global-state-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #172033;
+  background: radial-gradient(circle at top, #f3eefc 0, #f8f9fb 38%, #eef1f5 100%);
+}
+
+.global-state-card {
+  width: min(620px, 100%);
+  display: grid;
+  justify-items: start;
+  gap: 15px;
+  padding: clamp(32px, 7vw, 68px);
+  border: 1px solid #dde3ea;
+  border-radius: 22px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 28px 90px rgba(16,24,40,.11);
+}
+
+.global-state-card > p:first-of-type {
+  margin: 0;
+  color: #7352c7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.global-state-card h1 {
+  max-width: 520px;
+  margin: 0;
+  font-size: clamp(34px, 6vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -.055em;
+}
+
+.global-state-description {
+  margin: 0;
+  color: #667085;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.global-state-mark {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #7352c7;
+}
+.global-state-mark i { width: 6px; border-radius: 2px; background: #fff; }
+.global-state-mark i:nth-child(1) { height: 12px; opacity: .68; }
+.global-state-mark i:nth-child(2) { height: 23px; }
+.global-state-mark i:nth-child(3) { height: 17px; opacity: .82; }
+
+.global-state-progress {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece8f5;
+}
+.global-state-progress i {
+  width: 40%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: #7352c7;
+  animation: crm-state-progress 1.3s ease-in-out infinite alternate;
+}
+@keyframes crm-state-progress { to { transform: translateX(150%); } }
+
+.global-state-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.global-state-actions button,
+.global-state-actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 17px;
+  border: 1px solid #d5dbe4;
+  border-radius: 10px;
+  color: #172033;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+}
+.global-state-actions button { color: #fff; background: #261b35; border-color: #261b35; }
+.global-state-actions :focus-visible { outline: 3px solid rgba(115,82,199,.28); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .global-state-progress i { animation: none; width: 68%; }
+}
