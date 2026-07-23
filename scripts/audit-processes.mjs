@@ -21,10 +21,6 @@ await fs.mkdir("artifacts/process-audit", { recursive: true });
 const failures = [];
 const passes = [];
 
-function record(slug, id, title, status) {
-  return { id, title, subtitle: `Teste ${slug}`, status, owner: "Agente QA", updated: "agora", archived: false, data: { test: "preenchido" }, history: [{ text: "Registro de teste", date: "Agora" }], attachments: [] };
-}
-function stored(value) { return JSON.stringify({ version: 1, value }); }
 function fail(slug, test, error) { failures.push(`${slug} · ${test} · ${error instanceof Error ? error.message : String(error)}`); }
 function pass(slug, test) { passes.push(`${slug} · ${test}`); }
 async function assert(slug, test, condition, message, page) {
@@ -41,10 +37,8 @@ const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 await context.addInitScript((apps) => {
   localStorage.setItem("crmplus.color-mode", "light");
-  for (const slug of apps) {
-    localStorage.setItem(`crmplus.access.${slug}.account`, JSON.stringify({ name: "Auditoria de processos", company: "CRM Plus QA", email: `qa.${slug}@example.com`, password: "Teste1234" }));
-    localStorage.setItem(`crmplus.access.${slug}.session`, "active");
-  }
+  localStorage.setItem("crmplus.access.account", JSON.stringify({ name: "Auditoria de processos", company: "CRM Plus QA", email: "qa@crmplus.local", password: "Teste1234", pin: "2468" }));
+  for (const slug of apps) localStorage.setItem(`crmplus.access.${slug}.session`, "active");
 }, slugs);
 
 async function open(slug, setup, setupArg) {
@@ -109,12 +103,12 @@ for (const slug of slugs) {
   try {
     await page.getByRole("button", { name: "Nova comanda" }).click();
     const commandDialog = page.getByRole("dialog");
-    await assert("artemis", "nova comanda sem mesa pré-selecionada", await commandDialog.getByLabel("Mesa").inputValue() === "", "uma mesa veio escolhida", page);
+    await assert("artemis", "nova comanda sem mesa pré-selecionada", await commandDialog.getByLabel("Mesa", { exact: true }).inputValue() === "", "uma mesa veio escolhida", page);
     await commandDialog.getByRole("button", { name: "Cancelar" }).click();
     await page.getByRole("button", { name: /Mesa 02/ }).click();
     await page.getByRole("button", { name: "Adicionar novo pedido" }).click();
     const itemDialog = page.getByRole("dialog");
-    await assert("artemis", "novo pedido sem item pré-selecionado", await itemDialog.getByLabel("Item").inputValue() === "", "um produto veio escolhido", page);
+    await assert("artemis", "novo pedido sem item pré-selecionado", await itemDialog.getByLabel("Item", { exact: true }).inputValue() === "", "um produto veio escolhido", page);
     await assert("artemis", "sem erro nas escolhas", errors.length === 0, errors.join(" | "), page);
   } catch (error) { fail("artemis", "seleções conscientes", error); }
   await page.close();
@@ -127,8 +121,8 @@ for (const slug of slugs) {
     await page.getByRole("button", { name: "Pesquisas" }).click();
     await page.getByRole("button", { name: "Registrar resposta" }).first().click();
     const dialog = page.getByRole("dialog");
-    await assert("pandora", "resposta sem nota automática", await dialog.getByLabel("Nota").inputValue() === "", "nota veio preenchida", page);
-    await assert("pandora", "resposta sem tema automático", await dialog.getByLabel("Tema").inputValue() === "", "tema veio preenchido", page);
+    await assert("pandora", "resposta sem nota automática", await dialog.getByLabel("Nota", { exact: true }).inputValue() === "", "nota veio preenchida", page);
+    await assert("pandora", "resposta sem tema automático", await dialog.getByLabel("Tema", { exact: true }).inputValue() === "", "tema veio preenchido", page);
     await assert("pandora", "sem erro no formulário", errors.length === 0, errors.join(" | "), page);
   } catch (error) { fail("pandora", "resposta consciente", error); }
   await page.close();
@@ -190,7 +184,6 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
     const make = (id, title, status) => ({ id, title, subtitle: `Teste ${slug}`, status, owner: "Agente QA", updated: "agora", archived: false, data: { test: "preenchido" }, history: [{ text: "Teste", date: "Agora" }], attachments: [] });
     localStorage.setItem(`crmplus.${slug}.records.v2`, JSON.stringify({ version: 1, value: [make("FINAL-QA", `Final ${slug}`, terminal), make("OPEN-QA", `Aberto ${slug}`, "__OPEN__")] }));
   };
-  // A etapa aberta precisa ser válida para não distorcer a ordenação; substituímos após carregar a configuração visual.
   const { page, errors } = await open(slug, setup, { slug, terminal });
   try {
     await page.evaluate(({ slug }) => {
@@ -210,12 +203,12 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
   await page.close();
 }
 
-// Conta local: recuperação deve validar o e-mail, trocar a senha e iniciar a sessão.
+// Conta local: recuperação valida e-mail e PIN, protege a nova senha e inicia a sessão.
 {
   const authContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await authContext.addInitScript(() => {
     localStorage.setItem("crmplus.color-mode", "light");
-    localStorage.setItem("crmplus.access.atlas.account", JSON.stringify({ name: "Usuário QA", company: "Empresa QA", email: "recuperacao@example.com", password: "Senha1234" }));
+    localStorage.setItem("crmplus.access.account", JSON.stringify({ name: "Usuário QA", company: "Empresa QA", email: "recuperacao@example.com", password: "Senha1234", pin: "2468" }));
     localStorage.removeItem("crmplus.access.atlas.session");
   });
   const page = await authContext.newPage();
@@ -224,18 +217,20 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   try {
     await page.goto(`${baseUrl}/sistemas/atlas/?modo=recuperar-senha`, { waitUntil: "networkidle", timeout: 60_000 });
-    await page.getByRole("heading", { name: "Redefinir senha" }).waitFor({ timeout: 30_000 });
-    await assert("acesso", "recuperação abre no modo correto", await page.getByRole("heading", { name: "Redefinir senha" }).count() === 1, "a rota abriu no login comum", page);
-    await page.getByLabel("E-mail").fill("recuperacao@example.com");
-    await page.getByLabel("Nova senha").fill("NovaSenha123");
-    await page.getByLabel("Confirmar nova senha").fill("NovaSenha123");
-    await page.getByRole("button", { name: "Redefinir senha e entrar" }).click();
+    await page.getByRole("heading", { name: "Redefinir senha", exact: true }).waitFor({ timeout: 30_000 });
+    await assert("acesso", "recuperação abre no modo correto", await page.getByRole("heading", { name: "Redefinir senha", exact: true }).count() === 1, "a rota abriu no login comum", page);
+    await page.getByLabel("E-mail", { exact: true }).fill("recuperacao@example.com");
+    await page.getByLabel("Nova senha", { exact: true }).fill("NovaSenha123");
+    await page.getByLabel("Confirmar nova senha", { exact: true }).fill("NovaSenha123");
+    await page.getByLabel("PIN local", { exact: true }).fill("2468");
+    await page.getByRole("button", { name: "Redefinir senha e entrar", exact: true }).click();
     await page.waitForSelector('[data-product="atlas"]', { timeout: 30_000 });
     const recoveryState = await page.evaluate(() => ({
-      account: JSON.parse(localStorage.getItem("crmplus.access.atlas.account") || "null"),
+      account: JSON.parse(localStorage.getItem("crmplus.access.account") || "null"),
       session: localStorage.getItem("crmplus.access.atlas.session"),
     }));
-    await assert("acesso", "nova senha salva localmente", recoveryState.account?.password === "NovaSenha123", "a senha armazenada não foi substituída", page);
+    await assert("acesso", "nova senha protegida localmente", recoveryState.account?.passwordHash?.length === 64 && !recoveryState.account?.password, "a nova senha não foi protegida por hash", page);
+    await assert("acesso", "PIN protegido localmente", recoveryState.account?.pinHash?.length === 64 && !recoveryState.account?.pin, "o PIN não foi protegido por hash", page);
     await assert("acesso", "sessão iniciada após recuperação", recoveryState.session === "active", "a recuperação não abriu o aplicativo", page);
     await assert("acesso", "recuperação sem erro de navegador", errors.length === 0, errors.join(" | "), page);
   } catch (error) { fail("acesso", "recuperação local", error); }
