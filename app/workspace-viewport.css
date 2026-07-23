@@ -1,0 +1,45 @@
+html:has([data-product]),
+body:has([data-product]) {
+  min-height: 100%;
+  background: #f4f6f9;
+  overscroll-behavior: none;
+}
+
+body:has([data-product]) {
+  overflow: hidden;
+}
+
+[data-product] {
+  min-height: 100svh !important;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+[data-product] > aside[data-ui="navigation"] {
+  top: 0;
+  height: 100dvh !important;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+[data-product] > div:not([role="presentation"]) {
+  min-width: 0;
+  min-height: 100dvh !important;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 900px) {
+  [data-product] > aside[data-ui="navigation"] {
+    position: fixed;
+  }
+
+  [data-product] > div:not([role="presentation"]) {
+    width: 100%;
+  }
+}
