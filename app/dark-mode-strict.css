@@ -20,6 +20,14 @@ html[data-color-mode="dark"] [data-product] {
   color: #ffffff !important;
 }
 
+/* Todo conteúdo parte de branco; rótulos secundários são suavizados mais abaixo. */
+html[data-color-mode="dark"] [data-product],
+html[data-color-mode="dark"] [data-product] * {
+  border-color: #2c2c2c !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
 html[data-color-mode="dark"] [data-product] :where(
   [data-ui="navigation"],
   [data-ui="context"],
@@ -28,6 +36,16 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="content" i]
 ) {
   background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Qualquer fundo definido diretamente pelo componente perde a cor do aplicativo. */
+html[data-color-mode="dark"] [data-product] :where(
+  [style*="background" i],
+  [style*="background-color" i],
+  [style*="background-image" i]
+) {
+  background-color: #090909 !important;
   background-image: none !important;
 }
 
@@ -48,7 +66,35 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="tile" i],
   [class*="summary" i],
   [class*="disclosure" i],
-  details
+  [class*="paper" i],
+  [class*="preview" i],
+  [class*="tabs" i],
+  [class*="tabList" i],
+  [class*="switch" i],
+  [class*="segmented" i],
+  [class*="filter" i],
+  [class*="legend" i],
+  [class*="header" i],
+  [class*="footer" i],
+  [class*="group" i],
+  [class*="grid" i],
+  [class*="metric" i],
+  [class*="stat" i],
+  [class*="badge" i],
+  [class*="chip" i],
+  [class*="pill" i],
+  [class*="tag" i],
+  [class*="progress" i],
+  details,
+  article,
+  section,
+  table,
+  thead,
+  tbody,
+  tfoot,
+  tr,
+  th,
+  td
 ) {
   background-color: #090909 !important;
   background-image: none !important;
@@ -103,7 +149,10 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="floorLivre" i],
   [class*="floorEmatendimento" i],
   [class*="floorNacozinha" i],
-  [class*="floorPronto" i]
+  [class*="floorPronto" i],
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"]
 ) {
   background: #000000 !important;
   background-image: none !important;
@@ -122,9 +171,10 @@ html[data-color-mode="dark"] [data-product] :where(
   color: #ffffff !important;
 }
 
-/* Botões e campos neutros. */
+/* Botões, links e campos neutros. */
 html[data-color-mode="dark"] [data-product] :where(
   button,
+  a,
   [class*="secondaryButton" i],
   [class*="iconButton" i],
   [class*="backButton" i],
@@ -135,10 +185,21 @@ html[data-color-mode="dark"] [data-product] :where(
   color: #ffffff !important;
 }
 
-html[data-color-mode="dark"] [data-product] :where(input, textarea, select, option) {
+html[data-color-mode="dark"] [data-product] :where(input, textarea, select, option, code, pre, kbd) {
   background: #050505 !important;
   color: #ffffff !important;
   border-color: #343434 !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(input[type="checkbox"], input[type="radio"], progress, meter) {
+  accent-color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] progress::-webkit-progress-bar,
+html[data-color-mode="dark"] [data-product] progress::-webkit-progress-value,
+html[data-color-mode="dark"] [data-product] meter::-webkit-meter-bar,
+html[data-color-mode="dark"] [data-product] meter::-webkit-meter-optimum-value {
+  background: #ffffff !important;
 }
 
 /* Valores e dados nunca podem permanecer escuros. */
@@ -149,13 +210,19 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="amount" i],
   [class*="number" i],
   [class*="price" i],
-  [class*="count" i]
+  [class*="count" i],
+  [class*="total" i],
+  [class*="result" i]
 ) {
   color: #ffffff !important;
 }
 
 html[data-color-mode="dark"] [data-product] :where(
   [class*="metric" i] strong,
+  [class*="metric" i] b,
+  [class*="metric" i] span:first-child,
+  [class*="stat" i] strong,
+  [class*="stat" i] b,
   [class*="total" i] strong,
   [class*="total" i] b,
   [class*="summary" i] strong,
@@ -173,12 +240,13 @@ html[data-color-mode="dark"] [data-product] :where(
   color: #ffffff !important;
 }
 
-/* Rótulos permanecem legíveis, sem cinza escuro. */
+/* Rótulos permanecem legíveis, em cinza claro — nunca cinza escuro. */
 html[data-color-mode="dark"] [data-product] :where(
   p, small, dt,
   [class*="muted" i],
   [class*="helper" i],
-  [class*="label" i]
+  [class*="hint" i],
+  [class*="description" i]
 ) {
   color: #b8bec8 !important;
 }
@@ -190,7 +258,9 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="tabActive" i] span,
   [class*="navActive" i] span,
   [class*="statusPill" i] span,
-  [class*="scoreBadge" i] span
+  [class*="scoreBadge" i] span,
+  [aria-current="page"] span,
+  [aria-selected="true"] span
 ) {
   color: #ffffff !important;
   opacity: 1 !important;
@@ -201,7 +271,9 @@ html[data-color-mode="dark"] [data-product] :where(
   [class*="dot" i],
   [class*="indicator" i],
   [class*="progress" i] i,
-  [class*="timeline" i] i
+  [class*="timeline" i] i,
+  [class*="bar" i] i,
+  [class*="bar" i] span
 ) {
   background: #ffffff !important;
   border-color: #343434 !important;
@@ -212,7 +284,15 @@ html[data-color-mode="dark"] [data-product] :where(svg, [class*="eyebrow" i]) {
   color: #ffffff !important;
 }
 
-html[data-color-mode="dark"] [data-product] :where(hr, [class*="divider" i]) {
+html[data-color-mode="dark"] [data-product] svg [fill]:not([fill="none"]) {
+  fill: currentColor !important;
+}
+
+html[data-color-mode="dark"] [data-product] svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(hr, [class*="divider" i], [class*="separator" i]) {
   border-color: #2c2c2c !important;
   background: #2c2c2c !important;
 }
