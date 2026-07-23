@@ -1,0 +1,198 @@
+html[data-color-mode="dark"] {
+  color-scheme: dark;
+  background: #0b0f15;
+}
+
+html[data-color-mode="dark"] body {
+  color: #f4f7fb;
+  background: #0b0f15;
+}
+
+html[data-color-mode="dark"] [data-product] {
+  --text: #f4f7fb;
+  --text-muted: #aab5c4;
+  --surface: #121821;
+  --surface-raised: #18212c;
+  --border: #303b49;
+  --focus: color-mix(in srgb, var(--accent) 48%, transparent);
+  --success: #59d293;
+  --success-soft: #10291f;
+  --warning: #f3c565;
+  --warning-soft: #2b2412;
+  --danger: #ff8998;
+  --danger-soft: #30161c;
+  --ink: #f4f7fb;
+  --muted: #aab5c4;
+  --line: #303b49;
+  --ui-border: #303b49;
+  --ui-border-strong: #435062;
+  --canvas-bg: #0b0f15 !important;
+  --topbar-bg: #10161e !important;
+  --data-bg: #121821 !important;
+  --result-bg: #121821 !important;
+  --result-raised: #18212c !important;
+  --selection-bg: color-mix(in srgb, var(--accent) 14%, #121821) !important;
+  --selection-strong: color-mix(in srgb, var(--accent) 24%, #18212c) !important;
+  color: var(--text);
+  background: var(--canvas-bg);
+}
+
+html[data-color-mode="dark"] [data-product] [data-ui="navigation"] {
+  background: color-mix(in srgb, var(--accent) 10%, #090d13) !important;
+  border-color: #293443 !important;
+}
+
+html[data-color-mode="dark"] [data-product] [data-ui="context"] {
+  color: var(--text);
+  background: var(--topbar-bg) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [data-ui="workspace"] {
+  color: var(--text);
+  background: var(--canvas-bg) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(h1, h2, h3, h4, h5, h6, strong, b, dt, dd, label, summary, output) {
+  color: var(--text);
+}
+
+html[data-color-mode="dark"] [data-product] :where(p, small, time) {
+  color: var(--text-muted);
+}
+
+html[data-color-mode="dark"] [data-product] :where(input, textarea, select) {
+  color: var(--text);
+  background: #0e141c !important;
+  border-color: var(--border) !important;
+  caret-color: var(--accent);
+}
+
+html[data-color-mode="dark"] [data-product] :where(input, textarea)::placeholder {
+  color: #768397;
+  opacity: 1;
+}
+
+html[data-color-mode="dark"] [data-product] select option {
+  color: var(--text);
+  background: #0e141c;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="listSurface"],
+  [class*="detailPage"],
+  [class*="detailPane"],
+  [class*="listPane"],
+  [class*="documentPane"],
+  [class*="orderSheet"],
+  [class*="inspectionStage"],
+  [class*="floorSheet"],
+  [class*="summarySection"],
+  [class*="disclosure"],
+  [class*="modalCard"],
+  [class*="dataTable"],
+  [class*="nextStepCard"],
+  [class*="metricsLine"] > div,
+  [class*="settingsSection"]
+) {
+  color: var(--text);
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="entityRow"],
+  [class*="recordRow"],
+  [class*="dataRow"],
+  [class*="operationRow"],
+  [class*="resourceRow"],
+  [class*="kitchenRow"],
+  [class*="floorTable"],
+  [class*="feedbackRow"],
+  [class*="salesRow"],
+  [class*="scheduleRow"],
+  article
+) {
+  color: var(--text);
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="entityRow"],
+  [class*="recordRow"],
+  [class*="dataRow"],
+  [class*="operationRow"],
+  [class*="resourceRow"],
+  [class*="feedbackRow"],
+  [class*="salesRow"]
+):hover {
+  background-color: var(--surface-raised) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="recordSelected"],
+  [class*="salesSelected"],
+  [class*="feedbackSelected"],
+  [class*="floorSelected"],
+  [class*="checkCurrent"],
+  [aria-current="page"],
+  [aria-selected="true"]
+) {
+  color: var(--text) !important;
+  background: var(--selection-strong) !important;
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(button, a) {
+  outline-color: var(--focus);
+}
+
+html[data-color-mode="dark"] [data-product] :where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--focus) !important;
+  outline-offset: 2px;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="primaryButton"], [class*="submit"], [class*="navActive"]) {
+  color: #ffffff !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="secondaryButton"], [class*="iconButton"], [class*="backButton"], [class*="uploadButton"], [class*="sidebarUtility"]) {
+  color: var(--text) !important;
+  background: var(--surface-raised) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="success"], [class*="status_conforme"], [class*="scoreGood"]) {
+  color: var(--success) !important;
+  background: var(--success-soft) !important;
+  border-color: color-mix(in srgb, var(--success) 34%, var(--border)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="warning"], [class*="attention"], [class*="pending"]) {
+  color: var(--warning) !important;
+  background: var(--warning-soft) !important;
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--border)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="danger"], [class*="error"], [class*="scoreBad"], [class*="naoconforme"]) {
+  color: var(--danger) !important;
+  background: var(--danger-soft) !important;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--border)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="statusPill"], [class*="scoreBadge"], [class*="tag"], [class*="chip"]) {
+  box-shadow: none !important;
+}
+
+html[data-color-mode="dark"] [data-product] ::selection {
+  color: #ffffff;
+  background: color-mix(in srgb, var(--accent) 62%, #18212c);
+}
+
+html[data-color-mode="dark"] [data-product] {
+  scrollbar-color: #566378 #0e141c;
+}
