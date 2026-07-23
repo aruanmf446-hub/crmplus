@@ -47,12 +47,12 @@ await context.addInitScript((apps) => {
   }
 }, slugs);
 
-async function open(slug, setup) {
+async function open(slug, setup, setupArg) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
-  if (setup) await page.addInitScript(setup);
+  if (setup) await page.addInitScript(setup, setupArg);
   await page.goto(`${baseUrl}/sistemas/${slug}/`, { waitUntil: "networkidle", timeout: 60_000 });
   await page.waitForSelector(`[data-product="${slug}"]`, { timeout: 30_000 });
   return { page, errors };
@@ -191,7 +191,7 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
     localStorage.setItem(`crmplus.${slug}.records.v2`, JSON.stringify({ version: 1, value: [make("FINAL-QA", `Final ${slug}`, terminal), make("OPEN-QA", `Aberto ${slug}`, "__OPEN__")] }));
   };
   // A etapa aberta precisa ser válida para não distorcer a ordenação; substituímos após carregar a configuração visual.
-  const { page, errors } = await open(slug, () => setup({ slug, terminal }));
+  const { page, errors } = await open(slug, setup, { slug, terminal });
   try {
     await page.evaluate(({ slug }) => {
       const key = `crmplus.${slug}.records.v2`;
