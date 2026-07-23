@@ -8,7 +8,9 @@ import { normalizeSearch } from "@/lib/storefront";
 import { Brand } from "./Brand";
 import { ProductIcon } from "./ProductIcon";
 
-export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
+type Mode = "signup" | "login" | "forgot";
+
+export function AppSelector({ mode }: { mode: Mode }) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const normalized = normalizeSearch(query);
@@ -16,13 +18,21 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
     return products.filter((product) => normalizeSearch(`${product.name} ${product.shortName} ${product.category} ${product.description}`).includes(normalized));
   }, [query]);
 
-  const heading = mode === "signup" ? "Em qual aplicativo você deseja criar sua conta?" : "Qual aplicativo você deseja acessar?";
+  const heading = mode === "signup"
+    ? "Em qual aplicativo você deseja criar sua conta?"
+    : mode === "forgot"
+      ? "De qual aplicativo você precisa recuperar a senha?"
+      : "Qual aplicativo você deseja acessar?";
+
   const description = mode === "signup"
     ? "Escolha o produto que corresponde à rotina da sua empresa."
-    : "Selecione o aplicativo para entrar em sua área exclusiva.";
+    : mode === "forgot"
+      ? "Escolha o aplicativo. A senha será redefinida somente na conta salva neste navegador."
+      : "Selecione o aplicativo para entrar em sua área exclusiva.";
 
   function appHref(slug: string) {
     if (mode === "signup") return `/sistemas/${slug}?modo=criar-conta`;
+    if (mode === "forgot") return `/sistemas/${slug}?modo=recuperar-senha`;
     return `/sistemas/${slug}`;
   }
 
@@ -34,7 +44,7 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
         <p>{description}</p>
         <label className="app-selector-search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pesquisar oficina, orçamento, pet shop..." />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pesquisar oficina, orçamento, pet shop..." aria-label="Pesquisar aplicativo" />
         </label>
       </section>
       <section className="app-selector-grid" aria-label="Aplicativos disponíveis">
