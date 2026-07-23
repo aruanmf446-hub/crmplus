@@ -21,6 +21,7 @@ import "./app-footer.css";
 import "./sidebar-toggle.css";
 import "./dark-mode.css";
 import "./list-navigation.css";
+import "./dark-mode-strict.css";
 
 export const metadata: Metadata = {
   title: { default: "CRMPlus+ | Sistemas para pequenas empresas", template: "%s | CRMPlus+" },
