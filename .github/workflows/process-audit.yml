@@ -6,11 +6,12 @@ on:
     paths:
       - 'components/workspaces/phase-four/**'
       - 'scripts/audit-processes.mjs'
+      - 'scripts/repair-process-audit.py'
       - '.github/workflows/process-audit.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: crmplus-process-audit
@@ -23,6 +24,11 @@ jobs:
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Preparar roteiro do agente
+        run: python scripts/repair-process-audit.py
 
       - name: Configurar Node
         uses: actions/setup-node@v4
@@ -70,3 +76,20 @@ jobs:
           name: process-audit
           path: artifacts/process-audit
           if-no-files-found: warn
+
+      - name: Registrar resultado no repositório
+        if: always()
+        run: |
+          if [ -f artifacts/process-audit/report.txt ]; then
+            mkdir -p audits
+            cp artifacts/process-audit/report.txt audits/process-audit-latest.txt
+          fi
+          git config user.name 'crmplus-process-agent'
+          git config user.email 'actions@users.noreply.github.com'
+          git add scripts/audit-processes.mjs audits/process-audit-latest.txt 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo 'Nenhum resultado novo para registrar.'
+            exit 0
+          fi
+          git commit -m 'Registrar resultado da auditoria de processos'
+          git push origin main
