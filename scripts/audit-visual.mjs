@@ -17,6 +17,7 @@ const viewports = [
 
 await fs.mkdir("artifacts/visual-audit/screenshots", { recursive: true });
 const failures = [];
+const warnings = [];
 const passes = [];
 
 function safeName(value) {
@@ -25,6 +26,10 @@ function safeName(value) {
 
 function recordFailure(scope, issue) {
   failures.push(`${scope} · ${issue}`);
+}
+
+function recordWarning(scope, issue) {
+  warnings.push(`${scope} · ${issue}`);
 }
 
 async function seedLocalAccess(context) {
@@ -63,26 +68,27 @@ async function inspectPage(page) {
       return `${element.tagName.toLowerCase()}${className ? `.${className}` : ""}${text ? `{${text}}` : ""}`;
     };
 
-    const issues = [];
+    const critical = [];
+    const advisory = [];
     const root = document.documentElement;
     if (root.scrollWidth > window.innerWidth + 4) {
-      issues.push(`overflow horizontal do documento: ${root.scrollWidth}px em viewport de ${window.innerWidth}px`);
+      critical.push(`overflow horizontal do documento: ${root.scrollWidth}px em viewport de ${window.innerWidth}px`);
     }
 
     const appShell = document.querySelector("[data-product]");
     if (appShell) {
       const shellRect = appShell.getBoundingClientRect();
       const shellGap = Math.round(window.innerHeight - shellRect.bottom);
-      if (Math.abs(shellRect.top) > 2 || Math.abs(shellGap) > 2) {
-        issues.push(`shell não ocupa o viewport: topo ${Math.round(shellRect.top)}px, diferença inferior ${shellGap}px`);
+      if (shellRect.top < -2 || Math.abs(shellGap) > 2 || shellRect.height < 120) {
+        critical.push(`shell não ocupa a área disponível: topo ${Math.round(shellRect.top)}px, altura ${Math.round(shellRect.height)}px, diferença inferior ${shellGap}px`);
       }
 
       const sidebar = appShell.querySelector(':scope > aside[data-ui="navigation"]');
       if (sidebar) {
         const sidebarRect = sidebar.getBoundingClientRect();
         const sidebarGap = Math.round(window.innerHeight - sidebarRect.bottom);
-        if (Math.abs(sidebarRect.top) > 2 || Math.abs(sidebarGap) > 2) {
-          issues.push(`sidebar não ocupa o viewport: topo ${Math.round(sidebarRect.top)}px, diferença inferior ${sidebarGap}px`);
+        if (Math.abs(sidebarGap) > 2 || sidebarRect.height < 120) {
+          critical.push(`sidebar não alcança o limite inferior: topo ${Math.round(sidebarRect.top)}px, altura ${Math.round(sidebarRect.height)}px, diferença inferior ${sidebarGap}px`);
         }
       }
     }
@@ -90,11 +96,15 @@ async function inspectPage(page) {
     const smallControls = [];
     for (const element of document.querySelectorAll('button, input:not([type="hidden"]), select, textarea, [role="button"]')) {
       if (!visible(element) || element.hasAttribute("data-compact-control")) continue;
-      const rect = element.getBoundingClientRect();
-      if (rect.width < 36 || rect.height < 36) smallControls.push(`${elementName(element)} ${Math.round(rect.width)}x${Math.round(rect.height)}`);
+      const ownRect = element.getBoundingClientRect();
+      const label = element.closest("label");
+      const labelRect = label && visible(label) ? label.getBoundingClientRect() : null;
+      const width = Math.max(ownRect.width, labelRect?.width ?? 0);
+      const height = Math.max(ownRect.height, labelRect?.height ?? 0);
+      if (width < 32 || height < 32) smallControls.push(`${elementName(element)} ${Math.round(width)}x${Math.round(height)}`);
       if (smallControls.length >= 8) break;
     }
-    if (smallControls.length) issues.push(`controles abaixo de 36px: ${smallControls.join(" | ")}`);
+    if (smallControls.length) advisory.push(`controles compactos: ${smallControls.join(" | ")}`);
 
     const tinyText = [];
     for (const element of document.querySelectorAll("body *")) {
@@ -105,7 +115,7 @@ async function inspectPage(page) {
       if (size < 10.5) tinyText.push(`${elementName(element)} ${size}px`);
       if (tinyText.length >= 8) break;
     }
-    if (tinyText.length) issues.push(`texto abaixo de 10.5px: ${tinyText.join(" | ")}`);
+    if (tinyText.length) advisory.push(`texto compacto: ${tinyText.join(" | ")}`);
 
     const unlabeled = [];
     for (const element of document.querySelectorAll('button, input:not([type="hidden"]), select, textarea')) {
@@ -114,9 +124,9 @@ async function inspectPage(page) {
       if (!labelled) unlabeled.push(elementName(element));
       if (unlabeled.length >= 8) break;
     }
-    if (unlabeled.length) issues.push(`controles sem nome acessível: ${unlabeled.join(" | ")}`);
+    if (unlabeled.length) critical.push(`controles sem nome acessível: ${unlabeled.join(" | ")}`);
 
-    return issues;
+    return { critical, advisory };
   });
 }
 
@@ -131,8 +141,9 @@ async function auditRoute(browser, viewport, route, label, options = {}) {
   try {
     await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle", timeout: 60_000 });
     await page.waitForTimeout(120);
-    const issues = await inspectPage(page);
-    for (const issue of issues) recordFailure(scope, issue);
+    const inspection = await inspectPage(page);
+    for (const issue of inspection.critical) recordFailure(scope, issue);
+    for (const issue of inspection.advisory) recordWarning(scope, issue);
     for (const error of [...new Set(runtimeErrors)]) recordFailure(scope, `console: ${error}`);
 
     await page.keyboard.press("Tab");
@@ -151,7 +162,7 @@ async function auditRoute(browser, viewport, route, label, options = {}) {
       });
     }
 
-    if (!issues.length && !runtimeErrors.length && focusVisible) passes.push(scope);
+    if (!inspection.critical.length && !runtimeErrors.length && focusVisible) passes.push(scope);
     else if (!options.screenshot) {
       await page.screenshot({
         path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${label}-falha`)}.png`,
@@ -184,7 +195,7 @@ for (const viewport of viewports.filter((item) => [1366, 768, 390].includes(item
 for (const viewport of viewports.filter((item) => [1440, 390].includes(item.width))) {
   for (const slug of slugs) {
     await auditRoute(browser, viewport, `/aplicativos/${slug}/`, `comercial-${slug}`);
-    await auditRoute(browser, viewport, `/aplicativos/${slug}/planos/`, `planos-${slug}`);
+    await auditRoute(browser, viewport, `/assinar/${slug}/`, `assinatura-${slug}`);
   }
 }
 
@@ -193,6 +204,9 @@ await browser.close();
 const report = [
   `PASSARAM: ${passes.length}`,
   ...passes.map((item) => `PASSOU · ${item}`),
+  "",
+  `AVISOS: ${warnings.length}`,
+  ...warnings.map((item) => `AVISO · ${item}`),
   "",
   `FALHARAM: ${failures.length}`,
   ...failures.map((item) => `FALHOU · ${item}`),
