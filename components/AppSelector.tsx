@@ -21,6 +21,11 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
     ? "Escolha o produto que corresponde à rotina da sua empresa."
     : "Selecione o aplicativo para entrar em sua área exclusiva.";
 
+  function appHref(slug: string) {
+    if (mode === "signup") return `/sistemas/${slug}?modo=criar-conta`;
+    return `/sistemas/${slug}`;
+  }
+
   return (
     <main className="app-selector-page">
       <header className="app-selector-header"><Brand /><Link href="/">Voltar para a CRMPlus Store</Link></header>
@@ -37,7 +42,7 @@ export function AppSelector({ mode }: { mode: "signup" | "login" | "forgot" }) {
           const presentation = getProductPresentation(product.slug);
           const cardStyle = { "--selector-accent": product.color, "--selector-soft": product.colorSoft } as CSSProperties;
           return (
-            <Link key={product.slug} href={`/sistemas/${product.slug}`} style={cardStyle}>
+            <Link key={product.slug} href={appHref(product.slug)} style={cardStyle}>
               <span className="app-selector-icon"><ProductIcon slug={product.slug} size={25} /></span>
               <div><small>{presentation.label}</small><h2>{product.shortName}</h2><p>{presentation.benefit}</p></div>
               <svg className="app-selector-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
