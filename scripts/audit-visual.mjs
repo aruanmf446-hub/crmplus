@@ -69,6 +69,24 @@ async function inspectPage(page) {
       issues.push(`overflow horizontal do documento: ${root.scrollWidth}px em viewport de ${window.innerWidth}px`);
     }
 
+    const appShell = document.querySelector("[data-product]");
+    if (appShell) {
+      const shellRect = appShell.getBoundingClientRect();
+      const shellGap = Math.round(window.innerHeight - shellRect.bottom);
+      if (Math.abs(shellRect.top) > 2 || Math.abs(shellGap) > 2) {
+        issues.push(`shell não ocupa o viewport: topo ${Math.round(shellRect.top)}px, diferença inferior ${shellGap}px`);
+      }
+
+      const sidebar = appShell.querySelector(':scope > aside[data-ui="navigation"]');
+      if (sidebar) {
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const sidebarGap = Math.round(window.innerHeight - sidebarRect.bottom);
+        if (Math.abs(sidebarRect.top) > 2 || Math.abs(sidebarGap) > 2) {
+          issues.push(`sidebar não ocupa o viewport: topo ${Math.round(sidebarRect.top)}px, diferença inferior ${sidebarGap}px`);
+        }
+      }
+    }
+
     const smallControls = [];
     for (const element of document.querySelectorAll('button, input:not([type="hidden"]), select, textarea, [role="button"]')) {
       if (!visible(element) || element.hasAttribute("data-compact-control")) continue;
