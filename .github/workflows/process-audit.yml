@@ -1,0 +1,72 @@
+name: Auditar processos dos 15 aplicativos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'components/workspaces/phase-four/**'
+      - 'scripts/audit-processes.mjs'
+      - '.github/workflows/process-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crmplus-process-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar TypeScript
+        run: npm run lint
+
+      - name: Gerar site estático
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Instalar navegador do agente
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Iniciar site local isolado
+        run: |
+          python3 -m http.server 4173 -d out > /tmp/crmplus-process-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/crmplus-process-server.log
+          exit 1
+
+      - name: Executar cenários de processo
+        run: node scripts/audit-processes.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Publicar relatório da auditoria
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: process-audit
+          path: artifacts/process-audit
+          if-no-files-found: warn
