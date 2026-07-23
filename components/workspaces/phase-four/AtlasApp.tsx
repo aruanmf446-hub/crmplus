@@ -31,6 +31,7 @@ type WorkOrder = {
   history: Array<{ text: string; date: string }>;
 };
 type Appointment = { id: string; time: string; client: string; vehicle: string; type: string; done?: boolean };
+type PendingTransition = { status: WorkStatus; title: string; description: string; history: string; toast: string };
 
 const initialOrders: WorkOrder[] = [
   { id: "OS-1052", vehicle: "Volkswagen Nivus", plate: "SFK2C10", client: "Renato Lima", phone: "5594999991001", status: "Avaliação", approval: "Pendente", issue: "Luz da injeção acesa", diagnosis: "", technician: "Sem técnico", updated: "há 28 min", priority: false, odometer: "30.480 km", fuel: "1/2", intakeNotes: "Sem avaria nova aparente. Triângulo e estepe conferidos.", expectedDelivery: "", services: [], photos: [], history: [{ text: "Veículo recebido; quilometragem e estado de entrada registrados", date: "Hoje, 08:12" }] },
@@ -48,18 +49,18 @@ export function AtlasApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Ordens de serviço");
   const [orders, setOrders] = useLocalState<WorkOrder[]>("crmplus.atlas.orders", initialOrders);
   const [appointments, setAppointments] = useLocalState<Appointment[]>("crmplus.atlas.appointments", initialAppointments);
-  const [selectedId, setSelectedId] = useState(orders[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [listMode, setListMode] = useState<"Em andamento" | "Concluídas">("Em andamento");
-  const [detailTab, setDetailTab] = useState("Resumo");
-  const [modal, setModal] = useState<"new" | "editIssue" | "service" | "appointment" | "approval" | null>(null);
+  const [modal, setModal] = useState<"new" | "editIssue" | "service" | "appointment" | "approval" | "advance" | null>(null);
   const [toast, setToast] = useState("");
   const [draft, setDraft] = useState({ client: "", phone: "", vehicle: "", plate: "", issue: "", technician: "Sem técnico", odometer: "", fuel: "", intakeNotes: "" });
   const [serviceDraft, setServiceDraft] = useState({ description: "", value: "", kind: "Serviço" as ServiceLine["kind"] });
   const [appointmentDraft, setAppointmentDraft] = useState({ time: "09:00", client: "", vehicle: "", type: "Recebimento" });
   const [approvalNote, setApprovalNote] = useState("");
+  const [pendingTransition, setPendingTransition] = useState<PendingTransition | null>(null);
 
-  const selected = orders.find((order) => order.id === selectedId) ?? orders[0];
+  const selected = orders.find((order) => order.id === selectedId);
   const nav: NavItem[] = [
     { label: "Ordens de serviço", icon: "clipboard" },
     { label: "Agenda", icon: "calendar" },
@@ -108,25 +109,54 @@ export function AtlasApp({ product }: { product: Product }) {
     setModal(null);
     setActive("Ordens de serviço");
     setListMode("Em andamento");
-    setDetailTab("Resumo");
     setToast("Veículo recebido e OS criada");
   }
 
-  function advance() {
+  function queueTransition(transition: PendingTransition) {
+    setPendingTransition(transition);
+    setModal("advance");
+  }
+
+  function requestAdvance() {
     if (!selected) return;
     if (selected.status === "Avaliação") {
-      if (!selected.diagnosis.trim()) { setDetailTab("Diagnóstico"); setToast("Registre o diagnóstico antes de preparar o orçamento"); return; }
-      if (!selected.services.length) { setDetailTab("Serviços e peças"); setToast("Adicione ao menos um item ao orçamento"); return; }
-      updateSelected({ status: "Aguardando aprovação", approval: "Pendente" }, "Orçamento preparado e aguardando decisão do cliente");
-      setToast("Orçamento aguardando decisão do cliente");
+      if (!selected.diagnosis.trim()) { setToast("Registre o diagnóstico antes de continuar"); return; }
+      if (!selected.services.length) { setToast("Adicione ao menos um serviço ou peça ao orçamento"); return; }
+      queueTransition({ status: "Aguardando aprovação", title: "Enviar para aprovação?", description: "A avaliação será encerrada e o orçamento ficará aguardando a decisão do cliente.", history: "Orçamento preparado e aguardando decisão do cliente", toast: "Orçamento aguardando decisão do cliente" });
       return;
     }
     if (selected.status === "Aguardando aprovação") { setApprovalNote(""); setModal("approval"); return; }
-    if (selected.status === "Aguardando peça") { updateSelected({ status: "Em serviço" }, "Item necessário disponível; execução retomada"); setToast("Execução retomada"); return; }
-    if (selected.status === "Em serviço") { updateSelected({ status: "Em conferência" }, "Execução concluída e encaminhada para conferência"); setToast("Veículo encaminhado para conferência"); return; }
-    if (selected.status === "Em conferência") { updateSelected({ status: "Pronto" }, "Conferência final concluída; veículo pronto para entrega"); setToast("Veículo pronto para entrega"); return; }
-    if (selected.status === "Pronto") { updateSelected({ status: "Entregue" }, "Veículo entregue ao cliente"); setListMode("Concluídas"); setToast("Atendimento concluído"); return; }
+    if (selected.status === "Aguardando peça") {
+      queueTransition({ status: "Em serviço", title: "Retomar o serviço?", description: "Confirme somente quando o item necessário estiver disponível e a equipe puder continuar a execução.", history: "Item necessário disponível; execução retomada", toast: "Execução retomada" });
+      return;
+    }
+    if (selected.status === "Em serviço") {
+      queueTransition({ status: "Em conferência", title: "Concluir a execução?", description: "A OS sairá da execução e ficará aguardando a conferência final do serviço.", history: "Execução concluída e encaminhada para conferência", toast: "Veículo encaminhado para conferência" });
+      return;
+    }
+    if (selected.status === "Em conferência") {
+      queueTransition({ status: "Pronto", title: "Liberar para entrega?", description: "Confirme que o serviço foi conferido e o veículo está realmente pronto para o cliente.", history: "Conferência final concluída; veículo pronto para entrega", toast: "Veículo pronto para entrega" });
+      return;
+    }
+    if (selected.status === "Pronto") {
+      queueTransition({ status: "Entregue", title: "Confirmar a entrega?", description: "Esta ação encerra o atendimento e move a OS para o histórico de entregues.", history: "Veículo entregue ao cliente", toast: "Atendimento concluído" });
+      return;
+    }
     setToast("Este atendimento já está concluído");
+  }
+
+  function confirmTransition() {
+    if (!selected || !pendingTransition) return;
+    updateSelected({ status: pendingTransition.status }, pendingTransition.history);
+    if (pendingTransition.status === "Entregue") setListMode("Concluídas");
+    setToast(pendingTransition.toast);
+    setPendingTransition(null);
+    setModal(null);
+  }
+
+  function requestWaitingPart() {
+    if (!selected || selected.status !== "Em serviço") return;
+    queueTransition({ status: "Aguardando peça", title: "Pausar aguardando peça?", description: "A execução ficará pausada até alguém confirmar que o item necessário está disponível.", history: "Execução pausada aguardando item necessário", toast: "OS marcada como aguardando peça" });
   }
 
   function registerApproval(decision: ApprovalStatus) {
@@ -136,8 +166,9 @@ export function AtlasApp({ product }: { product: Product }) {
       updateSelected({ approval: "Aprovado", status: "Em serviço" }, note ? `Cliente aprovou o orçamento: ${note}` : "Cliente aprovou o orçamento");
       setToast("Orçamento aprovado e serviço liberado");
     } else {
-      updateSelected({ approval: "Recusado" }, note ? `Cliente recusou o orçamento: ${note}` : "Cliente recusou o orçamento");
-      setToast("Recusa registrada; o orçamento pode ser revisado");
+      if (!note) { setToast("Registre o motivo ou a alteração solicitada pelo cliente"); return; }
+      updateSelected({ approval: "Recusado" }, `Cliente recusou ou pediu alteração: ${note}`);
+      setToast("Decisão registrada; revise o orçamento antes de solicitar nova aprovação");
     }
     setApprovalNote("");
     setModal(null);
@@ -187,32 +218,59 @@ export function AtlasApp({ product }: { product: Product }) {
   }
 
   function nextActionText(order: WorkOrder) {
-    if (order.status === "Avaliação") return "Registrar diagnóstico e preparar orçamento";
-    if (order.status === "Aguardando aprovação") return order.approval === "Recusado" ? "Revisar orçamento e solicitar nova decisão" : "Registrar decisão do cliente";
-    if (order.status === "Aguardando peça") return "Retomar a execução quando o item estiver disponível";
-    if (order.status === "Em serviço") return "Concluir a execução e encaminhar para conferência";
-    if (order.status === "Em conferência") return "Conferir o serviço e liberar para entrega";
-    if (order.status === "Pronto") return "Combinar e registrar a entrega";
-    return "Consultar o histórico final";
-  }
-
-  function openNextAction() {
-    if (!selected) return;
-    if (selected.status === "Avaliação") setDetailTab("Diagnóstico");
-    else if (selected.status === "Aguardando aprovação") setModal("approval");
-    else if (selected.status === "Pronto") openAppointment(true);
-    else if (selected.status === "Entregue") setDetailTab("Histórico");
-    else setDetailTab("Serviços e peças");
+    if (order.status === "Avaliação") return "Concluir diagnóstico e orçamento";
+    if (order.status === "Aguardando aprovação") return order.approval === "Recusado" ? "Revisar o orçamento e registrar nova decisão" : "Registrar a decisão do cliente";
+    if (order.status === "Aguardando peça") return "Confirmar a disponibilidade do item";
+    if (order.status === "Em serviço") return "Finalizar a execução ou pausar por peça";
+    if (order.status === "Em conferência") return "Conferir e liberar para entrega";
+    if (order.status === "Pronto") return "Combinar e confirmar a entrega";
+    return "Atendimento encerrado";
   }
 
   function actionLabel(order: WorkOrder) {
-    if (order.status === "Avaliação") return "Preparar aprovação";
+    if (order.status === "Avaliação") return "Enviar para aprovação";
     if (order.status === "Aguardando aprovação") return "Registrar decisão";
     if (order.status === "Aguardando peça") return "Retomar serviço";
-    if (order.status === "Em serviço") return "Enviar para conferência";
+    if (order.status === "Em serviço") return "Concluir execução";
     if (order.status === "Em conferência") return "Liberar para entrega";
-    if (order.status === "Pronto") return "Registrar entrega";
+    if (order.status === "Pronto") return "Confirmar entrega";
     return "Atendimento concluído";
+  }
+
+  function renderQuote() {
+    if (!selected) return null;
+    return <section className={styles.infoSection}>
+      <div className={styles.sectionHeading}><div><h3>Orçamento atual</h3><p>Somente o escopo que será apresentado ao cliente.</p></div><button className={styles.primaryButton} onClick={() => setModal("service")}><Icon name="plus" /> Adicionar item</button></div>
+      <div className={styles.lineItems}>{selected.services.map((item) => <div key={item.id}><StatusPill status={item.kind} /><span>{item.description}</span><strong>{currency(item.value)}</strong><button onClick={() => updateSelected({ services: selected.services.filter((line) => line.id !== item.id), approval: selected.status === "Aguardando aprovação" ? "Pendente" : selected.approval }, `${item.description} removido`)} aria-label={`Remover ${item.description}`}><Icon name="trash" /></button></div>)}</div>
+      {!selected.services.length ? <EmptyState icon="document" title="Orçamento ainda vazio" description="Adicione o que será realizado e o valor estimado." /> : null}
+      <div className={styles.totalBar}><span>Total estimado</span><strong>{currency(selected.services.reduce((sum, item) => sum + item.value, 0))}</strong></div>
+    </section>;
+  }
+
+  function renderPhotos() {
+    if (!selected) return null;
+    return <section className={styles.infoSection}>
+      <div className={styles.sectionHeading}><div><h3>Evidências desta etapa</h3><p>Adicione somente fotos que ajudam a comprovar o serviço.</p></div><label className={styles.secondaryButton}><Icon name="plus" /> Adicionar fotos<input hidden type="file" accept="image/*" multiple onChange={addPhotos} /></label></div>
+      <div className={styles.photoGrid}>{selected.photos.map((photo, index) => <figure key={`${photo.slice(0, 24)}-${index}`}><img src={photo} alt={`Evidência ${index + 1}`} /><button onClick={() => updateSelected({ photos: selected.photos.filter((_, photoIndex) => photoIndex !== index) })} aria-label={`Remover evidência ${index + 1}`}><Icon name="trash" /></button></figure>)}</div>
+      {!selected.photos.length ? <EmptyState icon="image" title="Nenhuma evidência adicionada" description="Fotos são opcionais, mas ajudam na conferência e na entrega." /> : null}
+    </section>;
+  }
+
+  function renderCurrentStage() {
+    if (!selected) return null;
+    if (selected.status === "Avaliação") return <>
+      <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Diagnóstico atual</h3><p>Preencha somente o necessário para preparar o orçamento.</p></div></div><textarea className={styles.largeTextarea} value={selected.diagnosis} onChange={(event) => updateSelected({ diagnosis: event.target.value })} placeholder="Causa encontrada e recomendação" /><div className={styles.inlineFields}><label><span>Técnico responsável</span><select value={selected.technician} onChange={(event) => updateSelected({ technician: event.target.value }, `Responsável alterado para ${event.target.value}`)}><option>Sem técnico</option><option>Marcos</option><option>Carlos</option><option>Paulo</option></select></label><label className={styles.toggleRow}><input type="checkbox" checked={selected.priority} onChange={(event) => updateSelected({ priority: event.target.checked })} /><span><strong>Prioridade</strong><small>Destacar esta OS.</small></span></label></div></section>
+      {renderQuote()}
+    </>;
+    if (selected.status === "Aguardando aprovação") return <>
+      <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Decisão do cliente</h3><p>O serviço não começa sem uma decisão registrada.</p></div></div><div className={styles.noteBox}><strong>Diagnóstico:</strong> {selected.diagnosis}</div>{selected.approval === "Recusado" ? <div className={styles.noteBox}>O cliente pediu alteração ou recusou esta versão. Revise os itens antes de registrar uma nova decisão.</div> : null}</section>
+      {renderQuote()}
+    </>;
+    if (selected.status === "Aguardando peça") return <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Execução pausada</h3><p>Retome somente quando o item necessário estiver disponível.</p></div></div>{renderQuote()}</section>;
+    if (selected.status === "Em serviço") return <>{renderQuote()}{renderPhotos()}</>;
+    if (selected.status === "Em conferência") return <><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Conferência final</h3><p>Revise o que foi executado antes de liberar o veículo.</p></div></div><div className={styles.summaryGrid}><div><span>Responsável</span><strong>{selected.technician}</strong></div><div><span>Itens executados</span><strong>{selected.services.length}</strong></div><div><span>Evidências</span><strong>{selected.photos.length}</strong></div><div><span>Total estimado</span><strong>{currency(selected.services.reduce((sum, item) => sum + item.value, 0))}</strong></div></div></section>{renderPhotos()}</>;
+    if (selected.status === "Pronto") return <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Entrega ao cliente</h3><p>Combine a retirada e confirme somente quando o veículo for entregue.</p></div><button className={styles.secondaryButton} onClick={() => openAppointment(true)}><Icon name="calendar" /> Agendar entrega</button></div><Field label="Previsão informada"><input value={selected.expectedDelivery ?? ""} onChange={(event) => updateSelected({ expectedDelivery: event.target.value })} placeholder="Ex.: hoje às 17:00" /></Field></section>;
+    return <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Atendimento concluído</h3><p>A OS permanece disponível somente para consulta.</p></div></div><div className={styles.summaryGrid}><div><span>Entregue</span><StatusPill status="Entregue" /></div><div><span>Cliente</span><strong>{selected.client}</strong></div><div><span>Veículo</span><strong>{selected.vehicle}</strong></div><div><span>Valor estimado</span><strong>{currency(selected.services.reduce((sum, item) => sum + item.value, 0))}</strong></div></div></section>;
   }
 
   const headerAction = active === "Ordens de serviço"
@@ -221,40 +279,34 @@ export function AtlasApp({ product }: { product: Product }) {
       ? <button className={styles.primaryButton} onClick={() => openAppointment(false)}><Icon name="plus" /> Agendar</button>
       : undefined;
 
-  return <AppShell product={product} nav={nav} active={active} onChange={setActive} title={active} subtitle="Recepção, diagnóstico, aprovação, execução, conferência e entrega no mesmo histórico." action={headerAction}>
+  return <AppShell product={product} nav={nav} active={active} onChange={(value) => { setActive(value); if (value !== "Ordens de serviço") setSelectedId(""); }} title={active} subtitle="Cada OS mostra somente o trabalho da etapa atual." action={headerAction}>
     {active === "Ordens de serviço" ? <div className={styles.masterDetail}>
       <section className={styles.listPane}>
         <div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Placa, cliente, veículo ou OS" /></label></div>
-        <div className={styles.segmented}><button className={listMode === "Em andamento" ? styles.segmentActive : ""} onClick={() => setListMode("Em andamento")}>Em andamento <span>{orders.filter((item) => item.status !== "Entregue").length}</span></button><button className={listMode === "Concluídas" ? styles.segmentActive : ""} onClick={() => setListMode("Concluídas")}>Entregues <span>{orders.filter((item) => item.status === "Entregue").length}</span></button></div>
-        <div className={styles.recordList}>{filtered.map((order) => <button key={order.id} className={`${styles.recordRow} ${selected?.id === order.id ? styles.recordSelected : ""}`} onClick={() => { setSelectedId(order.id); setDetailTab("Resumo"); }}><div className={styles.recordAvatar}><Icon name="car" /></div><div className={styles.recordMain}><div><strong>{order.vehicle}</strong><span>{order.plate}</span></div><p>{order.client} · {order.issue}</p></div><div className={styles.recordMeta}><StatusPill status={order.status} /><small>{order.updated}</small></div></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhuma OS encontrada" description="Altere a busca ou receba um novo veículo." /> : null}</div>
+        <div className={styles.segmented}><button className={listMode === "Em andamento" ? styles.segmentActive : ""} onClick={() => { setListMode("Em andamento"); setSelectedId(""); }}>Em andamento <span>{orders.filter((item) => item.status !== "Entregue").length}</span></button><button className={listMode === "Concluídas" ? styles.segmentActive : ""} onClick={() => { setListMode("Concluídas"); setSelectedId(""); }}>Entregues <span>{orders.filter((item) => item.status === "Entregue").length}</span></button></div>
+        <div className={styles.recordList}>{filtered.map((order) => <button key={order.id} className={`${styles.recordRow} ${selected?.id === order.id ? styles.recordSelected : ""}`} onClick={() => setSelectedId(order.id)}><div className={styles.recordAvatar}><Icon name="car" /></div><div className={styles.recordMain}><div><strong>{order.vehicle}</strong><span>{order.plate}</span></div><p>{order.client} · {nextActionText(order)}</p></div><div className={styles.recordMeta}><StatusPill status={order.status} /><small>{order.updated}</small></div></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhuma OS encontrada" description="Altere a busca ou receba um novo veículo." /> : null}</div>
       </section>
       {selected ? <section className={styles.detailPane}>
-        <div className={styles.detailHeader}><div><span className={styles.eyebrow}>{selected.id}</span><h2>{selected.vehicle}</h2><p>{selected.plate} · {selected.client}</p></div><div className={styles.headerButtons}>{selected.status === "Em serviço" ? <button className={styles.secondaryButton} onClick={() => { updateSelected({ status: "Aguardando peça" }, "Execução pausada aguardando item necessário"); setToast("OS marcada como aguardando peça"); }}>Aguardar peça</button> : null}<button className={styles.secondaryButton} onClick={shareSummary}><Icon name="message" /> Copiar atualização</button><button className={styles.primaryButton} disabled={selected.status === "Entregue"} onClick={advance}>{actionLabel(selected)}</button></div></div>
-        <div className={styles.detailTabs}>{["Resumo", "Diagnóstico", "Serviços e peças", "Fotos", "Histórico"].map((tab) => <button key={tab} className={detailTab === tab ? styles.tabActive : ""} onClick={() => setDetailTab(tab)}>{tab}</button>)}</div>
+        <div className={styles.detailHeader}><div><span className={styles.eyebrow}>{selected.id}</span><h2>{selected.vehicle}</h2><p>{selected.plate} · {selected.client}</p></div><div className={styles.headerButtons}><button className={styles.secondaryButton} onClick={shareSummary}><Icon name="message" /> Copiar atualização</button>{selected.status === "Em serviço" ? <button className={styles.secondaryButton} onClick={requestWaitingPart}>Aguardar peça</button> : null}<button className={styles.primaryButton} disabled={selected.status === "Entregue"} onClick={requestAdvance}>{actionLabel(selected)}</button></div></div>
         <div className={styles.detailBody}>
-          {detailTab === "Resumo" ? <>
-            <div className={styles.summaryGrid}><div><span>Situação atual</span><StatusPill status={selected.status} /></div><div><span>Aprovação</span><StatusPill status={selected.approval ?? "Pendente"} /></div><div><span>Responsável</span><strong>{selected.technician}</strong></div><div><span>Valor estimado</span><strong>{currency(selected.services.reduce((sum, item) => sum + item.value, 0))}</strong></div></div>
-            <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Recepção do veículo</h3><p>Informações que protegem a oficina e dão transparência ao cliente.</p></div></div><div className={styles.inlineFields}><label><span>Quilometragem</span><input value={selected.odometer ?? ""} onChange={(event) => updateSelected({ odometer: event.target.value })} placeholder="Ex.: 72.260 km" /></label><label><span>Combustível</span><input value={selected.fuel ?? ""} onChange={(event) => updateSelected({ fuel: event.target.value })} placeholder="Ex.: 1/2" /></label><label><span>Previsão informada</span><input value={selected.expectedDelivery ?? ""} onChange={(event) => updateSelected({ expectedDelivery: event.target.value })} placeholder="Ex.: amanhã à tarde" /></label></div><textarea className={styles.largeTextarea} value={selected.intakeNotes ?? ""} onChange={(event) => updateSelected({ intakeNotes: event.target.value })} placeholder="Avarias visíveis, objetos deixados no veículo ou observações da entrada" /></section>
-            <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Relato do cliente</h3><p>Motivo informado na entrada.</p></div><button onClick={() => { setDraft((current) => ({ ...current, issue: selected.issue })); setModal("editIssue"); }}>Editar</button></div><div className={styles.noteBox}>{selected.issue}</div></section>
-            <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Próxima ação</h3><p>O que precisa acontecer para o atendimento continuar.</p></div></div><div className={styles.nextAction}><Icon name={selected.priority || selected.status === "Aguardando peça" ? "warning" : selected.status === "Pronto" ? "calendar" : "arrow"} /><div><strong>{nextActionText(selected)}</strong><span>{selected.priority ? "Atendimento marcado como prioritário" : selected.updated}</span></div><button onClick={openNextAction}>{selected.status === "Entregue" ? "Ver histórico" : "Abrir ação"}</button></div></section>
-          </> : null}
-          {detailTab === "Diagnóstico" ? <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Diagnóstico da oficina</h3><p>Testes realizados, causa encontrada e recomendação.</p></div></div><textarea className={styles.largeTextarea} value={selected.diagnosis} onChange={(event) => updateSelected({ diagnosis: event.target.value })} placeholder="Descreva testes, causa identificada e recomendação" /><div className={styles.inlineFields}><label><span>Técnico responsável</span><select value={selected.technician} onChange={(event) => updateSelected({ technician: event.target.value }, `Responsável alterado para ${event.target.value}`)}><option>Sem técnico</option><option>Marcos</option><option>Carlos</option><option>Paulo</option></select></label><label className={styles.toggleRow}><input type="checkbox" checked={selected.priority} onChange={(event) => updateSelected({ priority: event.target.checked })} /><span><strong>Prioridade</strong><small>Destacar esta OS.</small></span></label></div></section> : null}
-          {detailTab === "Serviços e peças" ? <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Orçamento e execução</h3><p>Peças são descritas no atendimento; não existe controle de estoque.</p></div><div className={styles.headerButtons}><button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir</button><button className={styles.primaryButton} onClick={() => setModal("service")}><Icon name="plus" /> Adicionar item</button></div></div><div className={styles.lineItems}>{selected.services.map((item) => <div key={item.id}><StatusPill status={item.kind} /><span>{item.description}</span><strong>{currency(item.value)}</strong><button onClick={() => updateSelected({ services: selected.services.filter((line) => line.id !== item.id), approval: selected.status === "Aguardando aprovação" ? "Pendente" : selected.approval }, `${item.description} removido`)} aria-label={`Remover ${item.description}`}><Icon name="trash" /></button></div>)}</div>{!selected.services.length ? <EmptyState icon="document" title="Orçamento ainda vazio" description="Adicione serviços ou peças apenas como descrição e valor estimado." /> : null}<div className={styles.totalBar}><span>Total estimado</span><strong>{currency(selected.services.reduce((sum, item) => sum + item.value, 0))}</strong></div></section> : null}
-          {detailTab === "Fotos" ? <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Fotos e evidências</h3><p>Entrada, diagnóstico, execução e resultado final.</p></div><label className={styles.secondaryButton}><Icon name="plus" /> Adicionar fotos<input hidden type="file" accept="image/*" multiple onChange={addPhotos} /></label></div><div className={styles.photoGrid}>{selected.photos.map((photo, index) => <figure key={`${photo.slice(0, 24)}-${index}`}><img src={photo} alt={`Evidência ${index + 1}`} /><button onClick={() => updateSelected({ photos: selected.photos.filter((_, photoIndex) => photoIndex !== index) })} aria-label={`Remover evidência ${index + 1}`}><Icon name="trash" /></button></figure>)}{!selected.photos.length ? <EmptyState icon="image" title="Nenhuma foto adicionada" description="Inclua imagens da entrada, defeito, execução ou serviço concluído." /> : null}</div></section> : null}
-          {detailTab === "Histórico" ? <section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Linha do tempo</h3><p>Decisões e mudanças importantes desta OS.</p></div></div><Timeline items={selected.history} /></section> : null}
+          <div className={styles.nextAction}><Icon name={selected.priority || selected.status === "Aguardando peça" ? "warning" : selected.status === "Pronto" ? "calendar" : "arrow"} /><div><span>Etapa atual</span><strong>{selected.status}</strong><small>{nextActionText(selected)}</small></div><StatusPill status={selected.status} /></div>
+          {renderCurrentStage()}
+          <details className={styles.infoSection}><summary>Dados do atendimento</summary><div className={styles.summaryGrid}><div><span>Quilometragem</span><strong>{selected.odometer || "Não informada"}</strong></div><div><span>Combustível</span><strong>{selected.fuel || "Não informado"}</strong></div><div><span>Telefone</span><strong>{selected.phone || "Não informado"}</strong></div><div><span>Previsão</span><strong>{selected.expectedDelivery || "Não informada"}</strong></div></div><div className={styles.noteBox}><strong>Relato do cliente:</strong> {selected.issue}</div><div className={styles.noteBox}><strong>Estado de entrada:</strong> {selected.intakeNotes || "Sem observações"}</div><button className={styles.secondaryButton} onClick={() => { setDraft((current) => ({ ...current, issue: selected.issue })); setModal("editIssue"); }}>Editar relato</button></details>
+          <details className={styles.infoSection}><summary>Histórico da OS</summary><Timeline items={selected.history} /></details>
         </div>
-      </section> : <EmptyState icon="clipboard" title="Selecione uma OS" description="Escolha um atendimento na lista." />}
+      </section> : <section className={styles.detailPane}><EmptyState icon="clipboard" title="Nenhuma OS selecionada" description="Escolha um atendimento para visualizar somente a etapa atual." /></section>}
     </div> : null}
 
     {active === "Agenda" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Agenda</span><h2>Compromissos futuros</h2><p>Recebimentos, retornos e entregas. Veículos já recebidos ficam nas ordens de serviço.</p></div></div><div className={styles.scheduleList}>{appointments.map((item) => <div key={item.id} className={`${styles.scheduleRow} ${item.done ? styles.completedRow : ""}`}><strong>{item.time}</strong><div><span>{item.type}</span><h3>{item.client}</h3><p>{item.vehicle}</p></div>{item.done ? <StatusPill status="Concluído" /> : <button onClick={() => setAppointments((current) => current.map((entry) => entry.id === item.id ? { ...entry, done: true } : entry))}>Concluir <Icon name="check" /></button>}<button className={styles.iconButton} aria-label={`Remover agendamento de ${item.client}`} onClick={() => setAppointments((current) => current.filter((entry) => entry.id !== item.id))}><Icon name="trash" /></button></div>)}{!appointments.length ? <EmptyState icon="calendar" title="Agenda vazia" description="Crie o primeiro compromisso futuro da oficina." /> : null}</div></section> : null}
-    {active === "Clientes" ? <DirectoryView title="Clientes da oficina" description="Contatos e atendimentos já registrados." rows={customerRows.map((row) => ({ id: row.lastOrderId, title: row.name, subtitle: `${row.phone} · ${row.count} atendimento(s)` }))} onSelect={(id) => { setSelectedId(id); setActive("Ordens de serviço"); setDetailTab("Resumo"); }} /> : null}
-    {active === "Veículos" ? <DirectoryView title="Veículos cadastrados" description="Histórico de atendimento por veículo." rows={vehicleRows.map((row) => ({ id: row.lastOrderId, title: `${row.label} · ${row.plate}`, subtitle: `${row.count} atendimento(s) registrado(s)` }))} onSelect={(id) => { setSelectedId(id); setActive("Ordens de serviço"); setDetailTab("Histórico"); }} /> : null}
+    {active === "Clientes" ? <DirectoryView title="Clientes da oficina" description="Contatos e atendimentos já registrados." rows={customerRows.map((row) => ({ id: row.lastOrderId, title: row.name, subtitle: `${row.phone} · ${row.count} atendimento(s)` }))} onSelect={(id) => { setSelectedId(id); setActive("Ordens de serviço"); }} /> : null}
+    {active === "Veículos" ? <DirectoryView title="Veículos cadastrados" description="Histórico de atendimento por veículo." rows={vehicleRows.map((row) => ({ id: row.lastOrderId, title: `${row.label} · ${row.plate}`, subtitle: `${row.count} atendimento(s) registrado(s)` }))} onSelect={(id) => { setSelectedId(id); setActive("Ordens de serviço"); }} /> : null}
 
     <Modal open={modal === "new"} title="Receber veículo" description="Comece com os dados que protegem a entrada e permitem iniciar a avaliação." onClose={() => setModal(null)}><Form onSubmit={createOrder}><div className={styles.formGrid}><Field label="Cliente"><input required value={draft.client} onChange={(event) => setDraft((current) => ({ ...current, client: event.target.value }))} /></Field><Field label="Telefone"><input inputMode="tel" value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} /></Field><Field label="Veículo"><input required value={draft.vehicle} onChange={(event) => setDraft((current) => ({ ...current, vehicle: event.target.value }))} /></Field><Field label="Placa"><input required maxLength={7} value={draft.plate} onChange={(event) => setDraft((current) => ({ ...current, plate: event.target.value.toUpperCase() }))} /></Field><Field label="Quilometragem"><input value={draft.odometer} onChange={(event) => setDraft((current) => ({ ...current, odometer: event.target.value }))} placeholder="Ex.: 72.260 km" /></Field><Field label="Combustível"><input value={draft.fuel} onChange={(event) => setDraft((current) => ({ ...current, fuel: event.target.value }))} placeholder="Ex.: 1/2" /></Field></div><Field label="Relato do cliente"><textarea required value={draft.issue} onChange={(event) => setDraft((current) => ({ ...current, issue: event.target.value }))} /></Field><Field label="Estado de entrada" hint="Avarias visíveis, objetos deixados ou observações relevantes."><textarea value={draft.intakeNotes} onChange={(event) => setDraft((current) => ({ ...current, intakeNotes: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Receber e criar OS</button></div></Form></Modal>
     <Modal open={modal === "editIssue"} title="Editar relato do cliente" onClose={() => setModal(null)}><Form onSubmit={() => { updateSelected({ issue: draft.issue.trim() }, "Relato do cliente atualizado"); setModal(null); setToast("Relato atualizado"); }}><Field label="Relato"><textarea required value={draft.issue} onChange={(event) => setDraft((current) => ({ ...current, issue: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Salvar</button></div></Form></Modal>
     <Modal open={modal === "service"} title="Adicionar ao orçamento" description="Cadastre serviço ou peça apenas como descrição e valor estimado." onClose={() => setModal(null)}><Form onSubmit={addService}><Field label="Tipo"><select value={serviceDraft.kind} onChange={(event) => setServiceDraft((current) => ({ ...current, kind: event.target.value as ServiceLine["kind"] }))}><option>Serviço</option><option>Peça</option></select></Field><Field label="Descrição"><input required value={serviceDraft.description} onChange={(event) => setServiceDraft((current) => ({ ...current, description: event.target.value }))} /></Field><Field label="Valor estimado"><input inputMode="decimal" value={serviceDraft.value} onChange={(event) => setServiceDraft((current) => ({ ...current, value: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Adicionar</button></div></Form></Modal>
     <Modal open={modal === "appointment"} title="Novo agendamento" onClose={() => setModal(null)}><Form onSubmit={createAppointment}><div className={styles.formGrid}><Field label="Horário"><input type="time" value={appointmentDraft.time} onChange={(event) => setAppointmentDraft((current) => ({ ...current, time: event.target.value }))} /></Field><Field label="Tipo"><select value={appointmentDraft.type} onChange={(event) => setAppointmentDraft((current) => ({ ...current, type: event.target.value }))}><option>Recebimento</option><option>Avaliação</option><option>Retorno</option><option>Entrega</option><option>Revisão</option></select></Field><Field label="Cliente"><input required value={appointmentDraft.client} onChange={(event) => setAppointmentDraft((current) => ({ ...current, client: event.target.value }))} /></Field><Field label="Veículo"><input required value={appointmentDraft.vehicle} onChange={(event) => setAppointmentDraft((current) => ({ ...current, vehicle: event.target.value }))} /></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Agendar</button></div></Form></Modal>
-    <Modal open={modal === "approval"} title="Decisão do cliente" description={selected ? `${selected.id} · ${selected.client}` : undefined} onClose={() => setModal(null)}><Field label="Observação da decisão"><textarea value={approvalNote} onChange={(event) => setApprovalNote(event.target.value)} placeholder="Ex.: aprovou por telefone ou solicitou alteração" /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => registerApproval("Recusado")}>Registrar recusa</button><button type="button" className={styles.primaryButton} onClick={() => registerApproval("Aprovado")}>Aprovar e liberar serviço</button></div></Modal>
+    <Modal open={modal === "approval"} title="Registrar decisão do cliente" description={selected ? `${selected.id} · ${selected.client}` : undefined} onClose={() => setModal(null)}><div className={styles.noteBox}>A aprovação libera o serviço. A recusa mantém a OS nesta etapa para revisão do orçamento.</div><Field label="Observação da decisão" hint="Obrigatória quando houver recusa ou pedido de alteração."><textarea value={approvalNote} onChange={(event) => setApprovalNote(event.target.value)} placeholder="O que o cliente decidiu ou pediu para mudar?" /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => registerApproval("Recusado")}>Registrar recusa</button><button type="button" className={styles.primaryButton} onClick={() => registerApproval("Aprovado")}>Confirmar aprovação</button></div></Modal>
+    <Modal open={modal === "advance"} title={pendingTransition?.title ?? "Confirmar avanço"} description={selected ? `${selected.id} · ${selected.vehicle}` : undefined} onClose={() => { setPendingTransition(null); setModal(null); }}><div className={styles.noteBox}>{pendingTransition?.description}</div>{selected && pendingTransition ? <div className={styles.summaryGrid}><div><span>Situação atual</span><StatusPill status={selected.status} /></div><div><span>Nova situação</span><StatusPill status={pendingTransition.status} /></div></div> : null}<div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => { setPendingTransition(null); setModal(null); }}>Voltar</button><button type="button" className={styles.primaryButton} onClick={confirmTransition}>Confirmar mudança</button></div></Modal>
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
 }
