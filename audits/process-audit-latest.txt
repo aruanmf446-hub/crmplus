@@ -1,4 +1,4 @@
-PASSARAM: 65
+PASSARAM: 66
 PASSOU · atlas · entrada sem seleção automática
 PASSOU · atlas · todas as áreas do menu abrem
 PASSOU · ares · entrada sem seleção automática
@@ -64,5 +64,13 @@ PASSOU · pegasus · status terminal no histórico
 PASSOU · pegasus · sem erro na classificação final
 PASSOU · titans · status terminal no histórico
 PASSOU · titans · sem erro na classificação final
+PASSOU · acesso · recuperação abre no modo correto
 
-FALHARAM: 0
+FALHARAM: 1
+FALHOU · acesso · recuperação local · locator.fill: Error: strict mode violation: getByLabel('Nova senha') resolved to 2 elements:
+    1) <input value="" required="" minlength="8" type="password" autocomplete="new-password" aria-describedby="password-rules-atlas"/> aka getByRole('textbox', { name: 'Nova senha', exact: true })
+    2) <input value="" required="" minlength="8" type="password" aria-invalid="false" autocomplete="new-password" aria-describedby="password-confirmation-atlas"/> aka getByRole('textbox', { name: 'Confirmar nova senha Repita a' })
+
+Call log:
+  - waiting for getByLabel('Nova senha')
+
