@@ -35,6 +35,18 @@ jobs:
         continue-on-error: true
         run: npm ci > /tmp/install.log 2>&1
 
+      - name: Auditar dependências de produção
+        id: production_audit
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm audit --omit=dev --json > /tmp/audit-production.json 2>&1
+
+      - name: Auditar todas as dependências
+        id: full_audit
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: npm audit --json > /tmp/audit-full.json 2>&1
+
       - name: Validar TypeScript
         id: typescript
         if: steps.install.outcome == 'success'
@@ -54,6 +66,8 @@ jobs:
         if: always()
         env:
           INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          PRODUCTION_AUDIT_OUTCOME: ${{ steps.production_audit.outcome }}
+          FULL_AUDIT_OUTCOME: ${{ steps.full_audit.outcome }}
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           VALIDATED_SHA: ${{ github.sha }}
@@ -62,11 +76,19 @@ jobs:
           {
             echo "COMMIT VALIDADO: ${VALIDATED_SHA}"
             echo "DEPENDÊNCIAS: ${INSTALL_OUTCOME}"
+            echo "AUDITORIA PRODUÇÃO: ${PRODUCTION_AUDIT_OUTCOME}"
+            echo "AUDITORIA COMPLETA: ${FULL_AUDIT_OUTCOME}"
             echo "TYPESCRIPT: ${TYPESCRIPT_OUTCOME}"
             echo "BUILD: ${BUILD_OUTCOME}"
             echo
             echo "=== INSTALAÇÃO ==="
             cat /tmp/install.log 2>/dev/null || true
+            echo
+            echo "=== AUDITORIA DE PRODUÇÃO ==="
+            cat /tmp/audit-production.json 2>/dev/null || true
+            echo
+            echo "=== AUDITORIA COMPLETA ==="
+            cat /tmp/audit-full.json 2>/dev/null || true
             echo
             echo "=== TYPESCRIPT ==="
             cat /tmp/typescript.log 2>/dev/null || true
@@ -91,9 +113,11 @@ jobs:
         if: always()
         env:
           INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          PRODUCTION_AUDIT_OUTCOME: ${{ steps.production_audit.outcome }}
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
         run: |
           test "${INSTALL_OUTCOME}" = "success"
+          test "${PRODUCTION_AUDIT_OUTCOME}" = "success"
           test "${TYPESCRIPT_OUTCOME}" = "success"
           test "${BUILD_OUTCOME}" = "success"
