@@ -203,7 +203,7 @@ export async function importLocalBackup(file: File, slug?: string) {
   if (parsed.format !== "crmplus-local-backup" || parsed.version !== EXPORT_VERSION || !parsed.entries || typeof parsed.entries !== "object") {
     throw new Error("Arquivo de backup inválido ou incompatível.");
   }
-  const entries = Object.entries(parsed.entries).filter(([key, value]) => appKeyMatches(key, slug) && typeof value === "string");
+  const entries = Object.entries(parsed.entries).filter((entry): entry is [string, string] => appKeyMatches(entry[0], slug) && typeof entry[1] === "string");
   if (!entries.length) throw new Error("Este backup não contém dados compatíveis com o aplicativo.");
 
   for (const [key, value] of entries) {
