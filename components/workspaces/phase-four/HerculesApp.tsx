@@ -96,10 +96,16 @@ export function HerculesApp({ product }: { product: Product }) {
     event.target.value = "";
   }
 
+  function validateDeviationDraft() {
+    if (!deviationDraft.description.trim()) { setToast("Informe a descrição do desvio"); return false; }
+    if (!deviationDraft.responsible.trim()) { setToast("Defina quem ficará responsável pela correção"); return false; }
+    if (!deviationDraft.due) { setToast("Defina o prazo da correção"); return false; }
+    return true;
+  }
+
   function createDeviation() {
-    if (!currentItem || !inspection) return;
-    if (!deviationDraft.description.trim()) { setToast("Informe a descrição do desvio"); return; }
-    const deviation: Deviation = { id: uid("NC"), inspectionId: inspection.id, itemId: currentItem.id, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim() || inspection.responsible || "Não atribuído", due: deviationDraft.due || "Sem prazo", status: "Aberto", action: deviationDraft.action.trim(), evidence: currentItem.evidence };
+    if (!currentItem || !inspection || !validateDeviationDraft()) return;
+    const deviation: Deviation = { id: uid("NC"), inspectionId: inspection.id, itemId: currentItem.id, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, status: "Aberto", action: deviationDraft.action.trim(), evidence: currentItem.evidence };
     setDeviations((current) => [deviation, ...current]);
     setDeviationDraft({ id: "", description: "", priority: "Alta", responsible: "", due: "", action: "" });
     setModal(null);
@@ -113,8 +119,8 @@ export function HerculesApp({ product }: { product: Product }) {
   }
 
   function saveDeviation() {
-    if (!deviationDraft.id || !deviationDraft.description.trim()) return;
-    setDeviations((current) => current.map((item) => item.id === deviationDraft.id ? { ...item, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim() || "Não atribuído", due: deviationDraft.due || "Sem prazo", action: deviationDraft.action.trim() } : item));
+    if (!deviationDraft.id || !validateDeviationDraft()) return;
+    setDeviations((current) => current.map((item) => item.id === deviationDraft.id ? { ...item, description: deviationDraft.description.trim(), priority: deviationDraft.priority, responsible: deviationDraft.responsible.trim(), due: deviationDraft.due, action: deviationDraft.action.trim() } : item));
     setModal(null);
     setToast("Desvio atualizado");
   }
@@ -203,7 +209,6 @@ export function HerculesApp({ product }: { product: Product }) {
   }
 
   function removeModel(model: ChecklistModel) {
-    if (models.length <= 1) { setToast("Mantenha pelo menos um modelo disponível"); return; }
     if (!window.confirm(`Remover o modelo “${model.name}”?`)) return;
     const remaining = models.filter((item) => item.id !== model.id);
     setModels(remaining);
@@ -238,5 +243,5 @@ export function HerculesApp({ product }: { product: Product }) {
 }
 
 function DeviationFields({ draft, setDraft }: { draft: { id: string; description: string; priority: Deviation["priority"]; responsible: string; due: string; action: string }; setDraft: React.Dispatch<React.SetStateAction<{ id: string; description: string; priority: Deviation["priority"]; responsible: string; due: string; action: string }>> }) {
-  return <><Field label="Descrição"><input required value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Prioridade"><select value={draft.priority} onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as Deviation["priority"] }))}><option>Alta</option><option>Média</option><option>Baixa</option></select></Field><Field label="Responsável"><input value={draft.responsible} onChange={(event) => setDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Prazo"><input type="date" value={draft.due} onChange={(event) => setDraft((current) => ({ ...current, due: event.target.value }))} /></Field></div><Field label="Ação corretiva"><textarea value={draft.action} onChange={(event) => setDraft((current) => ({ ...current, action: event.target.value }))} placeholder="Descreva o que será feito para corrigir o desvio" /></Field></>;
+  return <><Field label="Descrição"><input required value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Prioridade"><select value={draft.priority} onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as Deviation["priority"] }))}><option>Alta</option><option>Média</option><option>Baixa</option></select></Field><Field label="Responsável"><input required value={draft.responsible} onChange={(event) => setDraft((current) => ({ ...current, responsible: event.target.value }))} /></Field><Field label="Prazo"><input required type="date" value={draft.due} onChange={(event) => setDraft((current) => ({ ...current, due: event.target.value }))} /></Field></div><Field label="Ação corretiva"><textarea value={draft.action} onChange={(event) => setDraft((current) => ({ ...current, action: event.target.value }))} placeholder="Descreva o que será feito para corrigir o desvio" /></Field></>;
 }
