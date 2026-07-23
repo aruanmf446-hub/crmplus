@@ -1,0 +1,218 @@
+/* Regra final do modo escuro dos aplicativos.
+   A identidade colorida não pode tingir superfícies, divisões ou valores. */
+
+html[data-color-mode="dark"] [data-product] {
+  --accent: #ffffff !important;
+  --accent-soft: #000000 !important;
+  --ink: #ffffff !important;
+  --muted: #b8bec8 !important;
+  --line: #2c2c2c !important;
+  --nav-bg: #000000 !important;
+  --nav-raised: #090909 !important;
+  --selection-bg: #080808 !important;
+  --selection-strong: #0f0f0f !important;
+  --result-bg: #080808 !important;
+  --result-raised: #101010 !important;
+  --canvas-bg: #000000 !important;
+  --topbar-bg: #050505 !important;
+  --data-bg: #080808 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [data-ui="navigation"],
+  [data-ui="context"],
+  [data-ui="workspace"],
+  [class*="workspace" i],
+  [class*="content" i]
+) {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Superfícies e divisões: sempre preto/cinza neutro, nunca a cor do app. */
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="card" i],
+  [class*="panel" i],
+  [class*="surface" i],
+  [class*="pane" i],
+  [class*="sheet" i],
+  [class*="row" i],
+  [class*="box" i],
+  [class*="table" i],
+  [class*="map" i],
+  [class*="toolbar" i],
+  [class*="notice" i],
+  [class*="banner" i],
+  [class*="tile" i],
+  [class*="summary" i],
+  [class*="disclosure" i],
+  details
+) {
+  background-color: #090909 !important;
+  background-image: none !important;
+  border-color: #2c2c2c !important;
+  box-shadow: none !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="topbar" i],
+  [class*="listPane" i],
+  [class*="detailPane" i],
+  [class*="documentPane" i],
+  [class*="orderSheet" i],
+  [class*="inspectionStage" i],
+  [class*="floorSheet" i],
+  [class*="modalCard" i],
+  [class*="modalBody" i],
+  [class*="modalCard" i] header
+) {
+  background-color: #080808 !important;
+  background-image: none !important;
+  border-color: #2c2c2c !important;
+}
+
+/* Estado ativo, selecionado ou colorido: preto com conteúdo branco. */
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="primaryButton" i],
+  [class*="dangerButton" i],
+  [class*="productLogo" i],
+  [class*="recordAvatar" i],
+  [class*="companyAvatar" i],
+  [class*="entityIcon" i],
+  [class*="statusPill" i],
+  [class*="scoreBadge" i],
+  [class*="serviceStatus" i],
+  [class*="segmentActive" i],
+  [class*="scopeActive" i],
+  [class*="tabActive" i],
+  [class*="navActive" i],
+  [class*="recordSelected" i],
+  [class*="salesSelected" i],
+  [class*="feedbackSelected" i],
+  [class*="floorSelected" i],
+  [class*="checkCurrent" i],
+  [class*="nextAction" i],
+  [class*="nextStepCard" i],
+  [class*="attentionBox" i],
+  [class*="archiveNotice" i],
+  [class*="confirmBox" i],
+  [class*="totalBar" i],
+  [class*="completedRow" i],
+  [class*="floorLivre" i],
+  [class*="floorEmatendimento" i],
+  [class*="floorNacozinha" i],
+  [class*="floorPronto" i]
+) {
+  background: #000000 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border-color: #343434 !important;
+  box-shadow: none !important;
+  outline-color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="primaryButton" i],
+  [class*="dangerButton" i]
+):hover {
+  background: #141414 !important;
+  border-color: #555555 !important;
+  color: #ffffff !important;
+}
+
+/* Botões e campos neutros. */
+html[data-color-mode="dark"] [data-product] :where(
+  button,
+  [class*="secondaryButton" i],
+  [class*="iconButton" i],
+  [class*="backButton" i],
+  [class*="uploadButton" i],
+  [class*="fileAction" i]
+) {
+  border-color: #343434 !important;
+  color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(input, textarea, select, option) {
+  background: #050505 !important;
+  color: #ffffff !important;
+  border-color: #343434 !important;
+}
+
+/* Valores e dados nunca podem permanecer escuros. */
+html[data-color-mode="dark"] [data-product] :where(
+  h1, h2, h3, h4, h5, h6,
+  strong, b, dd, output, th, td,
+  [class*="value" i],
+  [class*="amount" i],
+  [class*="number" i],
+  [class*="price" i],
+  [class*="count" i]
+) {
+  color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="metric" i] strong,
+  [class*="total" i] strong,
+  [class*="total" i] b,
+  [class*="summary" i] strong,
+  [class*="facts" i] dd,
+  [class*="recordMeta" i] strong,
+  [class*="entityMeta" i] strong,
+  [class*="simpleRows" i] > * > :last-child,
+  [class*="menuRows" i] > * > :last-child,
+  [class*="dataRow" i] > :last-child,
+  [class*="lineItems" i] strong,
+  [class*="orderItems" i] b,
+  [class*="orderTotal" i] strong,
+  [class*="consolidatedHeader" i] > strong
+) {
+  color: #ffffff !important;
+}
+
+/* Rótulos permanecem legíveis, sem cinza escuro. */
+html[data-color-mode="dark"] [data-product] :where(
+  p, small, dt,
+  [class*="muted" i],
+  [class*="helper" i],
+  [class*="label" i]
+) {
+  color: #b8bec8 !important;
+}
+
+/* Contadores dentro de divisões e abas também ficam brancos. */
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="segmentActive" i] span,
+  [class*="scopeActive" i] span,
+  [class*="tabActive" i] span,
+  [class*="navActive" i] span,
+  [class*="statusPill" i] span,
+  [class*="scoreBadge" i] span
+) {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Remover cores semânticas residuais de pontos, barras e ícones. */
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="dot" i],
+  [class*="indicator" i],
+  [class*="progress" i] i,
+  [class*="timeline" i] i
+) {
+  background: #ffffff !important;
+  border-color: #343434 !important;
+  box-shadow: none !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(svg, [class*="eyebrow" i]) {
+  color: #ffffff !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where(hr, [class*="divider" i]) {
+  border-color: #2c2c2c !important;
+  background: #2c2c2c !important;
+}
