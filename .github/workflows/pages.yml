@@ -1,5 +1,5 @@
 name: Publicar CRMPlus no GitHub Pages
-run-name: Validar e publicar CRMPlus+
+run-name: Validar e publicar CRMPlus+ com QA bloqueante
 
 on:
   push:
