@@ -213,9 +213,9 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   function transitionOptions() {
     if (!selected) return [];
-    if (isFinalRecord(selected)) return [];
     const configured = config.transitions?.[selected.status];
     if (configured) return configured.filter((status) => config.statuses.includes(status));
+    if (isFinalRecord(selected)) return [];
     const fallback = config.statuses[currentStatusIndex + 1];
     return fallback ? [fallback] : [];
   }
