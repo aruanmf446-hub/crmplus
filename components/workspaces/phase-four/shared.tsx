@@ -1,17 +1,37 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { Product } from "@/lib/apps";
-import { fileToDataUrl, useLocalState } from "./localStore";
+import {
+  clearAppStorage,
+  exportLocalBackup,
+  fileToDataUrl,
+  formatBytes,
+  getLocalStorageUsage,
+  importLocalBackup,
+  subscribeStorageStatus,
+  useLocalState,
+  type StorageStatusDetail,
+} from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
 import hierarchy from "./SemanticHierarchy.module.css";
 import brand from "./BrandLogo.module.css";
+import shellUi from "./AppShellEnhancements.module.css";
 
 export type IconName =
   | "activity" | "arrow" | "back" | "calendar" | "car" | "check" | "chevron" | "clipboard"
   | "clock" | "close" | "document" | "download" | "edit" | "filter" | "history" | "home"
-  | "image" | "inbox" | "kitchen" | "menu" | "message" | "people" | "plus" | "print"
-  | "search" | "settings" | "spark" | "table" | "tag" | "trash" | "user" | "warning";
+  | "image" | "inbox" | "kitchen" | "menu" | "message" | "moon" | "panel" | "people" | "plus" | "print"
+  | "search" | "settings" | "spark" | "sun" | "table" | "tag" | "trash" | "user" | "warning";
 
 export type NavItem = { label: string; icon: IconName };
 
@@ -56,11 +76,19 @@ type ShellProps = {
   children: ReactNode;
 };
 
+type Preferences = { company: string; logo: string };
+
 export function AppShell({ product, nav, active, onChange, title, subtitle, action, children }: ShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [colorMode, setColorMode] = useState<"light" | "dark">("light");
   const [logoError, setLogoError] = useState("");
-  const [preferences, setPreferences] = useLocalState(`crmplus.preferences.${product.slug}`, { company: "Minha empresa", logo: "" });
+  const [importError, setImportError] = useState("");
+  const [storageStatus, setStorageStatus] = useState<StorageStatusDetail | null>(null);
+  const [usage, setUsage] = useState({ bytes: 0, entries: 0 });
+  const [preferences, setPreferences] = useLocalState<Preferences>(`crmplus.preferences.${product.slug}`, { company: "Minha empresa", logo: "" });
+  const [settingsDraft, setSettingsDraft] = useState<Preferences>(preferences);
   const visualTheme = appThemes[product.slug] ?? appThemes.ares;
   const shellStyle = {
     "--accent": product.color,
@@ -77,14 +105,38 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   } as CSSProperties;
 
   useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      setSettingsOpen(false);
-      setMenuOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    const savedMode = window.localStorage.getItem("crmplus.color-mode");
+    const nextMode = savedMode === "dark" ? "dark" : "light";
+    setColorMode(nextMode);
+    document.documentElement.dataset.colorMode = nextMode;
+    setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
+    return subscribeStorageStatus((detail) => {
+      if (detail.key.includes(product.slug) || detail.key.startsWith("crmplus.preferences.")) setStorageStatus(detail);
+    });
+  }, [product.slug]);
+
+  function toggleColorMode() {
+    const nextMode = colorMode === "dark" ? "light" : "dark";
+    setColorMode(nextMode);
+    window.localStorage.setItem("crmplus.color-mode", nextMode);
+    document.documentElement.dataset.colorMode = nextMode;
+  }
+
+  function toggleCollapsed() {
+    setCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem("crmplus.ui.sidebar.collapsed", String(next));
+      return next;
+    });
+  }
+
+  function openSettings() {
+    setSettingsDraft(preferences);
+    setLogoError("");
+    setImportError("");
+    setUsage(getLocalStorageUsage("crmplus."));
+    setSettingsOpen(true);
+  }
 
   async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -102,38 +154,64 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
     }
     try {
       const logo = await fileToDataUrl(file);
-      setPreferences((current) => ({ ...current, logo }));
+      setSettingsDraft((current) => ({ ...current, logo }));
     } catch {
       setLogoError("Não foi possível ler esta imagem.");
     }
     event.target.value = "";
   }
 
+  function saveSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPreferences({ company: settingsDraft.company.trim() || "Minha empresa", logo: settingsDraft.logo });
+    setSettingsOpen(false);
+  }
+
   function resetApp() {
     const confirmed = window.confirm(`Redefinir o ${product.shortName}? Os registros deste aplicativo serão removidos deste navegador.`);
     if (!confirmed) return;
-    const prefixes = [`crmplus.${product.slug}`, `crmplus.preferences.${product.slug}`];
-    Object.keys(window.localStorage).filter((key) => prefixes.some((prefix) => key.startsWith(prefix))).forEach((key) => window.localStorage.removeItem(key));
+    clearAppStorage(product.slug);
     window.location.reload();
   }
 
+  function exportBackup() {
+    const count = exportLocalBackup(product.slug);
+    setStorageStatus({ key: product.slug, status: "saved", message: `${count} conjunto(s) de dados exportado(s) para backup.` });
+  }
+
+  async function importBackup(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImportError("");
+    try {
+      const count = await importLocalBackup(file, product.slug);
+      setStorageStatus({ key: product.slug, status: "saved", message: `${count} conjunto(s) restaurado(s). Recarregando o aplicativo.` });
+      window.setTimeout(() => window.location.reload(), 450);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "Não foi possível importar este backup.");
+    }
+    event.target.value = "";
+  }
+
   return (
-    <div className={`${styles.appShell} ${hierarchy.visualHierarchy}`} style={shellStyle} data-product={product.slug}>
+    <div className={`${styles.appShell} ${hierarchy.visualHierarchy} ${shellUi.shell} ${collapsed ? shellUi.shellCollapsed : ""}`} style={shellStyle} data-product={product.slug}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} data-ui="navigation">
-        <div className={styles.brandBlock}>
+        <div className={styles.brandBlock} data-ui="brand">
           <div className={styles.productLogo}>{preferences.logo ? <img className={brand.brandLogoImage} src={preferences.logo} alt={`Logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
-          <div><strong>{product.shortName}</strong><span>{preferences.company}</span></div>
+          <div data-ui="brand-copy"><strong>{product.shortName}</strong><span>{preferences.company}</span></div>
           <button type="button" className={styles.closeMenu} onClick={() => setMenuOpen(false)} aria-label="Fechar menu"><Icon name="close" /></button>
         </div>
         <nav className={styles.sideNav} aria-label={`Navegação do ${product.shortName}`}>
           {nav.map((item) => (
-            <button key={item.label} type="button" className={active === item.label ? styles.navActive : ""} onClick={() => { onChange(item.label); setMenuOpen(false); }} aria-current={active === item.label ? "page" : undefined}>
+            <button key={item.label} type="button" className={active === item.label ? styles.navActive : ""} onClick={() => { onChange(item.label); setMenuOpen(false); }} aria-current={active === item.label ? "page" : undefined} title={collapsed ? item.label : undefined}>
               <Icon name={item.icon} /><span>{item.label}</span>
             </button>
           ))}
         </nav>
-        <div className={styles.sidebarFooter}>
-          <button type="button" onClick={() => setSettingsOpen(true)}><Icon name="settings" /><span>Configurações</span></button>
+        <div className={styles.sidebarFooter} data-ui="sidebar-footer">
+          <button type="button" className={shellUi.sidebarUtility} onClick={toggleColorMode} title={colorMode === "dark" ? "Usar tema claro" : "Usar tema escuro"}><Icon name={colorMode === "dark" ? "sun" : "moon"} /><span>{colorMode === "dark" ? "Tema claro" : "Tema escuro"}</span></button>
+          <button type="button" className={`${shellUi.sidebarUtility} ${shellUi.collapseControl}`} onClick={toggleCollapsed} aria-expanded={!collapsed} title={collapsed ? "Expandir menu" : "Recolher menu"}><Icon name="panel" /><span>{collapsed ? "Expandir menu" : "Recolher menu"}</span></button>
+          <button type="button" className={shellUi.sidebarUtility} onClick={openSettings}><Icon name="settings" /><span>Configurações</span></button>
         </div>
       </aside>
 
@@ -143,31 +221,45 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
         <header className={styles.topbar} data-ui="context">
           <button type="button" className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Abrir menu"><Icon name="menu" /></button>
           <div className={styles.titleBlock}><h1>{title}</h1><p>{subtitle}</p></div>
-          {action ? <div className={styles.topActions}>{action}</div> : null}
+          <div className={styles.topActions}>
+            {storageStatus ? <span className={shellUi.storageBadge} data-status={storageStatus.status} title={storageStatus.message}><Icon name={storageStatus.status === "error" ? "warning" : "check"} />{storageStatus.status === "error" ? "Falha ao salvar" : storageStatus.status === "warning" ? "Dados migrados" : "Salvo localmente"}</span> : null}
+            {action}
+          </div>
         </header>
         <main className={styles.content} data-ui="workspace">{children}</main>
       </div>
 
-      <Modal open={settingsOpen} title="Configurações" description="Ajuste apenas a identificação visual deste aplicativo." onClose={() => setSettingsOpen(false)}>
-        <form className={styles.stackForm} onSubmit={(event) => { event.preventDefault(); setSettingsOpen(false); }}>
-          <Field label="Nome da empresa"><input value={preferences.company} onChange={(event) => setPreferences((current) => ({ ...current, company: event.target.value }))} /></Field>
+      <Modal open={settingsOpen} title="Configurações" description="Identidade visual, tema e segurança dos dados locais." onClose={() => setSettingsOpen(false)}>
+        <form className={styles.stackForm} onSubmit={saveSettings}>
+          <Field label="Nome da empresa"><input value={settingsDraft.company} onChange={(event) => setSettingsDraft((current) => ({ ...current, company: event.target.value }))} /></Field>
           <div className={brand.logoSettings}>
             <div className={brand.logoSettingsHeader}>
-              <div><strong>Logo da empresa</strong><span>PNG, JPEG ou WebP de até 700 KB.</span></div>
-              <div className={brand.logoPreview}>{preferences.logo ? <img src={preferences.logo} alt={`Prévia da logo de ${preferences.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
+              <div><strong>Logo da empresa</strong><span>PNG, JPEG ou WebP de até 700 KB. A imagem é comprimida antes de ser salva.</span></div>
+              <div className={brand.logoPreview}>{settingsDraft.logo ? <img src={settingsDraft.logo} alt={`Prévia da logo de ${settingsDraft.company}`} /> : <ProductGlyph slug={product.slug} />}</div>
             </div>
             <div className={brand.logoActions}>
-              <label className={brand.logoUploadButton}><Icon name="image" /> {preferences.logo ? "Trocar logo" : "Selecionar logo"}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} /></label>
-              {preferences.logo ? <button type="button" className={brand.logoRemoveButton} onClick={() => setPreferences((current) => ({ ...current, logo: "" }))}><Icon name="trash" /> Remover</button> : null}
+              <label className={brand.logoUploadButton}><Icon name="image" /> {settingsDraft.logo ? "Trocar logo" : "Selecionar logo"}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} /></label>
+              {settingsDraft.logo ? <button type="button" className={brand.logoRemoveButton} onClick={() => setSettingsDraft((current) => ({ ...current, logo: "" }))}><Icon name="trash" /> Remover</button> : null}
             </div>
-            {logoError ? <p className={brand.logoError}>{logoError}</p> : null}
+            {logoError ? <p className={brand.logoError} role="alert">{logoError}</p> : null}
           </div>
+
+          <section className={shellUi.settingsSection}>
+            <header><div><h3>Dados deste navegador</h3><p>Exporte uma cópia antes de limpar o navegador ou trocar de computador.</p></div><strong>{formatBytes(usage.bytes)} · {usage.entries} registros</strong></header>
+            <div className={shellUi.backupActions}>
+              <button type="button" className={shellUi.backupButton} onClick={exportBackup}><Icon name="download" /> Exportar backup</button>
+              <label className={shellUi.importButton}><Icon name="arrow" /> Importar backup<input type="file" accept="application/json,.json" onChange={importBackup} /></label>
+            </div>
+            {storageStatus ? <p className={shellUi.storageMessage} data-status={storageStatus.status}>{storageStatus.message}</p> : null}
+            {importError ? <p className={shellUi.storageMessage} data-status="error" role="alert">{importError}</p> : null}
+          </section>
+
           <details className={styles.settingsDanger}>
             <summary>Redefinir dados deste aplicativo</summary>
-            <p>Use somente para apagar os rascunhos salvos neste navegador.</p>
+            <p>Exporte um backup antes de apagar os rascunhos e registros deste navegador.</p>
             <button type="button" className={styles.dangerButton} onClick={resetApp}>Redefinir aplicativo</button>
           </details>
-          <div className={styles.modalActions}><button className={styles.primaryButton}>Concluir</button></div>
+          <div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setSettingsOpen(false)}>Cancelar</button><button className={styles.primaryButton}>Salvar configurações</button></div>
         </form>
       </Modal>
     </div>
@@ -175,8 +267,61 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
 }
 
 export function Modal({ open, title, description, onClose, children, wide = false }: { open: boolean; title: string; description?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const cardRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const root = backdropRef.current?.closest("[data-product]");
+    const inertElements = root ? Array.from(root.children).filter((element) => element !== backdropRef.current) as HTMLElement[] : [];
+    inertElements.forEach((element) => { element.inert = true; });
+
+    const focusableSelector = 'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const frame = window.requestAnimationFrame(() => {
+      const first = cardRef.current?.querySelector<HTMLElement>("[autofocus], " + focusableSelector);
+      (first ?? cardRef.current)?.focus();
+    });
+
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !cardRef.current) return;
+      const focusable = Array.from(cardRef.current.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => element.offsetParent !== null);
+      if (!focusable.length) { event.preventDefault(); cardRef.current.focus(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      inertElements.forEach((element) => { element.inert = false; });
+      previousFocus.current?.focus();
+    };
+  }, [onClose, open]);
+
   if (!open) return null;
-  return <div className={styles.modalBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className={`${styles.modalCard} ${wide ? styles.modalWide : ""}`} role="dialog" aria-modal="true" aria-label={title}><header><div><h2>{title}</h2>{description ? <p>{description}</p> : null}</div><button type="button" className={styles.iconButton} onClick={onClose} aria-label="Fechar"><Icon name="close" /></button></header><div className={styles.modalBody}>{children}</div></section></div>;
+  return (
+    <div ref={backdropRef} className={shellUi.modalBackdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section ref={cardRef} className={`${shellUi.modalCard} ${wide ? shellUi.modalWide : ""}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
+        <header className={shellUi.modalHeader}><div><h2 id={titleId}>{title}</h2>{description ? <p id={descriptionId}>{description}</p> : null}</div><button type="button" className={shellUi.modalClose} onClick={onClose} aria-label="Fechar janela"><Icon name="close" /></button></header>
+        <div className={shellUi.modalBody}>{children}</div>
+      </section>
+    </div>
+  );
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -185,10 +330,10 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 
 export function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   useEffect(() => {
-    const timer = window.setTimeout(onClose, 2600);
+    const timer = window.setTimeout(onClose, 3600);
     return () => window.clearTimeout(timer);
   }, [onClose]);
-  return <div className={styles.toast}><Icon name="check" /><span>{message}</span><button type="button" onClick={onClose}><Icon name="close" /></button></div>;
+  return <div className={shellUi.toast} role="status" aria-live="polite" aria-atomic="true"><Icon name="check" /><span>{message}</span><button type="button" onClick={onClose} aria-label="Fechar notificação"><Icon name="close" /></button></div>;
 }
 
 export function EmptyState({ icon, title, description, action }: { icon: IconName; title: string; description: string; action?: ReactNode }) {
@@ -196,7 +341,7 @@ export function EmptyState({ icon, title, description, action }: { icon: IconNam
 }
 
 export function StatusPill({ status }: { status: string }) {
-  const normalized = status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replaceAll(" ", "").replaceAll("ã", "a");
+  const normalized = status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replaceAll(" ", "");
   return <span className={`${styles.statusPill} ${styles[`status_${normalized}`] ?? ""}`}>{status}</span>;
 }
 
@@ -209,7 +354,7 @@ export function Timeline({ items }: { items: Array<{ text: string; date: string 
 }
 
 export function DataTable({ columns, rows, onRow }: { columns: string[]; rows: string[][]; onRow?: (index: number) => void }) {
-  return <div className={styles.dataTable}><div className={styles.dataHead}>{columns.map((column) => <span key={column}>{column}</span>)}</div>{rows.map((row, index) => <button type="button" key={`${row[0]}-${index}`} className={styles.dataRow} onClick={() => onRow?.(index)}>{row.map((cell, cellIndex) => <span key={`${cell}-${cellIndex}`}>{cellIndex === 0 ? <strong>{cell}</strong> : cell}</span>)}<Icon name="chevron" /></button>)}</div>;
+  return <div className={shellUi.tableScroll}><table className={shellUi.dataTable}><thead><tr>{columns.map((column) => <th key={column} scope="col">{column}</th>)}{onRow ? <th scope="col"><span className="sr-only">Ações</span></th> : null}</tr></thead><tbody>{rows.map((row, index) => <tr key={`${row[0]}-${index}`}>{row.map((cell, cellIndex) => <td key={`${cell}-${cellIndex}`}>{cellIndex === 0 ? <strong>{cell}</strong> : cell}</td>)}{onRow ? <td><button type="button" className={shellUi.rowAction} onClick={() => onRow(index)} aria-label={`Abrir ${row[0]}`}><Icon name="chevron" /></button></td> : null}</tr>)}</tbody></table></div>;
 }
 
 export function SubmitButton({ children }: { children: ReactNode }) {
@@ -217,7 +362,7 @@ export function SubmitButton({ children }: { children: ReactNode }) {
 }
 
 export function Form({ children, onSubmit }: { children: ReactNode; onSubmit: () => void }) {
-  function submit(event: FormEvent) { event.preventDefault(); onSubmit(); }
+  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); onSubmit(); }
   return <form className={styles.stackForm} onSubmit={submit}>{children}</form>;
 }
 
@@ -228,7 +373,7 @@ export function ProductGlyph({ slug }: { slug: string }) {
 
 export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
-    activity: <path d="M3 12h4l2-6 4 12 2-6h6" />, arrow: <path d="M5 12h14M13 6l6 6-6 6" />, back: <path d="m15 18-6-6 6-6" />, calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></>, car: <><path d="m5 17-1 2M19 17l1 2M3 13l2-6h14l2 6v5H3z" /><circle cx="7" cy="15" r="1" /><circle cx="17" cy="15" r="1" /></>, check: <path d="m5 12 4 4L19 6" />, chevron: <path d="m9 18 6-6-6-6" />, clipboard: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6" /></>, clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>, close: <path d="m6 6 12 12M18 6 6 18" />, document: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6" /></>, download: <path d="M12 3v12m-5-5 5 5 5-5M5 21h14" />, edit: <><path d="m4 16-1 5 5-1L19 9l-4-4z" /><path d="m13 7 4 4" /></>, filter: <path d="M4 5h16M7 12h10M10 19h4" />, history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /><path d="M12 7v5l3 2" /></>, home: <path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z" />, image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 15-5-5L5 20" /></>, inbox: <path d="M4 4h16v14H4zM4 14h5l2 3h2l2-3h5" />, kitchen: <><path d="M7 3v7M4 3v4c0 2 6 2 6 0V3M7 10v11M17 3v18" /><path d="M14 3c0 5 6 5 6 0" /></>, menu: <path d="M4 7h16M4 12h16M4 17h16" />, message: <path d="M4 4h16v13H8l-4 4z" />, people: <><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2" /><path d="M3 21c0-4 2-7 6-7s6 3 6 7M15 15c4 0 6 2 6 6" /></>, plus: <path d="M12 5v14M5 12h14" />, print: <><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /></>, search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>, settings: <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5l-.4 3.1a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L5.1 11a7 7 0 0 0 0 2L3 14.5l2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7 1l2.4 1 2-3.4-2.1-1.5a7 7 0 0 0 .1-1Z" /></>, spark: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7z" /></>, table: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M8 10v9" /></>, tag: <><path d="M3 11V4h7l11 11-7 7z" /><circle cx="7" cy="8" r="1" /></>, trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" /></>, user: <><circle cx="12" cy="8" r="4" /><path d="M4 22c0-5 3-8 8-8s8 3 8 8" /></>, warning: <path d="M12 3 2 21h20zM12 9v5M12 18h.01" />,
+    activity: <path d="M3 12h4l2-6 4 12 2-6h6" />, arrow: <path d="M5 12h14M13 6l6 6-6 6" />, back: <path d="m15 18-6-6 6-6" />, calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></>, car: <><path d="m5 17-1 2M19 17l1 2M3 13l2-6h14l2 6v5H3z" /><circle cx="7" cy="15" r="1" /><circle cx="17" cy="15" r="1" /></>, check: <path d="m5 12 4 4L19 6" />, chevron: <path d="m9 18 6-6-6-6" />, clipboard: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V2h6v2M9 10h6M9 14h6" /></>, clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>, close: <path d="m6 6 12 12M18 6 6 18" />, document: <><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6" /></>, download: <path d="M12 3v12m-5-5 5 5 5-5M5 21h14" />, edit: <><path d="m4 16-1 5 5-1L19 9l-4-4z" /><path d="m13 7 4 4" /></>, filter: <path d="M4 5h16M7 12h10M10 19h4" />, history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /><path d="M12 7v5l3 2" /></>, home: <path d="m3 11 9-8 9 8v10h-6v-6H9v6H3z" />, image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 15-5-5L5 20" /></>, inbox: <path d="M4 4h16v14H4zM4 14h5l2 3h2l2-3h5" />, kitchen: <><path d="M7 3v7M4 3v4c0 2 6 2 6 0V3M7 10v11M17 3v18" /><path d="M14 3c0 5 6 5 6 0" /></>, menu: <path d="M4 7h16M4 12h16M4 17h16" />, message: <path d="M4 4h16v13H8l-4 4z" />, moon: <path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />, panel: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>, people: <><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2" /><path d="M3 21c0-4 2-7 6-7s6 3 6 7M15 15c4 0 6 2 6 6" /></>, plus: <path d="M12 5v14M5 12h14" />, print: <><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /></>, search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>, settings: <><circle cx="12" cy="12" r="3" /><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5l-.4 3.1a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L5.1 11a7 7 0 0 0 0 2L3 14.5l2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7 1l2.4 1 2-3.4-2.1-1.5a7 7 0 0 0 .1-1Z" /></>, spark: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7z" /></>, sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" /></>, table: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M8 10v9" /></>, tag: <><path d="M3 11V4h7l11 11-7 7z" /><circle cx="7" cy="8" r="1" /></>, trash: <><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6" /></>, user: <><circle cx="12" cy="8" r="4" /><path d="M4 22c0-5 3-8 8-8s8 3 8 8" /></>, warning: <path d="M12 3 2 21h20zM12 9v5M12 18h.01" />,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
