@@ -18,7 +18,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,13 +29,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-
-      - name: Aplicar refatorações controladas
-        run: |
-          if [ -f scripts/apply-lint-refactors.mjs ]; then
-            node scripts/apply-lint-refactors.mjs
-            rm scripts/apply-lint-refactors.mjs
-          fi
 
       - name: Atualizar lockfile e instalar dependências
         id: install
@@ -77,6 +70,55 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_BUILD_SHA: branch-validation
 
+      - name: Instalar Chromium fixado
+        id: browser
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0 > /tmp/playwright.log 2>&1
+          npx playwright@1.55.0 install --with-deps chromium >> /tmp/playwright.log 2>&1
+
+      - name: Iniciar prévia isolada
+        id: preview
+        if: steps.browser.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p preview/crmplus
+          cp -a out/. preview/crmplus/
+          python3 -m http.server 4173 -d preview > /tmp/server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/server.log
+          exit 1
+
+      - name: Auditar processos dos 15 aplicativos
+        id: process_audit
+        if: steps.preview.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/audit-processes.mjs > /tmp/process-audit.log 2>&1
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Auditar webdesign e responsividade
+        id: visual_audit
+        if: steps.preview.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/audit-visual.mjs > /tmp/visual-audit.log 2>&1
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Publicar evidências da branch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crmplus-branch-quality-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: warn
+
       - name: Gerar relatório rastreável
         if: always()
         env:
@@ -86,6 +128,10 @@ jobs:
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+          PROCESS_AUDIT_OUTCOME: ${{ steps.process_audit.outcome }}
+          VISUAL_AUDIT_OUTCOME: ${{ steps.visual_audit.outcome }}
           VALIDATED_SHA: ${{ github.sha }}
         run: |
           mkdir -p audits
@@ -97,18 +143,16 @@ jobs:
             echo "ESLINT: ${LINT_OUTCOME}"
             echo "TYPESCRIPT: ${TYPESCRIPT_OUTCOME}"
             echo "BUILD: ${BUILD_OUTCOME}"
+            echo "CHROMIUM: ${BROWSER_OUTCOME}"
+            echo "PRÉVIA: ${PREVIEW_OUTCOME}"
+            echo "PROCESSOS: ${PROCESS_AUDIT_OUTCOME}"
+            echo "WEBDESIGN: ${VISUAL_AUDIT_OUTCOME}"
             echo
             echo "=== LOCKFILE ==="
             cat /tmp/lockfile.log 2>/dev/null || true
             echo
-            echo "=== INSTALAÇÃO ==="
-            cat /tmp/install.log 2>/dev/null || true
-            echo
             echo "=== AUDITORIA DE PRODUÇÃO ==="
             cat /tmp/audit-production.json 2>/dev/null || true
-            echo
-            echo "=== AUDITORIA COMPLETA ==="
-            cat /tmp/audit-full.json 2>/dev/null || true
             echo
             echo "=== ESLINT ==="
             cat /tmp/lint.log 2>/dev/null || true
@@ -118,18 +162,24 @@ jobs:
             echo
             echo "=== BUILD ==="
             cat /tmp/build.log 2>/dev/null || true
+            echo
+            echo "=== PROCESSOS ==="
+            cat artifacts/process-audit/report.txt 2>/dev/null || cat /tmp/process-audit.log 2>/dev/null || true
+            echo
+            echo "=== WEBDESIGN ==="
+            cat artifacts/visual-audit/report.txt 2>/dev/null || cat /tmp/visual-audit.log 2>/dev/null || true
           } > audits/branch-validation.txt
 
-      - name: Salvar código validado somente na branch técnica
+      - name: Salvar relatório somente na branch técnica
         if: always()
         run: |
           git config user.name "crmplus-quality-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
+          git add package-lock.json audits/branch-validation.txt
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Aplicar refatorações e registrar validação técnica"
+          git commit -m "Registrar QA funcional e visual da branch"
           git push origin HEAD:fix/arquitetura-ux-integridade
 
       - name: Bloquear pacote inválido
@@ -140,9 +190,17 @@ jobs:
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+          PROCESS_AUDIT_OUTCOME: ${{ steps.process_audit.outcome }}
+          VISUAL_AUDIT_OUTCOME: ${{ steps.visual_audit.outcome }}
         run: |
           test "${INSTALL_OUTCOME}" = "success"
           test "${PRODUCTION_AUDIT_OUTCOME}" = "success"
           test "${LINT_OUTCOME}" = "success"
           test "${TYPESCRIPT_OUTCOME}" = "success"
           test "${BUILD_OUTCOME}" = "success"
+          test "${BROWSER_OUTCOME}" = "success"
+          test "${PREVIEW_OUTCOME}" = "success"
+          test "${PROCESS_AUDIT_OUTCOME}" = "success"
+          test "${VISUAL_AUDIT_OUTCOME}" = "success"
