@@ -15,6 +15,7 @@ import "./workspace-hercules.css";
 import "./workspace-utilities.css";
 import "./isolated-access.css";
 import "./workspace-ux-audit.css";
+import "./app-footer.css";
 
 export const metadata: Metadata = {
   title: { default: "CRMPlus+ | Sistemas para pequenas empresas", template: "%s | CRMPlus+" },
