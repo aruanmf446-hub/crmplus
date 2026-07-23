@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Execução final sobre o código funcional mais recente.
 path = Path("scripts/audit-processes.mjs")
 text = path.read_text(encoding="utf-8")
 old_open = "async function open(slug, setup) {\n  const page = await context.newPage();"
