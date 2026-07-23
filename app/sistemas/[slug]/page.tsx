@@ -11,7 +11,14 @@ export function generateStaticParams() { return products.map(({ slug }) => ({ sl
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProduct((await params).slug);
   if (!product) return {};
-  return { title: `${product.name} | Acesso`, description: product.description, robots: { index: false, follow: false } };
+  const title = `${product.name} | Acesso | CRMPlus+`;
+  const description = `Acesso local ao ${product.name}. Conta, sessão e registros permanecem somente neste navegador.`;
+  return {
+    title: { absolute: title },
+    description,
+    robots: { index: false, follow: false },
+    openGraph: { title, description, type: "website" },
+  };
 }
 
 export default async function WorkspacePage({ params }: Props) {
@@ -19,11 +26,5 @@ export default async function WorkspacePage({ params }: Props) {
   const product = getProduct(slug);
   if (!product) notFound();
   const workspace = getWorkspace(slug);
-  return (
-    <>
-      <title>{`${product.name} | Acesso | CRMPlus+`}</title>
-      <meta name="description" content={`Acesso local ao ${product.name}. Conta e registros permanecem somente neste navegador.`} />
-      <WorkspaceRouter product={product} workspace={workspace} />
-    </>
-  );
+  return <WorkspaceRouter product={product} workspace={workspace} />;
 }
