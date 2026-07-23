@@ -1,30 +1,22 @@
-name: Auditar processos dos 15 aplicativos
+name: Auditar processos e interface dos 15 aplicativos
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'components/workspaces/phase-four/**'
-      - 'scripts/audit-processes.mjs'
-      - '.github/workflows/process-audit.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: crmplus-process-audit
+  group: crmplus-quality-audit
   cancel-in-progress: true
 
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Configurar Node
         uses: actions/setup-node@v4
@@ -42,24 +34,25 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_BUILD_SHA: quality-audit
 
-      - name: Instalar navegador do agente
+      - name: Instalar navegador fixado do agente
         run: |
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
+          npm install --no-save playwright@1.55.0
+          npx playwright@1.55.0 install --with-deps chromium
 
       - name: Iniciar site local isolado
         run: |
           mkdir -p preview/crmplus
           cp -a out/. preview/crmplus/
-          python3 -m http.server 4173 -d preview > /tmp/crmplus-process-server.log 2>&1 &
+          python3 -m http.server 4173 -d preview > /tmp/crmplus-quality-server.log 2>&1 &
           for attempt in {1..40}; do
             if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
               exit 0
             fi
             sleep 1
           done
-          cat /tmp/crmplus-process-server.log
+          cat /tmp/crmplus-quality-server.log
           exit 1
 
       - name: Executar cenários de processo
@@ -67,27 +60,35 @@ jobs:
         env:
           CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
 
-      - name: Publicar relatório da auditoria
+      - name: Executar auditoria visual responsiva
+        run: node scripts/audit-visual.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Resumir auditoria
+        if: always()
+        run: |
+          {
+            echo '## Auditoria CRMPlus+'
+            echo
+            if [ -f artifacts/process-audit/report.txt ]; then
+              echo '### Processos'
+              echo '```text'
+              cat artifacts/process-audit/report.txt
+              echo '```'
+            fi
+            if [ -f artifacts/visual-audit/report.txt ]; then
+              echo '### Interface'
+              echo '```text'
+              cat artifacts/visual-audit/report.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar relatórios como artefato
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: process-audit
-          path: artifacts/process-audit
+          name: crmplus-quality-audit
+          path: artifacts
           if-no-files-found: warn
-
-      - name: Registrar resultado no repositório
-        if: always()
-        run: |
-          if [ -f artifacts/process-audit/report.txt ]; then
-            mkdir -p audits
-            cp artifacts/process-audit/report.txt audits/process-audit-latest.txt
-          fi
-          git config user.name 'crmplus-process-agent'
-          git config user.email 'actions@users.noreply.github.com'
-          git add audits/process-audit-latest.txt 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo 'Nenhum resultado novo para registrar.'
-            exit 0
-          fi
-          git commit -m 'Registrar resultado da auditoria de processos'
-          git push origin main
