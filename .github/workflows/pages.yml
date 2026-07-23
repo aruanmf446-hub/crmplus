@@ -131,5 +131,5 @@ jobs:
           atlas="$(curl --fail --silent --show-error --location "${PAGE_URL}sistemas/atlas/?qa=${EXPECTED_SHA}")"
           printf '%s' "$home" | grep --fixed-strings --quiet "Sistemas simples para"
           printf '%s' "$recovery" | grep --fixed-strings --quiet "recuperar a senha"
-          printf '%s' "$atlas" | grep --fixed-strings --quiet "Entrar no aplicativo"
-          echo "Home, recuperação de senha e bloqueio de acesso validados na produção."
+          printf '%s' "$atlas" | grep --fixed-strings --quiet "CRM Plus Atlas | Acesso | CRMPlus+"
+          echo "Home, recuperação de senha e rota de acesso do Atlas validadas na produção."
