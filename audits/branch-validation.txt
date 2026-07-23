@@ -1,343 +1,67 @@
-COMMIT VALIDADO: 64c5e5da1d70a67839d01623025cef2493f289d7
-DEPENDÊNCIAS: success
-AUDITORIA PRODUÇÃO: failure
-AUDITORIA COMPLETA: failure
-TYPESCRIPT: success
-BUILD: success
+COMMIT VALIDADO: 27eac3a1f1276fd045e2e02eada378eee3ae388d
+DEPENDÊNCIAS: failure
+AUDITORIA PRODUÇÃO: skipped
+AUDITORIA COMPLETA: skipped
+TYPESCRIPT: skipped
+BUILD: skipped
 
 === INSTALAÇÃO ===
-
-added 31 packages, and audited 32 packages in 8s
-
-8 packages are looking for funding
-  run `npm fund` for details
-
-3 high severity vulnerabilities
-
-To address all issues (including breaking changes), run:
-  npm audit fix --force
-
-Run `npm audit` for details.
+npm error code EUSAGE
+npm error
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+npm error
+npm error Invalid: lock file's postcss@8.4.31 does not satisfy postcss@8.5.22
+npm error Invalid: lock file's sharp@0.34.5 does not satisfy sharp@0.35.3
+npm error Invalid: lock file's @img/sharp-darwin-arm64@0.34.5 does not satisfy @img/sharp-darwin-arm64@0.35.3
+npm error Invalid: lock file's @img/sharp-darwin-x64@0.34.5 does not satisfy @img/sharp-darwin-x64@0.35.3
+npm error Missing: @img/sharp-freebsd-wasm32@0.35.3 from lock file
+npm error Invalid: lock file's @img/sharp-libvips-darwin-arm64@1.2.4 does not satisfy @img/sharp-libvips-darwin-arm64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-darwin-x64@1.2.4 does not satisfy @img/sharp-libvips-darwin-x64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-arm@1.2.4 does not satisfy @img/sharp-libvips-linux-arm@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-arm64@1.2.4 does not satisfy @img/sharp-libvips-linux-arm64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-ppc64@1.2.4 does not satisfy @img/sharp-libvips-linux-ppc64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-riscv64@1.2.4 does not satisfy @img/sharp-libvips-linux-riscv64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-s390x@1.2.4 does not satisfy @img/sharp-libvips-linux-s390x@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linux-x64@1.2.4 does not satisfy @img/sharp-libvips-linux-x64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linuxmusl-arm64@1.2.4 does not satisfy @img/sharp-libvips-linuxmusl-arm64@1.3.2
+npm error Invalid: lock file's @img/sharp-libvips-linuxmusl-x64@1.2.4 does not satisfy @img/sharp-libvips-linuxmusl-x64@1.3.2
+npm error Invalid: lock file's @img/sharp-linux-arm@0.34.5 does not satisfy @img/sharp-linux-arm@0.35.3
+npm error Invalid: lock file's @img/sharp-linux-arm64@0.34.5 does not satisfy @img/sharp-linux-arm64@0.35.3
+npm error Invalid: lock file's @img/sharp-linux-ppc64@0.34.5 does not satisfy @img/sharp-linux-ppc64@0.35.3
+npm error Invalid: lock file's @img/sharp-linux-riscv64@0.34.5 does not satisfy @img/sharp-linux-riscv64@0.35.3
+npm error Invalid: lock file's @img/sharp-linux-s390x@0.34.5 does not satisfy @img/sharp-linux-s390x@0.35.3
+npm error Invalid: lock file's @img/sharp-linux-x64@0.34.5 does not satisfy @img/sharp-linux-x64@0.35.3
+npm error Invalid: lock file's @img/sharp-linuxmusl-arm64@0.34.5 does not satisfy @img/sharp-linuxmusl-arm64@0.35.3
+npm error Invalid: lock file's @img/sharp-linuxmusl-x64@0.34.5 does not satisfy @img/sharp-linuxmusl-x64@0.35.3
+npm error Missing: @img/sharp-webcontainers-wasm32@0.35.3 from lock file
+npm error Invalid: lock file's @img/sharp-win32-arm64@0.34.5 does not satisfy @img/sharp-win32-arm64@0.35.3
+npm error Invalid: lock file's @img/sharp-win32-ia32@0.34.5 does not satisfy @img/sharp-win32-ia32@0.35.3
+npm error Invalid: lock file's @img/sharp-win32-x64@0.34.5 does not satisfy @img/sharp-win32-x64@0.35.3
+npm error Invalid: lock file's @img/sharp-wasm32@0.34.5 does not satisfy @img/sharp-wasm32@0.35.3
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-07-23T21_30_41_623Z-debug-0.log
 
 === AUDITORIA DE PRODUÇÃO ===
-{
-  "auditReportVersion": 2,
-  "vulnerabilities": {
-    "next": {
-      "name": "next",
-      "severity": "high",
-      "isDirect": true,
-      "via": [
-        "postcss",
-        "sharp"
-      ],
-      "effects": [],
-      "range": "9.3.4-canary.0 - 16.3.0-preview.7",
-      "nodes": [
-        "node_modules/next"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    },
-    "postcss": {
-      "name": "postcss",
-      "severity": "high",
-      "isDirect": false,
-      "via": [
-        {
-          "source": 1117015,
-          "name": "postcss",
-          "dependency": "postcss",
-          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
-          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
-          "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
-          "cvss": {
-            "score": 6.1,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
-          },
-          "range": "<8.5.10"
-        },
-        {
-          "source": 1124252,
-          "name": "postcss",
-          "dependency": "postcss",
-          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
-          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
-          "severity": "high",
-          "cwe": [
-            "CWE-22",
-            "CWE-200"
-          ],
-          "cvss": {
-            "score": 7.5,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
-          },
-          "range": "<=8.5.11"
-        }
-      ],
-      "effects": [
-        "next"
-      ],
-      "range": "<=8.5.11",
-      "nodes": [
-        "node_modules/postcss"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    },
-    "sharp": {
-      "name": "sharp",
-      "severity": "high",
-      "isDirect": false,
-      "via": [
-        {
-          "source": 1124066,
-          "name": "sharp",
-          "dependency": "sharp",
-          "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
-          "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj",
-          "severity": "high",
-          "cwe": [
-            "CWE-1395"
-          ],
-          "cvss": {
-            "score": 0,
-            "vectorString": null
-          },
-          "range": "<0.35.0"
-        }
-      ],
-      "effects": [
-        "next"
-      ],
-      "range": "<0.35.0",
-      "nodes": [
-        "node_modules/sharp"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    }
-  },
-  "metadata": {
-    "vulnerabilities": {
-      "info": 0,
-      "low": 0,
-      "moderate": 0,
-      "high": 3,
-      "critical": 0,
-      "total": 3
-    },
-    "dependencies": {
-      "prod": 16,
-      "dev": 6,
-      "optional": 37,
-      "peer": 0,
-      "peerOptional": 0,
-      "total": 58
-    }
-  }
-}
 
 === AUDITORIA COMPLETA ===
-{
-  "auditReportVersion": 2,
-  "vulnerabilities": {
-    "next": {
-      "name": "next",
-      "severity": "high",
-      "isDirect": true,
-      "via": [
-        "postcss",
-        "sharp"
-      ],
-      "effects": [],
-      "range": "9.3.4-canary.0 - 16.3.0-preview.7",
-      "nodes": [
-        "node_modules/next"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    },
-    "postcss": {
-      "name": "postcss",
-      "severity": "high",
-      "isDirect": false,
-      "via": [
-        {
-          "source": 1117015,
-          "name": "postcss",
-          "dependency": "postcss",
-          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
-          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
-          "severity": "moderate",
-          "cwe": [
-            "CWE-79"
-          ],
-          "cvss": {
-            "score": 6.1,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
-          },
-          "range": "<8.5.10"
-        },
-        {
-          "source": 1124252,
-          "name": "postcss",
-          "dependency": "postcss",
-          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
-          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
-          "severity": "high",
-          "cwe": [
-            "CWE-22",
-            "CWE-200"
-          ],
-          "cvss": {
-            "score": 7.5,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
-          },
-          "range": "<=8.5.11"
-        }
-      ],
-      "effects": [
-        "next"
-      ],
-      "range": "<=8.5.11",
-      "nodes": [
-        "node_modules/postcss"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    },
-    "sharp": {
-      "name": "sharp",
-      "severity": "high",
-      "isDirect": false,
-      "via": [
-        {
-          "source": 1124066,
-          "name": "sharp",
-          "dependency": "sharp",
-          "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
-          "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj",
-          "severity": "high",
-          "cwe": [
-            "CWE-1395"
-          ],
-          "cvss": {
-            "score": 0,
-            "vectorString": null
-          },
-          "range": "<0.35.0"
-        }
-      ],
-      "effects": [
-        "next"
-      ],
-      "range": "<0.35.0",
-      "nodes": [
-        "node_modules/sharp"
-      ],
-      "fixAvailable": {
-        "name": "next",
-        "version": "9.3.3",
-        "isSemVerMajor": true
-      }
-    }
-  },
-  "metadata": {
-    "vulnerabilities": {
-      "info": 0,
-      "low": 0,
-      "moderate": 0,
-      "high": 3,
-      "critical": 0,
-      "total": 3
-    },
-    "dependencies": {
-      "prod": 16,
-      "dev": 6,
-      "optional": 37,
-      "peer": 0,
-      "peerOptional": 0,
-      "total": 58
-    }
-  }
-}
 
 === TYPESCRIPT ===
 
-> crmplus-store@0.1.0 lint
-> tsc --noEmit
-
-
 === BUILD ===
-
-> crmplus-store@0.1.0 build
-> next build
-
-⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
-▲ Next.js 16.2.11 (Turbopack)
-
-  Creating an optimized production build ...
-✓ Compiled successfully in 3.1s
-  Running TypeScript ...
-  Finished TypeScript in 8.3s ...
-  Collecting page data using 3 workers ...
-  Generating static pages using 3 workers (0/69) ...
-  Generating static pages using 3 workers (17/69) 
-  Generating static pages using 3 workers (34/69) 
-  Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 838ms
-  Finalizing page optimization ...
-
-Route (app)
-┌ ○ /
-├ ○ /_not-found
-├ ● /aplicativos/[slug]
-│ ├ /aplicativos/atlas
-│ ├ /aplicativos/artemis
-│ ├ /aplicativos/poseidon
-│ └ [+12 more paths]
-├ ● /apps/[slug]
-│ ├ /apps/atlas
-│ ├ /apps/artemis
-│ ├ /apps/poseidon
-│ └ [+12 more paths]
-├ ● /assinar/[slug]
-│ ├ /assinar/atlas
-│ ├ /assinar/artemis
-│ ├ /assinar/poseidon
-│ └ [+12 more paths]
-├ ○ /criar-conta
-├ ○ /entrar
-├ ○ /privacidade
-├ ○ /recuperar-senha
-├ ○ /robots.txt
-├ ● /sistemas/[slug]
-│ ├ /sistemas/atlas
-│ ├ /sistemas/artemis
-│ ├ /sistemas/poseidon
-│ └ [+12 more paths]
-└ ○ /termos
-
-
-○  (Static)  prerendered as static content
-●  (SSG)     prerendered as static HTML (uses generateStaticParams)
-
