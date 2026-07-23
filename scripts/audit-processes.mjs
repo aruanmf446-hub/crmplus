@@ -160,7 +160,7 @@ for (const slug of slugs) {
     await page.getByRole("button", { name: /Mesa 02/ }).click();
     await page.getByRole("button", { name: "Adicionar novo pedido" }).click();
     const itemDialog = page.getByRole("dialog");
-    await assert("artemis", "novo pedido sem item pré-selecionado", await itemDialog.getByLabel("Item", { exact: true }).inputValue() === "", "um produto veio escolhido", page);
+    await assert("artemis", "novo pedido sem item pré-selecionado", await itemDialog.getByLabel(/^Item/).inputValue() === "", "um produto veio escolhido", page);
     await assert("artemis", "sem erro nas escolhas", errors.length === 0, errors.join(" | "), page);
   } catch (error) {
     fail("artemis", "seleções conscientes", error);
@@ -327,7 +327,7 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
     await page.getByLabel("E-mail", { exact: true }).fill("recuperacao@example.com");
     await page.getByLabel("Nova senha", { exact: true }).fill("NovaSenha123");
     await page.getByLabel(/^Confirmar nova senha/).fill("NovaSenha123");
-    await page.getByLabel("PIN local", { exact: true }).fill("2468");
+    await page.getByLabel(/^PIN local/).fill("2468");
     await page.getByRole("button", { name: "Redefinir senha e entrar", exact: true }).click();
     await page.waitForSelector('[data-product="atlas"]', { timeout: 30_000 });
     const recoveryState = await page.evaluate(() => ({
