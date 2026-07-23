@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HomeCatalog } from "@/components/HomeCatalog";
@@ -15,7 +16,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="home-page" data-catalog-build="20260722-30">
+      <main className="home-page" data-catalog-build="20260722-31">
         <section className="home-hero" id="inicio">
           <div className="shell home-hero-grid">
             <div className="home-hero-copy">
@@ -23,8 +24,9 @@ export default function Home() {
               <p className="home-lead">Escolha um aplicativo criado para o seu tipo de negócio, veja o produto por dentro e conheça as funções antes de decidir.</p>
               <div className="home-actions">
                 <a className="home-button home-button-primary" href="#sistemas">Explorar aplicativos</a>
+                <Link className="home-button home-button-secondary" href="/criar-conta">Criar minha conta</Link>
               </div>
-              <p className="home-note">Cada aplicativo possui identidade, fluxo e área de acesso próprios.</p>
+              <p className="home-note">Cada aplicativo possui identidade e dados próprios. Sua conta de teste fica somente neste navegador.</p>
             </div>
             <HomeProductShowcase />
           </div>
