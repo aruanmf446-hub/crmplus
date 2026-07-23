@@ -1,24 +1,25 @@
-COMMIT VALIDADO: 9daacc68dc0fa1773aefbfd7f9188b0b0f209b69
+COMMIT VALIDADO: a74f1ef6203304a65f6e9481fdb3885bacda7b4b
 DEPENDÊNCIAS: success
 AUDITORIA PRODUÇÃO: success
 AUDITORIA COMPLETA: success
+ESLINT: failure
 TYPESCRIPT: success
 BUILD: success
 
 === LOCKFILE ===
 
-up to date, audited 61 packages in 1s
+up to date, audited 404 packages in 9s
 
-30 packages are looking for funding
+166 packages are looking for funding
   run `npm fund` for details
 
 found 0 vulnerabilities
 
 === INSTALAÇÃO ===
 
-added 33 packages, and audited 34 packages in 8s
+added 351 packages, and audited 352 packages in 12s
 
-8 packages are looking for funding
+143 packages are looking for funding
   run `npm fund` for details
 
 found 0 vulnerabilities
@@ -37,12 +38,12 @@ found 0 vulnerabilities
       "total": 0
     },
     "dependencies": {
-      "prod": 16,
-      "dev": 6,
-      "optional": 39,
+      "prod": 17,
+      "dev": 349,
+      "optional": 65,
       "peer": 0,
       "peerOptional": 0,
-      "total": 60
+      "total": 403
     }
   }
 }
@@ -61,19 +62,41 @@ found 0 vulnerabilities
       "total": 0
     },
     "dependencies": {
-      "prod": 16,
-      "dev": 6,
-      "optional": 39,
+      "prod": 17,
+      "dev": 349,
+      "optional": 65,
       "peer": 0,
       "peerOptional": 0,
-      "total": 60
+      "total": 403
     }
   }
 }
 
-=== TYPESCRIPT ===
+=== ESLINT ===
 
 > crmplus-store@0.1.0 lint
+> eslint . --max-warnings=0
+
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.5
+
+ConfigError: Config (unnamed): Key "plugins": Cannot redefine plugin "jsx-a11y".
+    at rethrowConfigError (/home/runner/work/crmplus/crmplus/node_modules/@eslint/config-array/dist/cjs/index.cjs:343:8)
+    at /home/runner/work/crmplus/crmplus/node_modules/@eslint/config-array/dist/cjs/index.cjs:1405:5
+    at Array.reduce (<anonymous>)
+    at FlatConfigArray.getConfigWithStatus (/home/runner/work/crmplus/crmplus/node_modules/@eslint/config-array/dist/cjs/index.cjs:1398:43)
+    at FlatConfigArray.getConfig (/home/runner/work/crmplus/crmplus/node_modules/@eslint/config-array/dist/cjs/index.cjs:1427:15)
+    at entryFilter (/home/runner/work/crmplus/crmplus/node_modules/eslint/lib/eslint/eslint-helpers.js:323:27)
+    at async NodeHfs.<anonymous> (file:///home/runner/work/crmplus/crmplus/node_modules/@humanfs/core/src/hfs.js:574:24)
+    at async NodeHfs.<anonymous> (file:///home/runner/work/crmplus/crmplus/node_modules/@humanfs/core/src/hfs.js:604:6)
+    at async NodeHfs.<anonymous> (file:///home/runner/work/crmplus/crmplus/node_modules/@humanfs/core/src/hfs.js:604:6)
+    at async NodeHfs.<anonymous> (file:///home/runner/work/crmplus/crmplus/node_modules/@humanfs/core/src/hfs.js:604:6)
+
+=== TYPESCRIPT ===
+
+> crmplus-store@0.1.0 typecheck
 > tsc --noEmit
 
 
@@ -86,15 +109,15 @@ found 0 vulnerabilities
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 3.1s
+✓ Compiled successfully in 3.2s
   Running TypeScript ...
-  Finished TypeScript in 8.1s ...
+  Finished TypeScript in 8.4s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/69) ...
   Generating static pages using 3 workers (17/69) 
   Generating static pages using 3 workers (34/69) 
   Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 849ms
+✓ Generating static pages using 3 workers (69/69) in 859ms
   Finalizing page optimization ...
 
 Route (app)
