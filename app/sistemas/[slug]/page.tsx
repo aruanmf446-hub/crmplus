@@ -19,5 +19,11 @@ export default async function WorkspacePage({ params }: Props) {
   const product = getProduct(slug);
   if (!product) notFound();
   const workspace = getWorkspace(slug);
-  return <WorkspaceRouter product={product} workspace={workspace} />;
+  return (
+    <>
+      <title>{`${product.name} | Acesso | CRMPlus+`}</title>
+      <meta name="description" content={`Acesso local ao ${product.name}. Conta e registros permanecem somente neste navegador.`} />
+      <WorkspaceRouter product={product} workspace={workspace} />
+    </>
+  );
 }
