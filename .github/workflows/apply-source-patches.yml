@@ -1,0 +1,59 @@
+name: Aplicar melhorias estruturais
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/patch-*.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crmplus-source-patches
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Aplicar patches
+        run: |
+          for script in scripts/patch-*.py; do
+            python "$script"
+          done
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar TypeScript
+        run: npm run lint
+
+      - name: Gerar site estático
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Publicar alterações no main
+        run: |
+          if git diff --quiet; then
+            echo "Nenhuma alteração pendente."
+            exit 0
+          fi
+          git config user.name "crmplus-automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add components app
+          git commit -m "Padronizar listas, filtros e históricos dos aplicativos"
+          git push origin main
