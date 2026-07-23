@@ -1,14 +1,14 @@
-COMMIT VALIDADO: cd3128d38684f30b1c2dfb16f541069d116284a4
+COMMIT VALIDADO: 6999be058fe6af0d0e0a0a1e7ef9a82881f4aad1
 DEPENDÊNCIAS: success
 AUDITORIA PRODUÇÃO: success
 AUDITORIA COMPLETA: success
-ESLINT: failure
+ESLINT: success
 TYPESCRIPT: success
 BUILD: success
 
 === LOCKFILE ===
 
-up to date, audited 404 packages in 2s
+up to date, audited 404 packages in 1s
 
 166 packages are looking for funding
   run `npm fund` for details
@@ -78,54 +78,6 @@ found 0 vulnerabilities
 > eslint . --max-warnings=0
 
 
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/HerculesApp.tsx
-  5:20  warning  'EmptyState' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/PandoraApp.tsx
-  63:394  error  React Hook useMemo has a missing dependency: 'surveyResponseCount'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/VerticalBusinessApp.tsx
-  159:6  error  React Hook useMemo has a missing dependency: 'isFinalRecord'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/localStore.ts
-  90:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/localStore.ts:90:5
-  88 |   useEffect(() => {
-  89 |     writeBlocked.current = false;
-> 90 |     setHydrated(false);
-     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  91 |     setValue(typeof initialFactory.current === "function" ? (initialFactory.current as () => T)() : initialFactory.current);
-  92 |
-  93 |     try {  react-hooks/set-state-in-effect
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/shared.tsx
-  110:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/shared.tsx:110:5
-  108 |     const savedMode = window.localStorage.getItem("crmplus.color-mode");
-  109 |     const nextMode = savedMode === "dark" ? "dark" : "light";
-> 110 |     setColorMode(nextMode);
-      |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  111 |     document.documentElement.dataset.colorMode = nextMode;
-  112 |     setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
-  113 |     return subscribeStorageStatus((detail) => {  react-hooks/set-state-in-effect
-
-✖ 5 problems (4 errors, 1 warning)
-
-
 === TYPESCRIPT ===
 
 > crmplus-store@0.1.0 typecheck
@@ -143,13 +95,13 @@ Calling setState synchronously within an effect body causes cascading renders th
   Creating an optimized production build ...
 ✓ Compiled successfully in 3.0s
   Running TypeScript ...
-  Finished TypeScript in 7.8s ...
+  Finished TypeScript in 7.9s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/69) ...
   Generating static pages using 3 workers (17/69) 
   Generating static pages using 3 workers (34/69) 
   Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 765ms
+✓ Generating static pages using 3 workers (69/69) in 781ms
   Finalizing page optimization ...
 
 Route (app)

@@ -107,12 +107,21 @@ export function AppShell({ product, nav, active, onChange, title, subtitle, acti
   useEffect(() => {
     const savedMode = window.localStorage.getItem("crmplus.color-mode");
     const nextMode = savedMode === "dark" ? "dark" : "light";
-    setColorMode(nextMode);
     document.documentElement.dataset.colorMode = nextMode;
-    setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
-    return subscribeStorageStatus((detail) => {
+    let active = true;
+    const timer = window.setTimeout(() => {
+      if (!active) return;
+      setColorMode(nextMode);
+      setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
+    }, 0);
+    const unsubscribe = subscribeStorageStatus((detail) => {
       if (detail.key.includes(product.slug) || detail.key.startsWith("crmplus.preferences.")) setStorageStatus(detail);
     });
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+      unsubscribe();
+    };
   }, [product.slug]);
 
   function toggleColorMode() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Product } from "@/lib/apps";
 import { AppShell, EmptyState, Field, Form, Icon, Modal, ScoreBadge, StatusPill, Timeline, Toast, type NavItem } from "./shared";
 import { copyText, downloadCsv, todayLabel, uid, useLocalState } from "./localStore";
@@ -60,7 +60,8 @@ export function PandoraApp({ product }: { product: Product }) {
     feedbacks.forEach((feedback) => { const current = counts.get(feedback.theme) ?? { count: 0, score: 0, pending: 0 }; counts.set(feedback.theme, { count: current.count + 1, score: current.score + feedback.score, pending: current.pending + (feedback.status === "Tratado" ? 0 : 1) }); });
     return Array.from(counts.entries()).map(([name, data]) => ({ name, count: data.count, pending: data.pending, average: data.score / data.count }));
   }, [feedbacks]);
-  const visibleSurveys = useMemo(() => surveys.filter((survey) => (surveyStatus === "Todas" || (surveyStatus === "Ativas" ? survey.active : !survey.active)) && `${survey.name} ${survey.question}`.toLowerCase().includes(surveyQuery.trim().toLowerCase())).sort((a, b) => surveySort === "Mais respostas" ? surveyResponseCount(b) - surveyResponseCount(a) : a.name.localeCompare(b.name, "pt-BR")), [feedbacks, surveyQuery, surveySort, surveyStatus, surveys]);
+  const surveyResponseCount = useCallback((survey: Survey) => feedbacks.filter((feedback) => feedback.channel === survey.name).length, [feedbacks]);
+  const visibleSurveys = useMemo(() => surveys.filter((survey) => (surveyStatus === "Todas" || (surveyStatus === "Ativas" ? survey.active : !survey.active)) && `${survey.name} ${survey.question}`.toLowerCase().includes(surveyQuery.trim().toLowerCase())).sort((a, b) => surveySort === "Mais respostas" ? surveyResponseCount(b) - surveyResponseCount(a) : a.name.localeCompare(b.name, "pt-BR")), [surveyQuery, surveyResponseCount, surveySort, surveyStatus, surveys]);
   const visibleThemes = useMemo(() => themeStats.filter((theme) => theme.name.toLowerCase().includes(themeQuery.trim().toLowerCase())).sort((a, b) => themeSort === "Mais pendências" ? b.pending - a.pending : themeSort === "Menor nota" ? a.average - b.average : b.count - a.count), [themeQuery, themeSort, themeStats]);
   const promoters = feedbacks.filter((item) => item.score >= 9).length;
   const detractors = feedbacks.filter((item) => item.score <= 6).length;
@@ -71,7 +72,6 @@ export function PandoraApp({ product }: { product: Product }) {
 
   function updateSelected(patch: Partial<Feedback>, historyText?: string) { if (selected) setFeedbacks((current) => current.map((feedback) => feedback.id === selected.id ? { ...feedback, ...patch, history: historyText ? [{ text: historyText, date: todayLabel() }, ...(feedback.history ?? [])] : feedback.history } : feedback)); }
   function changeArea(value: string) { setActive(value); setSelectedId(""); }
-  function surveyResponseCount(survey: Survey) { return feedbacks.filter((feedback) => feedback.channel === survey.name).length; }
 
   function allowedTargets(feedback: Feedback): FeedbackStatus[] {
     if (feedback.status === "Novo") return ["Em análise"];

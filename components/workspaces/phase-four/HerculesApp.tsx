@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
 import type { Product } from "@/lib/apps";
-import { AppShell, EmptyState, Field, Form, Icon, Modal, StatusPill, Toast, type NavItem } from "./shared";
+import { AppShell, Field, Form, Icon, Modal, StatusPill, Toast, type NavItem } from "./shared";
 import { fileToDataUrl, todayLabel, uid, useLocalState } from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
 

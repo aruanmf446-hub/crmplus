@@ -86,46 +86,51 @@ export function useLocalState<T>(key: string, initial: T | (() => T)) {
   const writeBlocked = useRef(false);
 
   useEffect(() => {
-    writeBlocked.current = false;
-    setHydrated(false);
-    setValue(typeof initialFactory.current === "function" ? (initialFactory.current as () => T)() : initialFactory.current);
-
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) {
-        emitStorageStatus({ key, status: "loaded", message: "Pronto para salvar neste navegador." });
-        setHydrated(true);
-        return;
-      }
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      writeBlocked.current = false;
+      setHydrated(false);
+      setValue(typeof initialFactory.current === "function" ? (initialFactory.current as () => T)() : initialFactory.current);
 
       try {
-        const parsed = JSON.parse(raw) as StoredValue<T> | T;
-        if (isStoredValue<T>(parsed)) {
-          if (parsed.version > STORE_VERSION) {
-            backupRawValue(key, raw, `Versão ${parsed.version} mais recente que a suportada (${STORE_VERSION})`);
-            writeBlocked.current = true;
-            emitStorageStatus({ key, status: "error", message: "Estes dados foram criados por uma versão mais recente. Nada foi substituído; exporte o backup antes de continuar." });
+        const raw = window.localStorage.getItem(key);
+        if (!raw) {
+          emitStorageStatus({ key, status: "loaded", message: "Pronto para salvar neste navegador." });
+          if (active) setHydrated(true);
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(raw) as StoredValue<T> | T;
+          if (isStoredValue<T>(parsed)) {
+            if (parsed.version > STORE_VERSION) {
+              backupRawValue(key, raw, `Versão ${parsed.version} mais recente que a suportada (${STORE_VERSION})`);
+              writeBlocked.current = true;
+              emitStorageStatus({ key, status: "error", message: "Estes dados foram criados por uma versão mais recente. Nada foi substituído; exporte o backup antes de continuar." });
+            } else {
+              if (parsed.version < STORE_VERSION) backupRawValue(key, raw, `Migração da versão ${parsed.version} para ${STORE_VERSION}`);
+              if (active) setValue(migrateKnownValue(key, parsed.value));
+              emitStorageStatus({ key, status: parsed.version < STORE_VERSION ? "warning" : "loaded", message: parsed.version < STORE_VERSION ? "Dados antigos migrados com cópia de segurança." : "Dados locais carregados." });
+            }
           } else {
-            if (parsed.version < STORE_VERSION) backupRawValue(key, raw, `Migração da versão ${parsed.version} para ${STORE_VERSION}`);
-            setValue(migrateKnownValue(key, parsed.value));
-            emitStorageStatus({ key, status: parsed.version < STORE_VERSION ? "warning" : "loaded", message: parsed.version < STORE_VERSION ? "Dados antigos migrados com cópia de segurança." : "Dados locais carregados." });
+            backupRawValue(key, raw, "Migração de formato legado");
+            if (active) setValue(migrateKnownValue(key, parsed));
+            emitStorageStatus({ key, status: "warning", message: "Formato antigo migrado com cópia de segurança." });
           }
-        } else {
-          backupRawValue(key, raw, "Migração de formato legado");
-          setValue(migrateKnownValue(key, parsed));
-          emitStorageStatus({ key, status: "warning", message: "Formato antigo migrado com cópia de segurança." });
+        } catch {
+          backupRawValue(key, raw, "JSON inválido");
+          writeBlocked.current = true;
+          emitStorageStatus({ key, status: "error", message: "Os dados locais estão corrompidos. O valor original foi preservado e o salvamento foi bloqueado." });
         }
       } catch {
-        backupRawValue(key, raw, "JSON inválido");
         writeBlocked.current = true;
-        emitStorageStatus({ key, status: "error", message: "Os dados locais estão corrompidos. O valor original foi preservado e o salvamento foi bloqueado." });
+        emitStorageStatus({ key, status: "error", message: "O navegador bloqueou o acesso aos dados locais." });
+      } finally {
+        if (active) setHydrated(true);
       }
-    } catch {
-      writeBlocked.current = true;
-      emitStorageStatus({ key, status: "error", message: "O navegador bloqueou o acesso aos dados locais." });
-    } finally {
-      setHydrated(true);
-    }
+    });
+    return () => { active = false; };
   }, [key]);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useCallback, useMemo, useState, type ChangeEvent } from "react";
 import type { Product } from "@/lib/apps";
 import { AppShell, EmptyState, Field, Form, Icon, Modal, StatusPill, Timeline, Toast, type IconName, type NavItem } from "./shared";
 import { copyText, downloadCsv, fileToDataUrl, todayLabel, uid, useLocalState } from "./localStore";
@@ -138,10 +138,10 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   ];
 
   const finalStatus = config.statuses.at(-1) ?? "";
-  const finalStatuses = config.finalStatuses ?? [finalStatus];
+  const finalStatuses = useMemo(() => config.finalStatuses ?? [finalStatus], [config.finalStatuses, finalStatus]);
   const operationFinalStatuses = config.operationFinalStatuses ?? [config.operationStatuses.at(-1) ?? ""];
   const resourceFinalStatuses = config.resourceFinalStatuses ?? [config.resourceStatuses.at(-1) ?? ""];
-  const isFinalRecord = (record: MainRecord) => finalStatuses.includes(record.status);
+  const isFinalRecord = useCallback((record: MainRecord) => finalStatuses.includes(record.status), [finalStatuses]);
   const visibleRecords = useMemo(() => {
     const value = query.trim().toLowerCase();
     const filtered = records.filter((record) => {
@@ -156,7 +156,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       if (recordSort === "Etapa") return config.statuses.indexOf(a.status) - config.statuses.indexOf(b.status);
       return records.indexOf(a) - records.indexOf(b);
     });
-  }, [config.statuses, query, recordSort, records, scope, statusFilter]);
+  }, [config.statuses, isFinalRecord, query, recordSort, records, scope, statusFilter]);
 
   const selectedOperations = selected ? related.filter((item) => item.parentId === selected.id) : [];
   const selectedResources = selected ? resources.filter((item) => item.parentId === selected.id) : [];
