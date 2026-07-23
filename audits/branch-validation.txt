@@ -1,0 +1,399 @@
+COMMIT VALIDADO: 91a22efd5fae61729a360f599122aede4a5d2446
+DEPENDÊNCIAS: success
+AUDITORIA PRODUÇÃO: success
+AUDITORIA COMPLETA: success
+ESLINT: success
+TYPESCRIPT: success
+BUILD: success
+CHROMIUM: success
+PRÉVIA: success
+PROCESSOS: failure
+WEBDESIGN: failure
+
+=== LOCKFILE ===
+
+up to date, audited 404 packages in 829ms
+
+166 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+=== AUDITORIA DE PRODUÇÃO ===
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {},
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 17,
+      "dev": 349,
+      "optional": 65,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 403
+    }
+  }
+}
+
+=== ESLINT ===
+
+> crmplus-store@0.1.0 lint
+> eslint . --max-warnings=0
+
+
+=== TYPESCRIPT ===
+
+> crmplus-store@0.1.0 typecheck
+> tsc --noEmit
+
+
+=== BUILD ===
+
+> crmplus-store@0.1.0 build
+> next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+▲ Next.js 16.2.11 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.0s
+  Running TypeScript ...
+  Finished TypeScript in 7.8s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/69) ...
+  Generating static pages using 3 workers (17/69) 
+  Generating static pages using 3 workers (34/69) 
+  Generating static pages using 3 workers (51/69) 
+✓ Generating static pages using 3 workers (69/69) in 835ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ● /aplicativos/[slug]
+│ ├ /aplicativos/atlas
+│ ├ /aplicativos/artemis
+│ ├ /aplicativos/poseidon
+│ └ [+12 more paths]
+├ ● /apps/[slug]
+│ ├ /apps/atlas
+│ ├ /apps/artemis
+│ ├ /apps/poseidon
+│ └ [+12 more paths]
+├ ● /assinar/[slug]
+│ ├ /assinar/atlas
+│ ├ /assinar/artemis
+│ ├ /assinar/poseidon
+│ └ [+12 more paths]
+├ ○ /criar-conta
+├ ○ /entrar
+├ ○ /privacidade
+├ ○ /recuperar-senha
+├ ○ /robots.txt
+├ ● /sistemas/[slug]
+│ ├ /sistemas/atlas
+│ ├ /sistemas/artemis
+│ ├ /sistemas/poseidon
+│ └ [+12 more paths]
+└ ○ /termos
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
+
+=== PROCESSOS ===
+PASSARAM: 53
+PASSOU · atlas · entrada sem seleção automática
+PASSOU · atlas · todas as áreas do menu abrem
+PASSOU · ares · entrada sem seleção automática
+PASSOU · ares · todas as áreas do menu abrem
+PASSOU · artemis · entrada sem seleção automática
+PASSOU · artemis · todas as áreas do menu abrem
+PASSOU · pandora · entrada sem seleção automática
+PASSOU · pandora · todas as áreas do menu abrem
+PASSOU · poseidon · entrada sem seleção automática
+PASSOU · poseidon · todas as áreas do menu abrem
+PASSOU · hercules · entrada sem seleção automática
+PASSOU · hercules · todas as áreas do menu abrem
+PASSOU · zeus · entrada sem seleção automática
+PASSOU · zeus · todas as áreas do menu abrem
+PASSOU · alexandria · entrada sem seleção automática
+PASSOU · alexandria · todas as áreas do menu abrem
+PASSOU · olympus · entrada sem seleção automática
+PASSOU · olympus · todas as áreas do menu abrem
+PASSOU · argus · entrada sem seleção automática
+PASSOU · argus · todas as áreas do menu abrem
+PASSOU · hermes · entrada sem seleção automática
+PASSOU · hermes · todas as áreas do menu abrem
+PASSOU · athena · entrada sem seleção automática
+PASSOU · athena · todas as áreas do menu abrem
+PASSOU · gaia · entrada sem seleção automática
+PASSOU · gaia · todas as áreas do menu abrem
+PASSOU · pegasus · entrada sem seleção automática
+PASSOU · pegasus · todas as áreas do menu abrem
+PASSOU · titans · entrada sem seleção automática
+PASSOU · titans · todas as áreas do menu abrem
+PASSOU · atlas · orçamento aprovado bloqueado
+PASSOU · atlas · itens aprovados sem remoção
+PASSOU · atlas · sem erro no bloqueio
+PASSOU · ares · vencimento refletido no detalhe
+PASSOU · ares · vencida sem avanço
+PASSOU · ares · sem erro na proposta vencida
+PASSOU · alexandria · status terminal no histórico
+PASSOU · alexandria · sem erro na classificação final
+PASSOU · olympus · status terminal no histórico
+PASSOU · olympus · sem erro na classificação final
+PASSOU · argus · status terminal no histórico
+PASSOU · argus · sem erro na classificação final
+PASSOU · hermes · status terminal no histórico
+PASSOU · hermes · sem erro na classificação final
+PASSOU · athena · status terminal no histórico
+PASSOU · athena · sem erro na classificação final
+PASSOU · gaia · status terminal no histórico
+PASSOU · gaia · sem erro na classificação final
+PASSOU · pegasus · status terminal no histórico
+PASSOU · pegasus · sem erro na classificação final
+PASSOU · titans · status terminal no histórico
+PASSOU · titans · sem erro na classificação final
+PASSOU · acesso · recuperação abre no modo correto
+
+FALHARAM: 6
+FALHOU · artemis · seleções conscientes · locator.inputValue: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByLabel('Mesa', { exact: true })
+
+FALHOU · pandora · resposta consciente · locator.inputValue: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByLabel('Nota', { exact: true })
+
+FALHOU · poseidon · preservação de atividades · locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByRole('button', { name: /Confirmar/ }).last()
+
+FALHOU · hercules · validação do desvio · locator.innerText: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog')
+
+FALHOU · zeus · liberação de manutenção · locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByRole('button', { name: 'Confirmar mudança' })
+
+FALHOU · acesso · recuperação local · locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByLabel('Confirmar nova senha', { exact: true })
+
+
+=== WEBDESIGN ===
+PASSARAM: 1
+PASSOU · notebook-1366 · sistema-hermes
+
+FALHARAM: 200
+FALHOU · desktop-1440 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 1104x20
+FALHOU · desktop-1440 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para restaurantes} 10px | small{Sistema para pet shops} 10px | small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px
+FALHOU · desktop-1440 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · desktop-1440 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · desktop-1440 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1366 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 1104x20
+FALHOU · notebook-1366 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para restaurantes} 10px | small{Sistema para pet shops} 10px | small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px
+FALHOU · notebook-1366 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1366 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1366 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1024 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 900x20
+FALHOU · notebook-1024 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para restaurantes} 10px | small{Sistema para pet shops} 10px | small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px
+FALHOU · notebook-1024 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1024 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · notebook-1024 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · tablet-768 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 656x20
+FALHOU · tablet-768 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para restaurantes} 10px | small{Sistema para pet shops} 10px | small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px
+FALHOU · tablet-768 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · tablet-768 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · tablet-768 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 654x18
+FALHOU · mobile-390 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 294x17
+FALHOU · mobile-390 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px | small{Sistema de NPS e pesquisas} 10px | small{Gestão de frotas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para bibliotecas} 10px
+FALHOU · mobile-390 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 296x18
+FALHOU · mobile-390 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 296x18
+FALHOU · mobile-390 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 296x18
+FALHOU · mobile-360 · home · controles abaixo de 36px: input{Pesquisar segmento, necessidade ou aplicativo} 264x17
+FALHOU · mobile-360 · home · texto abaixo de 10.5px: small{Sistema para oficinas} 10px | small{Sistema para restaurantes} 10px | small{Sistema para vendas} 10px | small{Sistema de inspeções} 10px | small{Sistema de NPS e pesquisas} 10px | small{Gestão de frotas} 10px | small{Sistema de orçamentos} 10px | small{Sistema para bibliotecas} 10px
+FALHOU · mobile-360 · seleção-entrar · controles abaixo de 36px: input{Pesquisar aplicativo} 266x18
+FALHOU · mobile-360 · seleção-criar-conta · controles abaixo de 36px: input{Pesquisar aplicativo} 266x18
+FALHOU · mobile-360 · seleção-recuperação · controles abaixo de 36px: input{Pesquisar aplicativo} 266x18
+FALHOU · notebook-1366 · sistema-atlas · controles abaixo de 36px: input 328x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 3} 145x33 | button{Histórico 0} 92x33
+FALHOU · notebook-1366 · sistema-atlas · texto abaixo de 10.5px: span{SFK2C10} 9px | p{Próxima ação: Completar diagnóstico e orçamento} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar decisão do cliente} 10px | span{RQX7B44} 9px | p{Próxima ação: Executar itens aprovados} 10px | p{Escolha um atendimento para visualizar somente a etapa atual.} 10px
+FALHOU · notebook-1366 · sistema-ares · controles abaixo de 36px: input 328x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 2} 145x33 | button{Finalizadas 0} 106x33
+FALHOU · notebook-1366 · sistema-ares · texto abaixo de 10.5px: span{ORC-0248 · v2} 9px | p{Website institucional · próxima ação: Registrar decisão do cliente} 10px | span{ORC-0247 · v1} 9px | p{Catálogo digital · próxima ação: Registrar visualização ou decisão} 10px | p{Escolha uma proposta para visualizar somente a etapa atual.} 10px
+FALHOU · notebook-1366 · sistema-artemis · controles abaixo de 36px: input 305x21
+FALHOU · notebook-1366 · sistema-artemis · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Turno atual} 10px | span{Mesa 01} 9px | span{Mesa 02} 9px | span{Mesa 03} 9px | span{Mesa 04} 9px | span{Mesa 05} 9px | span{Mesa 06} 9px | span{Mesa 07} 9px
+FALHOU · notebook-1366 · sistema-pandora · controles abaixo de 36px: input 371x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em acompanhamento 3} 194x33 | button{Finalizadas 1} 106x33 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Todas} 60x33 | button{Detratores} 87x33 | button{Neutros} 69x33 | button{Promotores} 92x33
+FALHOU · notebook-1366 · sistema-pandora · texto abaixo de 10.5px: span{NPS atual} 9px | span{Aguardando ação} 9px | span{Prioridades abertas} 9px | span{Prazos vencidos} 9px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreBad{3} 8px | span{Hoje, 08:42} 8px | p{O atendimento foi bom, mas esperei muito para receber uma atualização.} 10px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreGood{10} 8px
+FALHOU · notebook-1366 · sistema-poseidon · controles abaixo de 36px: input 319x21
+FALHOU · notebook-1366 · sistema-poseidon · texto abaixo de 10.5px: span{Empresa} 8px | span{Etapa atual} 8px | span{Valor} 8px | span{Próxima ação} 8px | span{Responsável} 8px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{SO} 10px | strong{Solar Norte} 10px | b{R$ 18.000,00} 10px
+FALHOU · notebook-1366 · sistema-hercules · controles abaixo de 36px: input 810x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 1} 145x33 | button{Histórico 0} 92x33
+FALHOU · notebook-1366 · sistema-hercules · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Escolha consciente} 10px
+FALHOU · notebook-1366 · sistema-zeus · controles abaixo de 36px: input 196x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Operacionais 3} 131x33 | button{Histórico / inativos 0} 155x33
+FALHOU · notebook-1366 · sistema-zeus · texto abaixo de 10.5px: span{RQX7B44} 9px | p{Próxima ação: Atribuir motorista ou enviar para manutenção} 10px | span{QVE4A21} 9px | p{Próxima ação: Registrar retorno ou manutenção} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar serviço, conferir e liberar} 10px | p{Escolha um veículo para visualizar somente a situação atual.} 10px
+FALHOU · notebook-1366 · sistema-alexandria · controles abaixo de 36px: input{Buscar no acervo} 447x21
+FALHOU · notebook-1366 · sistema-alexandria · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Literatura brasileira} 10px | span{2 exemplar(es)} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Engenharia} 10px | span{0 exemplar(es)} 10px
+FALHOU · notebook-1366 · sistema-olympus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Venda} 10px | span{R$ 780.000} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Aluguel} 10px | span{R$ 24.000/mês} 10px
+FALHOU · notebook-1366 · sistema-argus · texto abaixo de 10.5px: th{Patrimônio} 10px | th{Bem} 10px | th{Localização} 10px | th{Responsável} 10px | th{Condição} 10px | th{Situação} 10px
+FALHOU · notebook-1366 · sistema-athena · texto abaixo de 10.5px: span{Entrega: Sim} 10px | span{Documentos: Parcial} 10px | span{Entrega: A conferir} 10px | span{Documentos: A conferir} 10px
+FALHOU · notebook-1366 · sistema-gaia · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cultivo} 10px | span{7.800 kg/ha} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Criação animal} 10px | span{60 ovos/dia} 10px | p{Observar umidade na borda norte.} 10px | p{Acompanhar consumo de água nos dias mais quentes.} 10px
+FALHOU · notebook-1366 · sistema-pegasus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cão · Golden Retriever} 10px | span{Mariana ou Rafael} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Gato · SRD} 10px | span{Paula} 10px
+FALHOU · notebook-1366 · sistema-titans · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Reforma comercial} 10px | span{30 de set. de 2026} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Ampliação residencial} 10px | span{10 de nov. de 2026} 10px
+FALHOU · tablet-768 · sistema-atlas · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 313x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 3} 145x33 | button{Histórico 0} 92x33
+FALHOU · tablet-768 · sistema-atlas · texto abaixo de 10.5px: span{SFK2C10} 9px | p{Próxima ação: Completar diagnóstico e orçamento} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar decisão do cliente} 10px | span{RQX7B44} 9px | p{Próxima ação: Executar itens aprovados} 10px | p{Escolha um atendimento para visualizar somente a etapa atual.} 10px
+FALHOU · tablet-768 · sistema-ares · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 336x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 2} 145x33 | button{Finalizadas 0} 106x33
+FALHOU · tablet-768 · sistema-ares · texto abaixo de 10.5px: span{ORC-0248 · v2} 9px | p{Website institucional · próxima ação: Registrar decisão do cliente} 10px | span{ORC-0247 · v1} 9px | p{Catálogo digital · próxima ação: Registrar visualização ou decisão} 10px | p{Escolha uma proposta para visualizar somente a etapa atual.} 10px
+FALHOU · tablet-768 · sistema-artemis · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 327x21
+FALHOU · tablet-768 · sistema-artemis · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Turno atual} 10px | span{Mesa 01} 9px | span{Mesa 02} 9px | span{Mesa 03} 9px | span{Mesa 04} 9px | span{Mesa 05} 9px | span{Mesa 06} 9px | span{Mesa 07} 9px
+FALHOU · tablet-768 · sistema-pandora · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 334x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em acompanhamento 3} 194x33 | button{Finalizadas 1} 106x33 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Todas} 60x33 | button{Detratores} 87x33 | button{Neutros} 69x33 | button{Promotores} 92x33
+FALHOU · tablet-768 · sistema-pandora · texto abaixo de 10.5px: span{NPS atual} 9px | span{Aguardando ação} 9px | span{Prioridades abertas} 9px | span{Prazos vencidos} 9px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreBad{3} 8px | span{Hoje, 08:42} 8px | p{O atendimento foi bom, mas esperei muito para receber uma atualização.} 10px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreGood{10} 8px
+FALHOU · tablet-768 · sistema-poseidon · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 352x21
+FALHOU · tablet-768 · sistema-poseidon · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{SO} 10px | strong{Solar Norte} 10px | b{R$ 18.000,00} 10px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{AC} 10px | strong{Academia Elite} 10px | b{R$ 7.500,00} 10px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{CL} 10px | strong{Clínica Mais} 10px
+FALHOU · tablet-768 · sistema-hercules · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 472x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 1} 145x33 | button{Histórico 0} 92x33
+FALHOU · tablet-768 · sistema-hercules · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Escolha consciente} 10px
+FALHOU · tablet-768 · sistema-zeus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 373x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Operacionais 3} 131x33 | button{Histórico / inativos 0} 155x33
+FALHOU · tablet-768 · sistema-zeus · texto abaixo de 10.5px: span{RQX7B44} 9px | p{Próxima ação: Atribuir motorista ou enviar para manutenção} 10px | span{QVE4A21} 9px | p{Próxima ação: Registrar retorno ou manutenção} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar serviço, conferir e liberar} 10px | p{Escolha um veículo para visualizar somente a situação atual.} 10px
+FALHOU · tablet-768 · sistema-alexandria · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input{Buscar no acervo} 278x21
+FALHOU · tablet-768 · sistema-alexandria · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Literatura brasileira} 10px | span{2 exemplar(es)} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Engenharia} 10px | span{0 exemplar(es)} 10px
+FALHOU · tablet-768 · sistema-olympus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-olympus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Venda} 10px | span{R$ 780.000} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Aluguel} 10px | span{R$ 24.000/mês} 10px
+FALHOU · tablet-768 · sistema-argus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-argus · texto abaixo de 10.5px: th{Patrimônio} 10px | th{Bem} 10px | th{Localização} 10px | th{Responsável} 10px | th{Condição} 10px | th{Situação} 10px
+FALHOU · tablet-768 · sistema-hermes · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-athena · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-athena · texto abaixo de 10.5px: span{Entrega: Sim} 10px | span{Documentos: Parcial} 10px | span{Entrega: A conferir} 10px | span{Documentos: A conferir} 10px
+FALHOU · tablet-768 · sistema-gaia · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-gaia · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cultivo} 10px | span{7.800 kg/ha} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Criação animal} 10px | span{60 ovos/dia} 10px | p{Observar umidade na borda norte.} 10px | p{Acompanhar consumo de água nos dias mais quentes.} 10px
+FALHOU · tablet-768 · sistema-pegasus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-pegasus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cão · Golden Retriever} 10px | span{Mariana ou Rafael} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Gato · SRD} 10px | span{Paula} 10px
+FALHOU · tablet-768 · sistema-titans · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · tablet-768 · sistema-titans · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Reforma comercial} 10px | span{30 de set. de 2026} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Ampliação residencial} 10px | span{10 de nov. de 2026} 10px
+FALHOU · mobile-390 · sistema-atlas · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 288x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 3} 145x33 | button{Histórico 0} 92x33
+FALHOU · mobile-390 · sistema-atlas · texto abaixo de 10.5px: span{SFK2C10} 9px | p{Próxima ação: Completar diagnóstico e orçamento} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar decisão do cliente} 10px | span{RQX7B44} 9px | p{Próxima ação: Executar itens aprovados} 10px | p{Escolha um atendimento para visualizar somente a etapa atual.} 10px
+FALHOU · mobile-390 · sistema-ares · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 288x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 2} 145x33 | button{Finalizadas 0} 106x33
+FALHOU · mobile-390 · sistema-ares · texto abaixo de 10.5px: span{ORC-0248 · v2} 9px | p{Website institucional · próxima ação: Registrar decisão do cliente} 10px | span{ORC-0247 · v1} 9px | p{Catálogo digital · próxima ação: Registrar visualização ou decisão} 10px | p{Escolha uma proposta para visualizar somente a etapa atual.} 10px
+FALHOU · mobile-390 · sistema-artemis · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 258x21
+FALHOU · mobile-390 · sistema-artemis · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Turno atual} 10px | span{Mesa 01} 9px | span{Mesa 02} 9px | span{Mesa 03} 9px | span{Mesa 04} 9px | span{Mesa 05} 9px | span{Mesa 06} 9px | span{Mesa 07} 9px
+FALHOU · mobile-390 · sistema-pandora · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 288x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em acompanhamento 3} 194x33 | button{Finalizadas 1} 106x33 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Todas} 60x33 | button{Detratores} 87x33 | button{Neutros} 69x33 | button{Promotores} 92x33
+FALHOU · mobile-390 · sistema-pandora · texto abaixo de 10.5px: span{NPS atual} 9px | span{Aguardando ação} 9px | span{Prioridades abertas} 9px | span{Prazos vencidos} 9px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreBad{3} 8px | span{Hoje, 08:42} 8px | p{O atendimento foi bom, mas esperei muito para receber uma atualização.} 10px | span.PhaseFourWorkspace-module__Ds5STa__scoreBadge.PhaseFourWorkspace-module__Ds5STa__scoreGood{10} 8px
+FALHOU · mobile-390 · sistema-poseidon · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 288x21
+FALHOU · mobile-390 · sistema-poseidon · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{SO} 10px | strong{Solar Norte} 10px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{AC} 10px | strong{Academia Elite} 10px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{CL} 10px | strong{Clínica Mais} 10px | span.PhaseFourWorkspace-module__Ds5STa__companyAvatar{AU} 10px | strong{Auto Peças Pará} 10px
+FALHOU · mobile-390 · sistema-hercules · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 258x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Em andamento 1} 145x33 | button{Histórico 0} 92x33
+FALHOU · mobile-390 · sistema-hercules · texto abaixo de 10.5px: span.PhaseFourWorkspace-module__Ds5STa__eyebrow{Escolha consciente} 10px
+FALHOU · mobile-390 · sistema-zeus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input 288x21 | button.PhaseFourWorkspace-module__Ds5STa__segmentActive{Operacionais 3} 131x33 | button{Histórico / inativos 0} 155x33
+FALHOU · mobile-390 · sistema-zeus · texto abaixo de 10.5px: span{RQX7B44} 9px | p{Próxima ação: Atribuir motorista ou enviar para manutenção} 10px | span{QVE4A21} 9px | p{Próxima ação: Registrar retorno ou manutenção} 10px | span{TCJ9I23} 9px | p{Próxima ação: Registrar serviço, conferir e liberar} 10px | p{Escolha um veículo para visualizar somente a situação atual.} 10px
+FALHOU · mobile-390 · sistema-alexandria · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39 | input{Buscar no acervo} 285x21
+FALHOU · mobile-390 · sistema-alexandria · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Literatura brasileira} 10px | span{2 exemplar(es)} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Engenharia} 10px | span{0 exemplar(es)} 10px
+FALHOU · mobile-390 · sistema-olympus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-olympus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Venda} 10px | span{R$ 780.000} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Aluguel} 10px | span{R$ 24.000/mês} 10px
+FALHOU · mobile-390 · sistema-argus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-argus · texto abaixo de 10.5px: th{Patrimônio} 10px | th{Bem} 10px | th{Localização} 10px | th{Responsável} 10px | th{Condição} 10px | th{Situação} 10px
+FALHOU · mobile-390 · sistema-hermes · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-athena · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-athena · texto abaixo de 10.5px: span{Entrega: Sim} 10px | span{Documentos: Parcial} 10px | span{Entrega: A conferir} 10px | span{Documentos: A conferir} 10px
+FALHOU · mobile-390 · sistema-gaia · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-gaia · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cultivo} 10px | span{7.800 kg/ha} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Criação animal} 10px | span{60 ovos/dia} 10px | p{Observar umidade na borda norte.} 10px | p{Acompanhar consumo de água nos dias mais quentes.} 10px
+FALHOU · mobile-390 · sistema-pegasus · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-pegasus · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Cão · Golden Retriever} 10px | span{Mariana ou Rafael} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Gato · SRD} 10px | span{Paula} 10px
+FALHOU · mobile-390 · sistema-titans · controles abaixo de 36px: button.PhaseFourWorkspace-module__Ds5STa__closeMenu{Fechar menu} 34x39
+FALHOU · mobile-390 · sistema-titans · texto abaixo de 10.5px: span.VerticalOperationalHome-module__YUTbxa__cardLabel{Reforma comercial} 10px | span{30 de set. de 2026} 10px | span.VerticalOperationalHome-module__YUTbxa__cardLabel{Ampliação residencial} 10px | span{10 de nov. de 2026} 10px
+FALHOU · desktop-1440 · comercial-atlas · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-atlas · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-atlas · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-ares · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-ares · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-ares · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-artemis · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span.CommercialTrust-module__pF-7Ba__exampleStatus{Exemplo} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px
+FALHOU · desktop-1440 · planos-artemis · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-artemis · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-pandora · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-pandora · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-pandora · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-poseidon · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-poseidon · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-poseidon · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-hercules · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-hercules · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-hercules · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-zeus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-zeus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-zeus · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-alexandria · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-alexandria · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-alexandria · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-olympus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-olympus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-olympus · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-argus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-argus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-argus · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-hermes · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · desktop-1440 · planos-hermes · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-hermes · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-athena · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-athena · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-athena · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-gaia · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · desktop-1440 · planos-gaia · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-gaia · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-pegasus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · desktop-1440 · planos-pegasus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-pegasus · navegação por teclado não produziu foco visível
+FALHOU · desktop-1440 · comercial-titans · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · desktop-1440 · planos-titans · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · desktop-1440 · planos-titans · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-atlas · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-atlas · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-atlas · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-ares · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-ares · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-ares · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-artemis · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span.CommercialTrust-module__pF-7Ba__exampleStatus{Exemplo} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px
+FALHOU · mobile-390 · planos-artemis · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-artemis · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-pandora · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-pandora · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-pandora · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-poseidon · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-poseidon · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-poseidon · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-hercules · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-hercules · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-hercules · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-zeus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-zeus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-zeus · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-alexandria · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-alexandria · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-alexandria · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-olympus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-olympus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-olympus · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-argus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-argus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-argus · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-hermes · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · mobile-390 · planos-hermes · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-hermes · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-athena · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-athena · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-athena · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-gaia · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · mobile-390 · planos-gaia · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-gaia · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-pegasus · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | span{01} 10px | span{02} 10px | span{03} 10px | span{04} 10px | span{01} 10px
+FALHOU · mobile-390 · planos-pegasus · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-pegasus · navegação por teclado não produziu foco visível
+FALHOU · mobile-390 · comercial-titans · texto abaixo de 10.5px: small{Resultado principal} 10px | span.CommercialTrust-module__pF-7Ba__exampleLabel{Exemplo de interface · dados ilustrativos} 10px | small.CommercialTrust-module__pF-7Ba__metricNote{Não representa dados reais.} 10px | b{01} 10px | b{02} 10px | b{03} 10px | span{01} 10px | span{02} 10px
+FALHOU · mobile-390 · planos-titans · console: Failed to load resource: the server responded with a status of 404 (File not found)
+FALHOU · mobile-390 · planos-titans · navegação por teclado não produziu foco visível

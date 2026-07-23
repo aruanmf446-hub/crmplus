@@ -1,0 +1,80 @@
+PASSARAM: 53
+PASSOU · atlas · entrada sem seleção automática
+PASSOU · atlas · todas as áreas do menu abrem
+PASSOU · ares · entrada sem seleção automática
+PASSOU · ares · todas as áreas do menu abrem
+PASSOU · artemis · entrada sem seleção automática
+PASSOU · artemis · todas as áreas do menu abrem
+PASSOU · pandora · entrada sem seleção automática
+PASSOU · pandora · todas as áreas do menu abrem
+PASSOU · poseidon · entrada sem seleção automática
+PASSOU · poseidon · todas as áreas do menu abrem
+PASSOU · hercules · entrada sem seleção automática
+PASSOU · hercules · todas as áreas do menu abrem
+PASSOU · zeus · entrada sem seleção automática
+PASSOU · zeus · todas as áreas do menu abrem
+PASSOU · alexandria · entrada sem seleção automática
+PASSOU · alexandria · todas as áreas do menu abrem
+PASSOU · olympus · entrada sem seleção automática
+PASSOU · olympus · todas as áreas do menu abrem
+PASSOU · argus · entrada sem seleção automática
+PASSOU · argus · todas as áreas do menu abrem
+PASSOU · hermes · entrada sem seleção automática
+PASSOU · hermes · todas as áreas do menu abrem
+PASSOU · athena · entrada sem seleção automática
+PASSOU · athena · todas as áreas do menu abrem
+PASSOU · gaia · entrada sem seleção automática
+PASSOU · gaia · todas as áreas do menu abrem
+PASSOU · pegasus · entrada sem seleção automática
+PASSOU · pegasus · todas as áreas do menu abrem
+PASSOU · titans · entrada sem seleção automática
+PASSOU · titans · todas as áreas do menu abrem
+PASSOU · atlas · orçamento aprovado bloqueado
+PASSOU · atlas · itens aprovados sem remoção
+PASSOU · atlas · sem erro no bloqueio
+PASSOU · ares · vencimento refletido no detalhe
+PASSOU · ares · vencida sem avanço
+PASSOU · ares · sem erro na proposta vencida
+PASSOU · alexandria · status terminal no histórico
+PASSOU · alexandria · sem erro na classificação final
+PASSOU · olympus · status terminal no histórico
+PASSOU · olympus · sem erro na classificação final
+PASSOU · argus · status terminal no histórico
+PASSOU · argus · sem erro na classificação final
+PASSOU · hermes · status terminal no histórico
+PASSOU · hermes · sem erro na classificação final
+PASSOU · athena · status terminal no histórico
+PASSOU · athena · sem erro na classificação final
+PASSOU · gaia · status terminal no histórico
+PASSOU · gaia · sem erro na classificação final
+PASSOU · pegasus · status terminal no histórico
+PASSOU · pegasus · sem erro na classificação final
+PASSOU · titans · status terminal no histórico
+PASSOU · titans · sem erro na classificação final
+PASSOU · acesso · recuperação abre no modo correto
+
+FALHARAM: 6
+FALHOU · artemis · seleções conscientes · locator.inputValue: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByLabel('Mesa', { exact: true })
+
+FALHOU · pandora · resposta consciente · locator.inputValue: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByLabel('Nota', { exact: true })
+
+FALHOU · poseidon · preservação de atividades · locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByRole('button', { name: /Confirmar/ }).last()
+
+FALHOU · hercules · validação do desvio · locator.innerText: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog')
+
+FALHOU · zeus · liberação de manutenção · locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('dialog').getByRole('button', { name: 'Confirmar mudança' })
+
+FALHOU · acesso · recuperação local · locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByLabel('Confirmar nova senha', { exact: true })
+

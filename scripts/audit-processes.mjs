@@ -186,15 +186,19 @@ for (const [slug, terminal] of Object.entries(verticalFinals)) {
   };
   const { page, errors } = await open(slug, setup, { slug, terminal });
   try {
+    const mainAreaButton = page.locator('nav[aria-label^="Navegação"] button').nth(1);
+    await mainAreaButton.click();
     await page.evaluate(({ slug }) => {
       const key = `crmplus.${slug}.records.v2`;
       const parsed = JSON.parse(localStorage.getItem(key));
       const select = document.querySelector('select[aria-label="Filtrar por situação"]');
       const first = select?.querySelector('option:not([value="Todos"])')?.textContent || "";
+      if (!first) throw new Error("A lista principal não expôs as situações configuradas");
       parsed.value[1].status = first;
       localStorage.setItem(key, JSON.stringify(parsed));
     }, { slug });
     await page.reload({ waitUntil: "networkidle" });
+    await page.locator('nav[aria-label^="Navegação"] button').nth(1).click();
     await page.getByRole("button", { name: /Finalizados/ }).click();
     const mainText = await page.locator("main").innerText();
     await assert(slug, "status terminal no histórico", mainText.includes(`Final ${slug}`) && !mainText.includes(`Aberto ${slug}`), `status ${terminal} não foi separado corretamente`, page);

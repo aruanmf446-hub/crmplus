@@ -1,0 +1,4 @@
+:HL["/crmplus/_next/static/chunks/2-8t1lwls8z_8.css","style"]
+:HL["/crmplus/_next/static/chunks/0r7856aq2l2f9.css","style"]
+:HL["/crmplus/_next/static/chunks/3zmnowmo102dc.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":20,"slots":{"children":{"name":"assinar","param":null,"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"hermes","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"DEWIy_aCN-aplRAB_wljX"}
