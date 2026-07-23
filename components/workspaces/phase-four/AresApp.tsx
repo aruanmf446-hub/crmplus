@@ -2,27 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { Product } from "@/lib/apps";
-import { AppShell, EmptyState, Field, Icon, Modal, StatusPill, Toast, type NavItem } from "./shared";
+import { AppShell, EmptyState, Field, Icon, Modal, StatusPill, Timeline, Toast, type NavItem } from "./shared";
 import { copyText, currency, todayLabel, uid, useLocalState } from "./localStore";
 import styles from "./PhaseFourWorkspace.module.css";
 
-type QuoteStatus = "Rascunho" | "Pronto" | "Enviado" | "Visualizado" | "Alteração solicitada" | "Aprovado" | "Recusado" | "Expirado";
-type QuoteItem = { id: string; description: string; quantity: number; unitPrice: number };
-type Quote = {
-  id: string;
-  client: string;
-  title: string;
-  status: QuoteStatus;
-  validity: string;
-  updated: string;
-  notes: string;
-  decisionNote?: string;
-  items: QuoteItem[];
-  version: number;
-  originId?: string;
-  history: Array<{ text: string; date: string }>;
-};
-type QuoteModel = { id: string; name: string; title: string; notes: string; items: Array<{ description: string; unitPrice: number }> };
+ type QuoteStatus = "Rascunho" | "Pronto" | "Enviado" | "Visualizado" | "Alteração solicitada" | "Aprovado" | "Recusado" | "Expirado";
+ type QuoteItem = { id: string; description: string; quantity: number; unitPrice: number };
+ type Quote = { id: string; client: string; title: string; status: QuoteStatus; validity: string; updated: string; notes: string; decisionNote?: string; items: QuoteItem[]; version: number; originId?: string; history: Array<{ text: string; date: string }> };
+ type QuoteModel = { id: string; name: string; title: string; notes: string; items: Array<{ description: string; unitPrice: number }> };
 
 const initialQuotes: Quote[] = [
   { id: "ORC-0248", client: "Clínica Horizonte", title: "Website institucional", status: "Visualizado", validity: "2026-07-26", updated: "há 18 min", notes: "Prazo estimado de 30 dias após aprovação.", decisionNote: "", version: 2, originId: "ORC-0239", history: [{ text: "Cliente visualizou a versão 2", date: "Hoje, 09:18" }, { text: "Versão 2 enviada", date: "Ontem" }], items: [{ id: "q1", description: "Planejamento e definição do escopo", quantity: 1, unitPrice: 1600 }, { id: "q2", description: "Execução dos serviços contratados", quantity: 1, unitPrice: 5800 }, { id: "q3", description: "Revisão e entrega final", quantity: 1, unitPrice: 1200 }] },
@@ -39,18 +26,17 @@ export function AresApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Propostas");
   const [quotes, setQuotes] = useLocalState<Quote[]>("crmplus.ares.quotes.v2", initialQuotes);
   const [models, setModels] = useLocalState<QuoteModel[]>("crmplus.ares.models.v2", initialModels);
-  const [selectedId, setSelectedId] = useState(quotes[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "Todas">("Todas");
   const [editing, setEditing] = useState<Quote | null>(null);
-  const [modal, setModal] = useState<"decision" | null>(null);
-  const [decisionStatus, setDecisionStatus] = useState<QuoteStatus>("Visualizado");
+  const [modal, setModal] = useState<"transition" | null>(null);
+  const [transitionTarget, setTransitionTarget] = useState<QuoteStatus>("Enviado");
   const [decisionNote, setDecisionNote] = useState("");
   const [toast, setToast] = useState("");
 
-  const selected = quotes.find((quote) => quote.id === selectedId) ?? quotes[0];
+  const selected = quotes.find((quote) => quote.id === selectedId);
   const nav: NavItem[] = [{ label: "Propostas", icon: "document" }, { label: "Criar proposta", icon: "plus" }, { label: "Clientes", icon: "people" }, { label: "Modelos", icon: "clipboard" }];
-
   const normalizedQuotes = useMemo(() => quotes.map((quote) => isExpired(quote.validity) && !["Aprovado", "Recusado"].includes(quote.status) ? { ...quote, status: "Expirado" as QuoteStatus } : quote), [quotes]);
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
@@ -58,24 +44,14 @@ export function AresApp({ product }: { product: Product }) {
   }, [normalizedQuotes, query, statusFilter]);
 
   function blankQuote(model?: QuoteModel): Quote {
-    return {
-      id: uid("ORC"), client: "", title: model?.title ?? "", status: "Rascunho", validity: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), updated: "agora", notes: model?.notes ?? "", decisionNote: "", version: 1, history: [{ text: "Rascunho criado", date: todayLabel() }],
-      items: model ? model.items.map((item) => ({ id: uid("ITEM"), description: item.description, quantity: 1, unitPrice: item.unitPrice })) : [{ id: uid("ITEM"), description: "", quantity: 1, unitPrice: 0 }],
-    };
+    return { id: uid("ORC"), client: "", title: model?.title ?? "", status: "Rascunho", validity: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), updated: "agora", notes: model?.notes ?? "", decisionNote: "", version: 1, history: [{ text: "Rascunho criado", date: todayLabel() }], items: model ? model.items.map((item) => ({ id: uid("ITEM"), description: item.description, quantity: 1, unitPrice: item.unitPrice })) : [{ id: uid("ITEM"), description: "", quantity: 1, unitPrice: 0 }] };
   }
 
-  function newQuote(model?: QuoteModel) {
-    setEditing(blankQuote(model));
-    setActive("Criar proposta");
-  }
+  function newQuote(model?: QuoteModel) { setEditing(blankQuote(model)); setSelectedId(""); setActive("Criar proposta"); }
 
   function editSelected() {
     if (!selected) return;
-    if (!["Rascunho", "Pronto"].includes(selected.status)) {
-      createVersion();
-      setToast("A proposta enviada foi preservada; edite a nova versão");
-      return;
-    }
+    if (!["Rascunho", "Pronto"].includes(selected.status)) { createVersion(); setToast("A versão enviada foi preservada; edite a nova versão"); return; }
     setEditing(structuredClone(selected));
     setActive("Criar proposta");
   }
@@ -83,16 +59,17 @@ export function AresApp({ product }: { product: Product }) {
   function createVersion() {
     if (!selected) return;
     const originId = selected.originId ?? selected.id;
-    const relatedVersions = quotes.filter((quote) => (quote.originId ?? quote.id) === originId);
-    const nextVersion = Math.max(...relatedVersions.map((quote) => quote.version), selected.version) + 1;
-    setEditing({ ...structuredClone(selected), id: uid("ORC"), originId, version: nextVersion, status: "Rascunho", decisionNote: "", updated: "agora", items: selected.items.map((item) => ({ ...item, id: uid("ITEM") })), history: [{ text: `Versão ${nextVersion} criada a partir de ${selected.id}`, date: todayLabel() }] });
+    const versions = quotes.filter((quote) => (quote.originId ?? quote.id) === originId);
+    const version = Math.max(...versions.map((quote) => quote.version), selected.version) + 1;
+    setEditing({ ...structuredClone(selected), id: uid("ORC"), originId, version, status: "Rascunho", decisionNote: "", updated: "agora", items: selected.items.map((item) => ({ ...item, id: uid("ITEM") })), history: [{ text: `Versão ${version} criada a partir de ${selected.id}`, date: todayLabel() }] });
+    setSelectedId("");
     setActive("Criar proposta");
-    setToast(`Versão ${nextVersion} criada sem alterar a anterior`);
+    setToast(`Versão ${version} criada sem alterar a anterior`);
   }
 
   function validateQuote(quote: Quote, finalize: boolean) {
     if (!quote.client.trim() || !quote.title.trim()) return "Informe o cliente e o título da proposta";
-    if (!quote.items.length || quote.items.some((item) => !item.description.trim())) return "Revise os itens antes de salvar";
+    if (!quote.items.length || quote.items.some((item) => !item.description.trim())) return "Revise os itens antes de continuar";
     if (quote.items.some((item) => item.quantity <= 0 || item.unitPrice < 0)) return "Revise quantidade e valores";
     if (finalize && !quote.validity) return "Informe a validade da proposta";
     return "";
@@ -102,7 +79,7 @@ export function AresApp({ product }: { product: Product }) {
     const error = validateQuote(quote, finalize);
     if (error) { setToast(error); return; }
     const nextStatus: QuoteStatus = finalize ? "Pronto" : quote.status === "Expirado" ? "Rascunho" : quote.status;
-    const normalized: Quote = { ...quote, client: quote.client.trim(), title: quote.title.trim(), notes: quote.notes.trim(), updated: "agora", status: nextStatus, history: [{ text: finalize ? "Proposta finalizada e pronta para envio" : "Rascunho salvo", date: todayLabel() }, ...quote.history] };
+    const normalized: Quote = { ...quote, client: quote.client.trim(), title: quote.title.trim(), notes: quote.notes.trim(), updated: "agora", status: nextStatus, history: [{ text: finalize ? "Proposta revisada e pronta para envio" : "Rascunho salvo", date: todayLabel() }, ...quote.history] };
     setQuotes((current) => current.some((item) => item.id === normalized.id) ? current.map((item) => item.id === normalized.id ? normalized : item) : [normalized, ...current]);
     setSelectedId(normalized.id);
     setEditing(null);
@@ -112,28 +89,39 @@ export function AresApp({ product }: { product: Product }) {
 
   function cancelEditing() {
     if (editing && (editing.client || editing.title || editing.items.some((item) => item.description)) && !window.confirm("Descartar as alterações desta proposta?")) return;
-    setEditing(null);
-    setActive("Propostas");
+    setEditing(null); setActive("Propostas"); setSelectedId("");
   }
 
-  function openDecision(status: QuoteStatus = selected?.status ?? "Visualizado") {
-    setDecisionStatus(status);
-    setDecisionNote(selected?.decisionNote ?? "");
-    setModal("decision");
+  function allowedTargets(quote: Quote): QuoteStatus[] {
+    if (quote.status === "Rascunho") return ["Pronto"];
+    if (quote.status === "Pronto") return ["Enviado"];
+    if (quote.status === "Enviado") return ["Visualizado", "Alteração solicitada", "Aprovado", "Recusado", "Expirado"];
+    if (quote.status === "Visualizado") return ["Alteração solicitada", "Aprovado", "Recusado", "Expirado"];
+    return [];
   }
 
-  function saveDecision() {
+  function openTransition() {
     if (!selected) return;
-    const noteRequired = ["Alteração solicitada", "Recusado"].includes(decisionStatus);
-    if (noteRequired && !decisionNote.trim()) { setToast("Registre o motivo ou a alteração solicitada"); return; }
-    setQuotes((current) => current.map((quote) => quote.id === selected.id ? { ...quote, status: decisionStatus, decisionNote: decisionNote.trim(), updated: "agora", history: [{ text: decisionNote.trim() ? `${decisionStatus}: ${decisionNote.trim()}` : `Situação alterada para ${decisionStatus}`, date: todayLabel() }, ...quote.history] } : quote));
-    setModal(null);
-    setToast(`Situação registrada: ${decisionStatus}`);
+    const options = allowedTargets(selected);
+    if (!options.length) { setToast("Crie uma nova versão para continuar este processo"); return; }
+    setTransitionTarget(options[0]); setDecisionNote(""); setModal("transition");
+  }
+
+  function confirmTransition() {
+    if (!selected) return;
+    if (transitionTarget === "Pronto") {
+      const error = validateQuote(selected, true);
+      if (error) { setModal(null); setToast(error); return; }
+    }
+    if (["Alteração solicitada", "Recusado"].includes(transitionTarget) && !decisionNote.trim()) { setToast("Registre o motivo antes de confirmar"); return; }
+    const previous = selected.status;
+    setQuotes((current) => current.map((quote) => quote.id === selected.id ? { ...quote, status: transitionTarget, decisionNote: decisionNote.trim(), updated: "agora", history: [{ text: decisionNote.trim() ? `${previous} → ${transitionTarget}: ${decisionNote.trim()}` : `${previous} → ${transitionTarget}`, date: todayLabel() }, ...quote.history] } : quote));
+    setModal(null); setToast(`Etapa atualizada para ${transitionTarget}`);
   }
 
   async function shareQuote() {
     if (!selected) return;
-    await copyText(`Proposta ${selected.id} · versão ${selected.version}\n${selected.title}\nCliente: ${selected.client}\nTotal: ${currency(quoteTotal(selected))}\nValidade: ${formatDate(selected.validity)}\nSituação: ${selected.status}`);
+    await copyText(`Proposta ${selected.id} · versão ${selected.version}\n${selected.title}\nCliente: ${selected.client}\nTotal: ${currency(quoteTotal(selected))}\nValidade: ${formatDate(selected.validity)}\nEtapa atual: ${selected.status}`);
     setToast("Resumo da proposta copiado");
   }
 
@@ -149,43 +137,43 @@ export function AresApp({ product }: { product: Product }) {
 
   function removeModel(model: QuoteModel) {
     if (!window.confirm(`Remover o modelo “${model.name}”?`)) return;
-    setModels((current) => current.filter((item) => item.id !== model.id));
-    setToast("Modelo removido");
+    setModels((current) => current.filter((item) => item.id !== model.id)); setToast("Modelo removido");
   }
 
-  const headerAction = active !== "Criar proposta" && active !== "Modelos"
-    ? <button className={styles.primaryButton} onClick={() => newQuote()}><Icon name="plus" /> Nova proposta</button>
-    : active === "Modelos" ? <button className={styles.primaryButton} onClick={() => newQuote()}><Icon name="plus" /> Criar proposta</button> : undefined;
+  function changeArea(value: string) {
+    if (active === "Criar proposta" && editing && value !== "Criar proposta") { setToast("Salve ou descarte a proposta antes de sair"); return; }
+    setActive(value); setSelectedId("");
+    if (value === "Criar proposta" && !editing) setEditing(blankQuote());
+  }
 
-  return <AppShell product={product} nav={nav} active={active} onChange={(value) => { if (active === "Criar proposta" && editing && value !== "Criar proposta") { setToast("Salve ou descarte a proposta antes de sair"); return; } setActive(value); if (value === "Criar proposta" && !editing) setEditing(blankQuote()); }} title={active} subtitle="Uma proposta, suas versões e a decisão do cliente no mesmo histórico." action={headerAction}>
+  const headerAction = active !== "Criar proposta" && active !== "Modelos" ? <button className={styles.primaryButton} onClick={() => newQuote()}><Icon name="plus" /> Nova proposta</button> : active === "Modelos" ? <button className={styles.primaryButton} onClick={() => newQuote()}><Icon name="plus" /> Criar proposta</button> : undefined;
+
+  return <AppShell product={product} nav={nav} active={active} onChange={changeArea} title={active} subtitle="Uma etapa por vez: preparar, enviar e registrar a decisão do cliente." action={headerAction}>
     {active === "Propostas" ? <div className={styles.masterDetail}>
-      <section className={styles.listPane}><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, proposta ou código" /></label><select className={styles.compactSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as QuoteStatus | "Todas")}><option>Todas</option>{statusOptions.map((status) => <option key={status}>{status}</option>)}</select></div><div className={styles.recordList}>{filtered.map((quote) => <button key={quote.id} className={`${styles.recordRow} ${selected?.id === quote.id ? styles.recordSelected : ""}`} onClick={() => setSelectedId(quote.id)}><div className={styles.recordAvatar}><Icon name="document" /></div><div className={styles.recordMain}><div><strong>{quote.client || "Cliente não informado"}</strong><span>{quote.id} · v{quote.version}</span></div><p>{quote.title || "Sem título"} · {currency(quoteTotal(quote))}</p></div><div className={styles.recordMeta}><StatusPill status={quote.status} /><small>{quote.updated}</small></div></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhuma proposta encontrada" description="Altere os filtros ou crie uma nova proposta." /> : null}</div></section>
-      {selected ? <QuotePreview quote={normalizedQuotes.find((quote) => quote.id === selected.id) ?? selected} onEdit={editSelected} onVersion={createVersion} onShare={shareQuote} onPrint={() => window.print()} onStatus={openDecision} /> : <EmptyState icon="document" title="Nenhuma proposta selecionada" description="Escolha uma proposta na lista." />}
+      <section className={styles.listPane}><div className={styles.listToolbar}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, proposta ou código" /></label><select className={styles.compactSelect} value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value as QuoteStatus | "Todas"); setSelectedId(""); }}><option>Todas</option>{statusOptions.map((status) => <option key={status}>{status}</option>)}</select></div><div className={styles.recordList}>{filtered.map((quote) => <button key={quote.id} className={`${styles.recordRow} ${selected?.id === quote.id ? styles.recordSelected : ""}`} onClick={() => setSelectedId(quote.id)}><div className={styles.recordAvatar}><Icon name="document" /></div><div className={styles.recordMain}><div><strong>{quote.client || "Cliente não informado"}</strong><span>{quote.id} · v{quote.version}</span></div><p>{quote.title || "Sem título"} · próxima ação: {nextAction(quote)}</p></div><div className={styles.recordMeta}><StatusPill status={quote.status} /><small>{quote.updated}</small></div></button>)}{!filtered.length ? <EmptyState icon="search" title="Nenhuma proposta encontrada" description="Altere os filtros ou crie uma nova proposta." /> : null}</div></section>
+      {selected ? <section className={styles.documentPane}><div className={styles.documentToolbar}><div><StatusPill status={selected.status} /><span>Etapa atual · versão {selected.version}</span></div><div><button className={styles.secondaryButton} onClick={shareQuote}><Icon name="message" /> Copiar resumo</button>{["Rascunho", "Pronto"].includes(selected.status) ? <button className={styles.secondaryButton} onClick={editSelected}><Icon name="edit" /> Editar</button> : <button className={styles.secondaryButton} onClick={createVersion}><Icon name="plus" /> Nova versão</button>}{allowedTargets(selected).length ? <button className={styles.primaryButton} onClick={openTransition}>{primaryAction(selected)}</button> : null}</div></div><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Trabalho desta etapa</h3><p>{stageGuidance(selected)}</p></div></div><div className={styles.summaryGrid}><div><span>Cliente</span><strong>{selected.client}</strong></div><div><span>Validade</span><strong>{formatDate(selected.validity)}</strong></div><div><span>Total</span><strong>{currency(quoteTotal(selected))}</strong></div><div><span>Próxima ação</span><strong>{nextAction(selected)}</strong></div></div>{selected.decisionNote ? <div className={styles.noteBox}><strong>Decisão registrada:</strong> {selected.decisionNote}</div> : null}</section><details><summary>Ver proposta e condições</summary><article className={styles.paper}><header><div className={styles.paperBrand}>A</div><div><strong>ARES PROPOSTAS</strong><span>{selected.id} · VERSÃO {selected.version}</span></div></header><div className={styles.paperIntro}><span>PROPOSTA PARA</span><h2>{selected.client}</h2><p>{selected.title}</p></div><div className={styles.paperLines}>{selected.items.map((item) => <div key={item.id}><span>{item.quantity}× {item.description}</span><b>{currency(item.quantity * item.unitPrice)}</b></div>)}</div><div className={styles.paperTotal}><span>Valor total</span><strong>{currency(quoteTotal(selected))}</strong></div><div className={styles.paperTerms}><h3>Condições</h3><p>{selected.notes || "Sem condições adicionais."}</p></div></article></details><details><summary>Histórico desta versão</summary><Timeline items={selected.history} /></details></section> : <EmptyState icon="document" title="Nenhuma proposta selecionada" description="Escolha uma proposta para visualizar somente a etapa atual." />}
     </div> : null}
 
     {active === "Criar proposta" && editing ? <QuoteBuilder quote={editing} onChange={setEditing} onSave={(quote) => saveQuote(quote, false)} onGenerate={(quote) => saveQuote(quote, true)} onCreateModel={addModel} onCancel={cancelEditing} /> : null}
+    {active === "Clientes" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Clientes</span><h2>Histórico de propostas</h2><p>Selecione um cliente para abrir sua versão mais recente.</p></div></div><div className={styles.directoryRows}>{Array.from(new Set(quotes.map((quote) => quote.client).filter(Boolean))).map((client) => { const clientQuotes = quotes.filter((quote) => quote.client === client); return <button key={client} onClick={() => { const quote = clientQuotes[0]; if (quote) { setSelectedId(quote.id); setActive("Propostas"); } }}><span className={styles.companyAvatar}>{client.slice(0, 2).toUpperCase()}</span><div><strong>{client}</strong><small>{clientQuotes.length} versão(ões)</small></div><Icon name="chevron" /></button>; })}</div></section> : null}
+    {active === "Modelos" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Modelos</span><h2>Comece com uma estrutura pronta</h2></div></div><div className={styles.templateGrid}>{models.map((model) => <article key={model.id}><div className={styles.templateIcon}><Icon name="document" /></div><h3>{model.name}</h3><p>{model.items.length} itens</p><div><button className={styles.secondaryButton} onClick={() => newQuote(model)}>Usar modelo</button><button className={styles.iconButton} aria-label={`Remover modelo ${model.name}`} onClick={() => removeModel(model)}><Icon name="trash" /></button></div></article>)}</div></section> : null}
 
-    {active === "Clientes" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Clientes</span><h2>Histórico de propostas</h2><p>Todas as versões e decisões ficam ligadas ao mesmo cliente.</p></div></div><div className={styles.directoryRows}>{Array.from(new Set(quotes.map((quote) => quote.client).filter(Boolean))).map((client) => { const clientQuotes = quotes.filter((quote) => quote.client === client); return <button key={client} onClick={() => { const quote = clientQuotes[0]; if (quote) { setSelectedId(quote.id); setActive("Propostas"); } }}><span className={styles.companyAvatar}>{client.slice(0, 2).toUpperCase()}</span><div><strong>{client}</strong><small>{clientQuotes.length} versão(ões) · {clientQuotes.filter((quote) => quote.status === "Aprovado").length} aprovada(s)</small></div><Icon name="chevron" /></button>; })}{!quotes.some((quote) => quote.client) ? <EmptyState icon="people" title="Nenhum cliente vinculado" description="Os clientes aparecerão após a criação das propostas." /> : null}</div></section> : null}
-
-    {active === "Modelos" ? <section className={styles.pageSheet}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>Modelos reutilizáveis</span><h2>Comece com uma estrutura pronta</h2><p>Reaproveite itens e condições sem copiar uma proposta de cliente.</p></div></div><div className={styles.templateGrid}>{models.map((model) => <article key={model.id}><div className={styles.templateIcon}><Icon name="document" /></div><h3>{model.name}</h3><p>{model.items.length} itens · base de {currency(model.items.reduce((sum, item) => sum + item.unitPrice, 0))}</p><div><button className={styles.secondaryButton} onClick={() => newQuote(model)}>Usar modelo</button><button className={styles.iconButton} aria-label={`Remover modelo ${model.name}`} onClick={() => removeModel(model)}><Icon name="trash" /></button></div></article>)}{!models.length ? <EmptyState icon="clipboard" title="Nenhum modelo salvo" description="Crie uma proposta e salve sua estrutura como modelo." /> : null}</div></section> : null}
-
-    <Modal open={modal === "decision"} title="Registrar situação do cliente" description={selected ? `${selected.id} · versão ${selected.version}` : undefined} onClose={() => setModal(null)}><Field label="Situação"><select value={decisionStatus} onChange={(event) => setDecisionStatus(event.target.value as QuoteStatus)}>{statusOptions.filter((status) => status !== "Rascunho" && status !== "Pronto").map((status) => <option key={status}>{status}</option>)}</select></Field><Field label="Observação" hint="Obrigatória quando houver recusa ou pedido de alteração."><textarea value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} placeholder="O que o cliente decidiu ou pediu para mudar?" /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button type="button" className={styles.primaryButton} onClick={saveDecision}>Registrar decisão</button></div></Modal>
+    <Modal open={modal === "transition"} title="Confirmar mudança de etapa" description={selected ? `${selected.id} · ${selected.client}` : undefined} onClose={() => setModal(null)}>{selected ? <><Field label="Próxima etapa"><select value={transitionTarget} onChange={(event) => setTransitionTarget(event.target.value as QuoteStatus)}>{allowedTargets(selected).map((status) => <option key={status}>{status}</option>)}</select></Field>{["Alteração solicitada", "Recusado"].includes(transitionTarget) ? <Field label="Motivo ou alteração solicitada"><textarea required value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} /></Field> : null}<div className={styles.noteBox}><strong>{selected.status}</strong> → <strong>{transitionTarget}</strong><br />{transitionConsequence(transitionTarget)}</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={confirmTransition}>Confirmar mudança</button></div></> : null}</Modal>
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
-}
-
-function QuotePreview({ quote, onEdit, onVersion, onShare, onPrint, onStatus }: { quote: Quote; onEdit: () => void; onVersion: () => void; onShare: () => void; onPrint: () => void; onStatus: () => void }) {
-  return <section className={styles.documentPane}><div className={styles.documentToolbar}><div><button onClick={onStatus}><StatusPill status={quote.status} /></button><span>Versão {quote.version} · validade {formatDate(quote.validity)}</span></div><div><button className={styles.iconButton} onClick={onEdit} aria-label="Editar proposta"><Icon name="edit" /></button><button className={styles.secondaryButton} onClick={onVersion}><Icon name="plus" /> Nova versão</button><button className={styles.iconButton} onClick={onPrint} aria-label="Imprimir proposta"><Icon name="print" /></button><button className={styles.primaryButton} onClick={onShare}>Copiar para compartilhar</button></div></div>{quote.status === "Expirado" ? <div className={styles.noteBox}>Esta versão expirou. Crie uma nova versão antes de reenviar.</div> : null}{quote.decisionNote ? <div className={styles.noteBox}><strong>Decisão do cliente:</strong> {quote.decisionNote}</div> : null}<article className={styles.paper}><header><div className={styles.paperBrand}>A</div><div><strong>ARES PROPOSTAS</strong><span>{quote.id} · VERSÃO {quote.version}</span></div></header><div className={styles.paperIntro}><span>PROPOSTA PARA</span><h2>{quote.client || "Cliente não informado"}</h2><p>{quote.title || "Proposta sem título"}</p></div><div className={styles.paperLines}>{quote.items.map((item) => <div key={item.id}><span>{item.quantity}× {item.description || "Item sem descrição"}</span><b>{currency(item.quantity * item.unitPrice)}</b></div>)}</div><div className={styles.paperTotal}><span>Valor total</span><strong>{currency(quoteTotal(quote))}</strong></div><div className={styles.paperTerms}><h3>Condições</h3><p>{quote.notes || "Sem condições adicionais."} Proposta válida até {formatDate(quote.validity)}.</p></div></article><section className={styles.infoSection}><div className={styles.sectionHeading}><div><h3>Histórico desta versão</h3><p>Envios, visualizações e decisões preservados.</p></div></div><div className={styles.scheduleList}>{quote.history.map((item, index) => <div className={styles.scheduleRow} key={`${item.date}-${index}`}><strong>{item.date}</strong><div><h3>{item.text}</h3></div></div>)}</div></section></section>;
 }
 
 function QuoteBuilder({ quote, onChange, onSave, onGenerate, onCreateModel, onCancel }: { quote: Quote; onChange: (quote: Quote) => void; onSave: (quote: Quote) => void; onGenerate: (quote: Quote) => void; onCreateModel: () => void; onCancel: () => void }) {
   function patch(value: Partial<Quote>) { onChange({ ...quote, ...value }); }
   function patchItem(id: string, value: Partial<QuoteItem>) { patch({ items: quote.items.map((item) => item.id === id ? { ...item, ...value } : item) }); }
-  function addItem() { patch({ items: [...quote.items, { id: uid("ITEM"), description: "", quantity: 1, unitPrice: 0 }] }); }
   const total = quoteTotal(quote);
-  return <div className={styles.builderLayout}><section className={styles.builderForm}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>{quote.id} · versão {quote.version}</span><h2>Monte a proposta</h2><p>O cliente verá somente escopo, condições, prazo e valor.</p></div><button type="button" className={styles.secondaryButton} onClick={onCancel}>Descartar e sair</button></div><div className={styles.formGrid}><label className={styles.fieldLabel}><span>Cliente</span><input required value={quote.client} onChange={(event) => patch({ client: event.target.value })} /></label><label className={styles.fieldLabel}><span>Validade</span><input type="date" value={quote.validity} onChange={(event) => patch({ validity: event.target.value })} /></label></div><label className={styles.fieldLabel}><span>Título da proposta</span><input required value={quote.title} onChange={(event) => patch({ title: event.target.value })} /></label><div className={styles.builderItems}><div className={styles.sectionHeading}><div><h3>Itens da proposta</h3><p>Quantidade, descrição e valor unitário.</p></div><button type="button" onClick={addItem}><Icon name="plus" /> Adicionar</button></div>{quote.items.map((item, index) => <div className={styles.builderLineAdvanced} key={item.id}><span>{index + 1}</span><input value={item.description} onChange={(event) => patchItem(item.id, { description: event.target.value })} placeholder="Descrição" /><input type="number" min="1" value={item.quantity} onChange={(event) => patchItem(item.id, { quantity: Number(event.target.value) || 1 })} /><input type="number" min="0" step="0.01" value={item.unitPrice} onChange={(event) => patchItem(item.id, { unitPrice: Number(event.target.value) || 0 })} /><button type="button" className={styles.iconButton} aria-label={`Remover item ${index + 1}`} disabled={quote.items.length === 1} onClick={() => patch({ items: quote.items.filter((line) => line.id !== item.id) })}><Icon name="trash" /></button></div>)}</div><label className={styles.fieldLabel}><span>Condições, prazo e observações</span><textarea value={quote.notes} onChange={(event) => patch({ notes: event.target.value })} /></label><div className={styles.totalBar}><span>Total da proposta</span><strong>{currency(total)}</strong></div><div className={styles.builderFooter}><button type="button" className={styles.secondaryButton} onClick={onCreateModel}>Salvar como modelo</button><button type="button" className={styles.secondaryButton} onClick={() => onSave(quote)}>Salvar rascunho</button><button type="button" className={styles.primaryButton} onClick={() => onGenerate(quote)}>Finalizar proposta</button></div></section><section className={styles.livePreview}><span>Prévia do cliente · versão {quote.version}</span><div className={styles.miniPaper}><strong>Proposta comercial</strong><h3>{quote.client || "Cliente"}</h3><p>{quote.title || "Título da proposta"}</p>{quote.items.map((item) => <div key={item.id}><span>{item.description || "Novo item"}</span><b>{currency(item.quantity * item.unitPrice)}</b></div>)}<footer><span>Total</span><strong>{currency(total)}</strong></footer></div></section></div>;
+  return <div className={styles.builderLayout}><section className={styles.builderForm}><div className={styles.pageHeading}><div><span className={styles.eyebrow}>{quote.id} · versão {quote.version}</span><h2>Monte a proposta</h2><p>Preencha o necessário para concluir esta etapa.</p></div><button type="button" className={styles.secondaryButton} onClick={onCancel}>Descartar e sair</button></div><div className={styles.formGrid}><label className={styles.fieldLabel}><span>Cliente</span><input required value={quote.client} onChange={(event) => patch({ client: event.target.value })} /></label><label className={styles.fieldLabel}><span>Validade</span><input type="date" value={quote.validity} onChange={(event) => patch({ validity: event.target.value })} /></label></div><label className={styles.fieldLabel}><span>Título da proposta</span><input required value={quote.title} onChange={(event) => patch({ title: event.target.value })} /></label><div className={styles.builderItems}><div className={styles.sectionHeading}><div><h3>Itens</h3></div><button type="button" onClick={() => patch({ items: [...quote.items, { id: uid("ITEM"), description: "", quantity: 1, unitPrice: 0 }] })}><Icon name="plus" /> Adicionar</button></div>{quote.items.map((item, index) => <div className={styles.builderLineAdvanced} key={item.id}><span>{index + 1}</span><input value={item.description} onChange={(event) => patchItem(item.id, { description: event.target.value })} placeholder="Descrição" /><input type="number" min="1" value={item.quantity} onChange={(event) => patchItem(item.id, { quantity: Number(event.target.value) || 1 })} /><input type="number" min="0" step="0.01" value={item.unitPrice} onChange={(event) => patchItem(item.id, { unitPrice: Number(event.target.value) || 0 })} /><button type="button" className={styles.iconButton} aria-label={`Remover item ${index + 1}`} disabled={quote.items.length === 1} onClick={() => patch({ items: quote.items.filter((line) => line.id !== item.id) })}><Icon name="trash" /></button></div>)}</div><label className={styles.fieldLabel}><span>Condições e observações</span><textarea value={quote.notes} onChange={(event) => patch({ notes: event.target.value })} /></label><div className={styles.totalBar}><span>Total</span><strong>{currency(total)}</strong></div><div className={styles.builderFooter}><button type="button" className={styles.secondaryButton} onClick={onCreateModel}>Salvar como modelo</button><button type="button" className={styles.secondaryButton} onClick={() => onSave(quote)}>Salvar rascunho</button><button type="button" className={styles.primaryButton} onClick={() => onGenerate(quote)}>Concluir preparação</button></div></section></div>;
 }
 
 function quoteTotal(quote: Quote) { return quote.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0); }
 function formatDate(value: string) { if (!value) return "não definida"; return new Intl.DateTimeFormat("pt-BR").format(new Date(`${value}T12:00:00`)); }
 function isExpired(value: string) { if (!value) return false; return new Date(`${value}T23:59:59`).getTime() < Date.now(); }
+function nextAction(quote: Quote) { if (quote.status === "Rascunho") return "Concluir preparação"; if (quote.status === "Pronto") return "Confirmar envio"; if (quote.status === "Enviado") return "Registrar visualização ou decisão"; if (quote.status === "Visualizado") return "Registrar decisão do cliente"; if (quote.status === "Alteração solicitada") return "Criar nova versão"; if (quote.status === "Aprovado") return "Consultar aprovação"; if (quote.status === "Recusado") return "Criar nova versão quando necessário"; return "Criar nova versão"; }
+function primaryAction(quote: Quote) { if (quote.status === "Rascunho") return "Concluir preparação"; if (quote.status === "Pronto") return "Confirmar envio"; return "Registrar próxima etapa"; }
+function stageGuidance(quote: Quote) { if (quote.status === "Rascunho") return "Revise cliente, escopo, valores e validade antes de concluir."; if (quote.status === "Pronto") return "A proposta está pronta. Confirme somente quando ela realmente for enviada."; if (["Enviado", "Visualizado"].includes(quote.status)) return "Registre apenas o que o cliente realmente fez ou decidiu."; return "Esta versão está encerrada. O histórico permanece preservado."; }
+function transitionConsequence(status: QuoteStatus) { if (status === "Pronto") return "A proposta ficará bloqueada para revisão final antes do envio."; if (status === "Enviado") return "O sistema registrará que esta versão foi enviada ao cliente."; if (status === "Visualizado") return "O sistema registrará que o cliente visualizou esta versão."; if (status === "Aprovado") return "A versão será encerrada como aprovada."; if (status === "Recusado") return "A versão será encerrada como recusada e o motivo ficará no histórico."; if (status === "Alteração solicitada") return "A versão será preservada e uma nova versão poderá ser criada."; return "A versão ficará marcada como expirada."; }
