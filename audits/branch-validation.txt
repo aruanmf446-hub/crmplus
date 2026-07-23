@@ -1,4 +1,4 @@
-COMMIT VALIDADO: b797472d621a2cfc78a5bbeea447e591cec9ee23
+COMMIT VALIDADO: c8a692818542991a8034b360f58b896e6253a3a1
 DEPENDÊNCIAS: success
 AUDITORIA PRODUÇÃO: success
 AUDITORIA COMPLETA: success
@@ -8,7 +8,7 @@ BUILD: success
 
 === LOCKFILE ===
 
-up to date, audited 404 packages in 909ms
+up to date, audited 404 packages in 806ms
 
 166 packages are looking for funding
   run `npm fund` for details
@@ -81,27 +81,6 @@ found 0 vulnerabilities
 /home/runner/work/crmplus/crmplus/components/workspaces/hercules/HerculesWorkspace.tsx
   3:10  warning  'useMemo' is defined but never used  @typescript-eslint/no-unused-vars
 
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/AppAccessGate.tsx
-  72:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/runner/work/crmplus/crmplus/components/workspaces/phase-four/AppAccessGate.tsx:72:7
-  70 |
-  71 |       const requestedMode = new URLSearchParams(window.location.search).get("modo");
-> 72 |       setMode(requestedMode === "criar-conta" ? "signup" : requestedMode === "recuperar-senha" ? "forgot" : "login");
-     |       ^^^^^^^ Avoid calling setState() directly within an effect
-  73 |       setSignedIn(window.localStorage.getItem(sessionKey) === "active");
-  74 |     } catch {
-  75 |       setStorageAvailable(false);  react-hooks/set-state-in-effect
-  80:6  error  React Hook useEffect has a missing dependency: 'legacyAccountKeys'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
-  80:7  error  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
-  90:6  error  React Hook useMemo has an unnecessary dependency: 'accountRevision'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
-
 /home/runner/work/crmplus/crmplus/components/workspaces/phase-four/HerculesApp.tsx
   5:20  warning  'EmptyState' is defined but never used  @typescript-eslint/no-unused-vars
 
@@ -147,7 +126,7 @@ Calling setState synchronously within an effect body causes cascading renders th
   112 |     setCollapsed(window.localStorage.getItem("crmplus.ui.sidebar.collapsed") === "true");
   113 |     return subscribeStorageStatus((detail) => {  react-hooks/set-state-in-effect
 
-✖ 10 problems (8 errors, 2 warnings)
+✖ 6 problems (4 errors, 2 warnings)
 
 
 === TYPESCRIPT ===
@@ -165,15 +144,15 @@ Calling setState synchronously within an effect body causes cascading renders th
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 2.9s
+✓ Compiled successfully in 3.2s
   Running TypeScript ...
-  Finished TypeScript in 8.1s ...
+  Finished TypeScript in 8.4s ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/69) ...
   Generating static pages using 3 workers (17/69) 
   Generating static pages using 3 workers (34/69) 
   Generating static pages using 3 workers (51/69) 
-✓ Generating static pages using 3 workers (69/69) in 792ms
+✓ Generating static pages using 3 workers (69/69) in 825ms
   Finalizing page optimization ...
 
 Route (app)
