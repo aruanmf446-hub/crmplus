@@ -1,0 +1,22 @@
+/* Rodapé institucional discreto presente em todos os sistemas. */
+[data-product] [class*="workspace"]::after {
+  content: "Desenvolvido por CRM Plus · © 2026";
+  display: block;
+  flex: 0 0 auto;
+  padding: 18px 28px 22px;
+  border-top: 1px solid rgba(102, 112, 133, .14);
+  background: var(--canvas-bg, #f5f6f8);
+  color: #8a94a3;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: .01em;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  [data-product] [class*="workspace"]::after {
+    padding: 16px 14px 20px;
+    font-size: 10px;
+  }
+}
