@@ -10,7 +10,7 @@ import { ProductMediaImage } from "@/components/ProductMediaImage";
 import styles from "./AppAccessGate.module.css";
 
 type Account = { name: string; company: string; email: string; password: string; createdAt?: string };
-type Mode = "login" | "signup";
+type Mode = "login" | "signup" | "forgot";
 
 export function AppAccessGate({ product, children }: { product: Product; children: ReactNode }) {
   const accountKey = `crmplus.access.${product.slug}.account`;
@@ -40,7 +40,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
       if (legacySession) window.localStorage.removeItem(legacySessionKey);
 
       const requestedMode = new URLSearchParams(window.location.search).get("modo");
-      setMode(requestedMode === "criar-conta" ? "signup" : "login");
+      setMode(requestedMode === "criar-conta" ? "signup" : requestedMode === "recuperar-senha" ? "forgot" : "login");
       setSignedIn(window.localStorage.getItem(sessionKey) === "active");
     } catch {
       setStorageAvailable(false);
@@ -70,11 +70,14 @@ export function AppAccessGate({ product, children }: { product: Product; childre
   const passwordsMatch = confirmationStarted && draft.password === draft.confirmPassword;
   const signupFieldsReady = Boolean(draft.name.trim() && draft.company.trim() && draft.email.trim());
   const signupReady = signupFieldsReady && passwordIsValid && passwordsMatch;
+  const recoveryReady = Boolean(draft.email.trim()) && passwordIsValid && passwordsMatch;
 
   function changeMode(nextMode: Mode) {
     setMode(nextMode);
     setError("");
     setDraft((current) => ({ ...current, password: "", confirmPassword: "" }));
+    const nextQuery = nextMode === "signup" ? "?modo=criar-conta" : nextMode === "forgot" ? "?modo=recuperar-senha" : window.location.pathname;
+    window.history.replaceState({}, "", nextQuery);
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -88,7 +91,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
 
     const email = draft.email.trim().toLowerCase();
     if (!email || !draft.password) {
-      setError("Informe e-mail e senha.");
+      setError(mode === "forgot" ? "Informe o e-mail e a nova senha." : "Informe e-mail e senha.");
       return;
     }
 
@@ -126,6 +129,35 @@ export function AppAccessGate({ product, children }: { product: Product; childre
         setSignedIn(true);
       } catch {
         setError("Não foi possível salvar a conta neste navegador.");
+      }
+      return;
+    }
+
+    if (mode === "forgot") {
+      if (!storedAccount) {
+        setError("Não existe uma conta deste aplicativo salva neste navegador.");
+        return;
+      }
+      if (storedAccount.email !== email) {
+        setError("Este e-mail não corresponde à conta salva neste navegador.");
+        return;
+      }
+      if (!passwordIsValid) {
+        setError("Crie uma nova senha que atenda aos três requisitos.");
+        return;
+      }
+      if (!passwordsMatch) {
+        setError("A confirmação da nova senha não confere.");
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(accountKey, JSON.stringify({ ...storedAccount, password: draft.password }));
+        window.localStorage.setItem(sessionKey, "active");
+        window.history.replaceState({}, "", window.location.pathname);
+        setSignedIn(true);
+      } catch {
+        setError("Não foi possível redefinir a senha neste navegador.");
       }
       return;
     }
@@ -173,6 +205,14 @@ export function AppAccessGate({ product, children }: { product: Product; childre
 
   const pageStyle = { "--accent": product.color, "--accent-soft": product.colorSoft } as CSSProperties;
   const previewCandidates = [...media.galleryCandidates[1], ...media.coverCandidates];
+  const heading = mode === "login" ? "Entrar no aplicativo" : mode === "signup" ? "Criar conta" : "Redefinir senha";
+  const description = mode === "login"
+    ? `Acesse sua área exclusiva do ${product.shortName}.`
+    : mode === "signup"
+      ? `Prepare o acesso da sua empresa ao ${product.shortName}.`
+      : "Informe o e-mail da conta salva neste navegador e crie uma nova senha.";
+  const requiresNewPassword = mode !== "login";
+  const submitDisabled = !storageAvailable || (mode === "signup" && (Boolean(storedAccount) || !signupReady)) || (mode === "forgot" && !recoveryReady);
 
   return (
     <main className={styles.page} style={pageStyle}>
@@ -190,23 +230,25 @@ export function AppAccessGate({ product, children }: { product: Product; childre
         </div>
 
         <div className={styles.formSide}>
-          <div className={styles.formHeading}><small>{product.name}</small><h2>{mode === "login" ? "Entrar no aplicativo" : "Criar conta"}</h2><p>{mode === "login" ? `Acesse sua área exclusiva do ${product.shortName}.` : `Prepare o acesso da sua empresa ao ${product.shortName}.`}</p></div>
+          <div className={styles.formHeading}><small>{product.name}</small><h2>{heading}</h2><p>{description}</p></div>
           <div className={styles.tabs}>
             <button type="button" className={mode === "login" ? styles.active : ""} onClick={() => changeMode("login")}>Entrar</button>
             <button type="button" className={mode === "signup" ? styles.active : ""} onClick={() => changeMode("signup")}>Criar conta</button>
           </div>
           {mode === "signup" && storedAccount ? <div className={styles.notice}>Já existe uma conta deste aplicativo neste navegador. <button type="button" onClick={() => changeMode("login")}>Entrar com ela</button></div> : null}
+          {mode === "forgot" ? <div className={styles.notice}>A recuperação é local e funciona apenas neste dispositivo. <button type="button" onClick={() => changeMode("login")}>Voltar para entrar</button></div> : null}
           <form className={styles.form} onSubmit={submit} noValidate>
             {mode === "signup" ? <>
               <label className={styles.field}><span>Seu nome</span><input required autoComplete="name" value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} /></label>
               <label className={styles.field}><span>Empresa</span><input required autoComplete="organization" value={draft.company} onChange={(event) => setDraft((current) => ({ ...current, company: event.target.value }))} /></label>
             </> : null}
             <label className={styles.field}><span>E-mail</span><input required autoComplete="email" type="email" value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} /></label>
-            <label className={styles.field}><span>Senha</span><input required aria-describedby={mode === "signup" ? `password-rules-${product.slug}` : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} type="password" minLength={mode === "signup" ? 8 : 1} value={draft.password} onChange={(event) => setDraft((current) => ({ ...current, password: event.target.value }))} /></label>
-            {mode === "signup" ? <>
+            <label className={styles.field}><span>{mode === "forgot" ? "Nova senha" : "Senha"}</span><input required aria-describedby={requiresNewPassword ? `password-rules-${product.slug}` : undefined} autoComplete={requiresNewPassword ? "new-password" : "current-password"} type="password" minLength={requiresNewPassword ? 8 : 1} value={draft.password} onChange={(event) => setDraft((current) => ({ ...current, password: event.target.value }))} /></label>
+            {mode === "login" ? <button className={styles.recoveryLink} type="button" onClick={() => changeMode("forgot")}>Esqueci minha senha</button> : null}
+            {requiresNewPassword ? <>
               <div id={`password-rules-${product.slug}`} className={styles.passwordRules} aria-live="polite">{passwordRules.map((rule) => <span key={rule.label} className={rule.passed ? styles.ruleOk : ""}>{rule.passed ? "✓" : "○"} {rule.label}</span>)}</div>
               <label className={styles.field}>
-                <span>Confirmar senha</span>
+                <span>{mode === "forgot" ? "Confirmar nova senha" : "Confirmar senha"}</span>
                 <input required aria-invalid={confirmationStarted && !passwordsMatch} aria-describedby={`password-confirmation-${product.slug}`} autoComplete="new-password" type="password" minLength={8} value={draft.confirmPassword} onChange={(event) => setDraft((current) => ({ ...current, confirmPassword: event.target.value }))} />
                 <small id={`password-confirmation-${product.slug}`} className={`${styles.confirmStatus} ${confirmationStarted ? (passwordsMatch ? styles.confirmOk : styles.confirmError) : ""}`} aria-live="polite">
                   {!confirmationStarted ? "Repita a senha para confirmar." : passwordsMatch ? "✓ As senhas conferem." : "As senhas não conferem."}
@@ -214,7 +256,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
               </label>
             </> : null}
             {error ? <div className={styles.error} role="alert">{error}</div> : null}
-            <button className={styles.submit} type="submit" disabled={!storageAvailable || (mode === "signup" && (Boolean(storedAccount) || !signupReady))}>{mode === "login" ? `Entrar no ${product.shortName}` : "Criar conta e entrar"}</button>
+            <button className={styles.submit} type="submit" disabled={submitDisabled}>{mode === "login" ? `Entrar no ${product.shortName}` : mode === "signup" ? "Criar conta e entrar" : "Redefinir senha e entrar"}</button>
             <p className={styles.storageNote}>Conta, sessão e registros ficam somente neste navegador. Nenhum dado é enviado ao GitHub.</p>
           </form>
         </div>
