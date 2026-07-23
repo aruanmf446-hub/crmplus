@@ -1,5 +1,0 @@
-
-> crmplus-store@0.1.0 lint
-> tsc --noEmit
-
-components/workspaces/phase-four/VerticalBusinessApp.tsx(392,112): error TS2367: This comparison appears to be unintentional because the types 'RecordScope' and '"Ativos"' have no overlap.
