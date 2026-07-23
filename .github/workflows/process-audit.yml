@@ -6,7 +6,6 @@ on:
     paths:
       - 'components/workspaces/phase-four/**'
       - 'scripts/audit-processes.mjs'
-      - 'scripts/repair-process-audit.py'
       - '.github/workflows/process-audit.yml'
   workflow_dispatch:
 
@@ -26,9 +25,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Preparar roteiro do agente
-        run: python scripts/repair-process-audit.py
 
       - name: Configurar Node
         uses: actions/setup-node@v4
@@ -88,7 +84,7 @@ jobs:
           fi
           git config user.name 'crmplus-process-agent'
           git config user.email 'actions@users.noreply.github.com'
-          git add scripts/audit-processes.mjs audits/process-audit-latest.txt 2>/dev/null || true
+          git add audits/process-audit-latest.txt 2>/dev/null || true
           if git diff --cached --quiet; then
             echo 'Nenhum resultado novo para registrar.'
             exit 0
