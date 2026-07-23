@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Brand } from "./Brand";
 
 export function Footer() {
@@ -5,13 +6,13 @@ export function Footer() {
     <footer className="site-footer home-footer">
       <div className="shell home-footer-grid">
         <div className="home-footer-brand"><Brand /><p>Aplicativos independentes para pequenas empresas organizarem rotinas específicas com clareza.</p></div>
-        <div className="footer-mini-menus" aria-label="Informações institucionais">
-          <details><summary>Privacidade <span>+</span></summary><p>Cada aplicativo possui uma área exclusiva para a rotina da empresa.</p></details>
-          <details><summary>Termos <span>+</span></summary><p>As condições de uso e contratação serão apresentadas de forma clara em cada produto.</p></details>
-          <details><summary>Sobre o CRMPlus+ <span>+</span></summary><p>A CRMPlus Store reúne sistemas singulares para diferentes tipos de negócio.</p></details>
-        </div>
+        <nav className="footer-mini-menus footer-document-links" aria-label="Informações institucionais">
+          <Link href="/privacidade"><strong>Privacidade</strong><span>Como os dados locais são tratados</span></Link>
+          <Link href="/termos"><strong>Termos de uso</strong><span>Limites e condições da demonstração</span></Link>
+          <Link href="/#sistemas"><strong>Aplicativos</strong><span>Conheça os sistemas CRMPlus+</span></Link>
+        </nav>
       </div>
-      <div className="shell home-footer-bottom"><span>Copyright © 2026 CRMPlus+</span></div>
+      <div className="shell home-footer-bottom"><span>Desenvolvido por CRM Plus · © 2026</span></div>
     </footer>
   );
 }
