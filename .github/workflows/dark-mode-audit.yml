@@ -1,0 +1,74 @@
+name: Auditar modo escuro
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/dark-mode*.css'
+      - 'app/layout.tsx'
+      - 'components/workspaces/**'
+      - 'scripts/audit-dark-mode.mjs'
+      - '.github/workflows/dark-mode-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crmplus-dark-mode-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar TypeScript
+        run: npm run lint
+
+      - name: Gerar site estático
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Instalar navegador da auditoria
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Iniciar site local
+        run: |
+          python3 -m http.server 4173 -d out > /tmp/crmplus-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/crmplus/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/crmplus-server.log
+          exit 1
+
+      - name: Verificar cores e contraste dos 15 apps
+        run: node scripts/audit-dark-mode.mjs
+        env:
+          CRMPLUS_AUDIT_URL: http://127.0.0.1:4173/crmplus
+
+      - name: Publicar relatório visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dark-mode-audit
+          path: artifacts/dark-mode
+          if-no-files-found: warn
