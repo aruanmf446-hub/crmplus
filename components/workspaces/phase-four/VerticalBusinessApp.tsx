@@ -82,6 +82,14 @@ export type VerticalConfig = {
 
 type RecordScope = "Ativos" | "Arquivados";
 type RecordView = "list" | "detail";
+type ModalName = "record" | "operation" | "resource" | "transition" | "operationStatus" | "resourceStatus" | null;
+
+type ItemTransition = {
+  id: string;
+  title: string;
+  current: string;
+  target: string;
+};
 
 export function VerticalBusinessApp({ product, config }: { product: Product; config: VerticalConfig }) {
   const [active, setActive] = useState(config.entityPlural);
@@ -93,13 +101,14 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
-  const [detailTab, setDetailTab] = useState("Resumo");
-  const [modal, setModal] = useState<"record" | "operation" | "resource" | null>(null);
+  const [modal, setModal] = useState<ModalName>(null);
   const [toast, setToast] = useState("");
   const [note, setNote] = useState("");
   const [recordDraft, setRecordDraft] = useState({ title: "", subtitle: "", owner: "" });
   const [operationDraft, setOperationDraft] = useState({ title: "", description: "", date: "", status: config.operationStatuses[0] ?? "Aberto" });
   const [resourceDraft, setResourceDraft] = useState({ title: "", category: "", reference: "", due: "", status: config.resourceStatuses[0] ?? "Ativo" });
+  const [transitionTarget, setTransitionTarget] = useState("");
+  const [itemTransition, setItemTransition] = useState<ItemTransition>({ id: "", title: "", current: "", target: "" });
 
   const selected = records.find((record) => record.id === selectedId);
   const linearFlow = config.linearFlow !== false;
@@ -128,13 +137,18 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   function changeArea(label: string) {
     setActive(label);
     setView("list");
+    setSelectedId("");
     setQuery("");
   }
 
-  function openRecord(record: MainRecord, tab = "Resumo") {
+  function openRecord(record: MainRecord) {
     setSelectedId(record.id);
-    setDetailTab(tab);
     setView("detail");
+  }
+
+  function returnToList() {
+    setSelectedId("");
+    setView("list");
   }
 
   function updateSelected(patch: Partial<MainRecord>, historyText?: string) {
@@ -150,44 +164,70 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   function createRecord() {
     const title = recordDraft.title.trim();
     if (!title) { setToast(`Informe o nome do ${config.entityLabel.toLowerCase()}`); return; }
+    if (!recordDraft.owner.trim()) { setToast("Defina quem será responsável pelo registro"); return; }
     const data = Object.fromEntries(config.fields.map((field) => [field.key, config.newRecordDefaults?.[field.key] ?? ""]));
     const next: MainRecord = {
       id: uid(config.slug.slice(0, 3).toUpperCase()),
       title,
       subtitle: recordDraft.subtitle.trim() || config.entityLabel,
       status: config.statuses[0],
-      owner: recordDraft.owner.trim() || "Não atribuído",
+      owner: recordDraft.owner.trim(),
       updated: "agora",
       archived: false,
       data,
-      history: [{ text: `${config.entityLabel} criado`, date: todayLabel() }],
+      history: [{ text: `${config.entityLabel} criado na etapa ${config.statuses[0]}`, date: todayLabel() }],
       attachments: [],
     };
     setRecords((current) => [next, ...current]);
-    setSelectedId(next.id);
     setRecordDraft({ title: "", subtitle: "", owner: "" });
     setModal(null);
     setActive(config.entityPlural);
     setScope("Ativos");
-    setDetailTab("Resumo");
-    setView("detail");
+    openRecord(next);
     setToast(`${config.entityLabel} criado`);
   }
 
-  function advanceStatus() {
-    if (!selected || !linearFlow) return;
+  function transitionOptions() {
+    if (!selected) return [];
+    if (linearFlow) return nextStatus ? [nextStatus] : [];
+    return config.statuses.filter((status) => status !== selected.status);
+  }
+
+  function openTransition() {
+    if (!selected) return;
     if (selected.archived) { setToast("Restaure o registro antes de alterar sua etapa"); return; }
-    if (!nextStatus) { setToast("Este registro já está na etapa final"); return; }
-    updateSelected({ status: nextStatus }, `Situação alterada para ${nextStatus}`);
-    setToast(`Situação alterada para ${nextStatus}`);
+    const options = transitionOptions();
+    if (!options.length) { setToast("Este registro já está na etapa final"); return; }
+    setTransitionTarget(options[0]);
+    setModal("transition");
+  }
+
+  function validateTransition(target: string) {
+    if (!selected) return "Selecione um registro";
+    if (!selected.owner.trim() || selected.owner === "Não atribuído") return "Defina um responsável antes de mudar a etapa";
+    if (!selected.subtitle.trim()) return "Preencha a descrição do registro antes de continuar";
+    if (currentStatusIndex === 0 && !keyFacts.length) return "Preencha ao menos uma informação principal antes de avançar";
+    if (target === finalStatus && attentionResources > 0) return `Resolva ${attentionResources} item(ns) com atenção antes de concluir`;
+    return "";
+  }
+
+  function confirmTransition() {
+    if (!selected || !transitionTarget) return;
+    const error = validateTransition(transitionTarget);
+    if (error) { setModal(null); setToast(error); return; }
+    const previous = selected.status;
+    updateSelected({ status: transitionTarget }, `Etapa alterada de ${previous} para ${transitionTarget}`);
+    setModal(null);
+    setToast(`Etapa atualizada para ${transitionTarget}`);
   }
 
   function toggleArchive() {
     if (!selected) return;
     const willArchive = !selected.archived;
+    if (willArchive && !window.confirm(`Arquivar “${selected.title}”? O registro sairá da lista ativa, mas o histórico será preservado.`)) return;
     updateSelected({ archived: willArchive }, willArchive ? "Registro arquivado" : "Registro restaurado");
     setScope(willArchive ? "Arquivados" : "Ativos");
-    setView("list");
+    returnToList();
     setToast(willArchive ? "Registro arquivado" : "Registro restaurado");
   }
 
@@ -204,33 +244,46 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       history: [{ text: `Registro criado a partir de ${selected.id}`, date: todayLabel() }],
     };
     setRecords((current) => [copy, ...current]);
-    setSelectedId(copy.id);
-    setDetailTab("Resumo");
-    setView("detail");
+    openRecord(copy);
     setToast(`${config.entityLabel} duplicado`);
   }
 
-  function changeOperationStatus(item: RelatedRecord, status: string) {
-    setRelated((current) => current.map((entry) => entry.id === item.id ? { ...entry, status } : entry));
-    updateSelected({}, `${config.operationLabel} “${item.title}” alterado para ${status}`);
-    setToast(`${config.operationLabel} atualizado`);
+  function openOperationStatus(item: RelatedRecord) {
+    const target = config.operationStatuses.find((status) => status !== item.status) ?? "";
+    if (!target) return;
+    setItemTransition({ id: item.id, title: item.title, current: item.status, target });
+    setModal("operationStatus");
+  }
+
+  function openResourceStatus(item: ResourceRecord) {
+    const target = config.resourceStatuses.find((status) => status !== item.status) ?? "";
+    if (!target) return;
+    setItemTransition({ id: item.id, title: item.title, current: item.status, target });
+    setModal("resourceStatus");
+  }
+
+  function confirmItemTransition(kind: "operation" | "resource") {
+    if (!itemTransition.id || !itemTransition.target) return;
+    if (kind === "operation") {
+      setRelated((current) => current.map((entry) => entry.id === itemTransition.id ? { ...entry, status: itemTransition.target } : entry));
+      updateSelected({}, `${config.operationLabel} “${itemTransition.title}” alterado de ${itemTransition.current} para ${itemTransition.target}`);
+    } else {
+      setResources((current) => current.map((entry) => entry.id === itemTransition.id ? { ...entry, status: itemTransition.target } : entry));
+      updateSelected({}, `${config.resourceLabel} “${itemTransition.title}” alterado de ${itemTransition.current} para ${itemTransition.target}`);
+    }
+    setModal(null);
+    setToast("Situação atualizada");
   }
 
   function removeOperation(item: RelatedRecord) {
-    if (!window.confirm(`Remover “${item.title}”?`)) return;
+    if (!window.confirm(`Remover “${item.title}”? Esta ação não poderá ser desfeita.`)) return;
     setRelated((current) => current.filter((entry) => entry.id !== item.id));
     updateSelected({}, `${config.operationLabel} removido: ${item.title}`);
     setToast(`${config.operationLabel} removido`);
   }
 
-  function changeResourceStatus(item: ResourceRecord, status: string) {
-    setResources((current) => current.map((entry) => entry.id === item.id ? { ...entry, status } : entry));
-    updateSelected({}, `${config.resourceLabel} “${item.title}” alterado para ${status}`);
-    setToast(`${config.resourceLabel} atualizado`);
-  }
-
   function removeResource(item: ResourceRecord) {
-    if (!window.confirm(`Remover “${item.title}”?`)) return;
+    if (!window.confirm(`Remover “${item.title}”? Esta ação não poderá ser desfeita.`)) return;
     setResources((current) => current.filter((entry) => entry.id !== item.id));
     updateSelected({}, `${config.resourceLabel} removido: ${item.title}`);
     setToast(`${config.resourceLabel} removido`);
@@ -290,7 +343,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   async function shareSelected() {
     if (!selected) return;
-    await copyText(`${product.name}\n${selected.id} · ${selected.title}\nSituação: ${selected.status}\nResponsável: ${selected.owner}\n${config.operationPlural}: ${selectedOperations.length}\n${config.resourcePlural}: ${selectedResources.length}`);
+    await copyText(`${product.name}\n${selected.id} · ${selected.title}\nEtapa atual: ${selected.status}\nResponsável: ${selected.owner}\nPróxima ação: ${nextStatus || "Revisar o registro"}`);
     setToast("Resumo copiado");
   }
 
@@ -305,13 +358,13 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   const isDetail = active === config.entityPlural && view === "detail" && Boolean(selected);
   const shellTitle = isDetail && selected ? selected.title : active;
-  const shellSubtitle = isDetail && selected ? `${selected.id} · ${selected.subtitle}` : config.entityDescription;
+  const shellSubtitle = isDetail && selected ? `${selected.id} · etapa atual: ${selected.status}` : config.entityDescription;
   const headerAction = active === config.entityPlural && view === "list"
     ? <button className={styles.primaryButton} onClick={() => setModal("record")}><Icon name="plus" /> {config.primaryAction}</button>
     : isDetail && selected?.archived
       ? <button className={styles.primaryButton} onClick={toggleArchive}>Restaurar</button>
-      : isDetail && linearFlow && nextStatus
-        ? <button className={styles.primaryButton} onClick={advanceStatus}>Avançar para {nextStatus}</button>
+      : isDetail && selected && transitionOptions().length
+        ? <button className={styles.primaryButton} onClick={openTransition}>{linearFlow ? `Continuar para ${nextStatus}` : "Alterar situação"}</button>
         : undefined;
 
   return <AppShell product={product} nav={nav} active={active} onChange={changeArea} title={shellTitle} subtitle={shellSubtitle} action={headerAction}>
@@ -322,43 +375,55 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       <section className={vertical.listSurface}>
         <div className={vertical.listControls}>
           <label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.entityPlural.toLowerCase()}`} /></label>
-          <select className={styles.compactSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrar por situação"><option value="Todos">Todas as situações</option>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select>
-          <div className={vertical.scopeSwitch} aria-label="Tipo de registro"><button type="button" className={scope === "Ativos" ? vertical.scopeActive : ""} onClick={() => setScope("Ativos")}>Ativos</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => setScope("Arquivados")}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
+          <select className={styles.compactSelect} value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setSelectedId(""); }} aria-label="Filtrar por situação"><option value="Todos">Todas as situações</option>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select>
+          <div className={vertical.scopeSwitch} aria-label="Tipo de registro"><button type="button" className={scope === "Ativos" ? vertical.scopeActive : ""} onClick={() => { setScope("Ativos"); setSelectedId(""); }}>Ativos</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setSelectedId(""); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
         </div>
-        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>{record.owner}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Ativos" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
+        <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {record.status === finalStatus ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Ativos" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
       </section>
     </> : null}
 
+    {active === config.entityPlural && view === "list" && !selected ? null : null}
+
     {isDetail && selected ? <section className={vertical.detailPage}>
-      <button type="button" className={vertical.backButton} onClick={() => setView("list")}><Icon name="back" /> Voltar para {config.entityPlural.toLowerCase()}</button>
-      <div className={vertical.detailTabs}>{[
-        { label: "Resumo", count: 0 },
-        { label: config.operationPlural, count: selectedOperations.length },
-        { label: config.resourcePlural, count: selectedResources.length + selected.attachments.length },
-        { label: "Histórico", count: selected.history.length },
-      ].map((tab) => <button key={tab.label} className={detailTab === tab.label ? vertical.tabActive : ""} onClick={() => setDetailTab(tab.label)}>{tab.label}{tab.count ? <span>{tab.count}</span> : null}</button>)}</div>
-
-      {detailTab === "Resumo" ? <div className={vertical.detailContent}>
+      <button type="button" className={vertical.backButton} onClick={returnToList}><Icon name="back" /> Voltar para {config.entityPlural.toLowerCase()}</button>
+      <div className={vertical.detailContent}>
         {selected.archived ? <div className={vertical.archiveNotice}>Este registro está arquivado. Restaure para voltar a trabalhar nele.</div> : null}
-        <section className={vertical.nextStepCard}><div><span>Situação atual</span><StatusPill status={selected.status} /></div><div><span>Próximo passo</span><strong>{selected.archived ? "Restaurar o registro" : linearFlow ? nextStatus || "Fluxo concluído" : "Atualizar conforme a operação"}</strong></div><div><span>Atenções</span><strong>{attentionResources ? `${attentionResources} item(ns)` : "Nenhuma"}</strong></div></section>
-        <section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>Informações principais</h2><p>O necessário para entender e conduzir este registro.</p></div></div><dl className={vertical.factsGrid}><div><dt>Responsável</dt><dd>{selected.owner}</dd></div><div><dt>Descrição</dt><dd>{selected.subtitle}</dd></div>{keyFacts.map((field) => <div key={field.key} className={field.wide ? vertical.factWide : ""}><dt>{field.label}</dt><dd>{selected.data[field.key]}</dd></div>)}</dl>{!keyFacts.length ? <p className={vertical.missingInfo}>Os detalhes específicos ainda não foram preenchidos.</p> : null}</section>
-        <details className={vertical.disclosure}><summary><div><strong>Editar informações</strong><span>Abra somente quando precisar alterar a ficha.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><fieldset className={vertical.editFieldset} disabled={selected.archived}><label>Título<input value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} /></label><label>Descrição curta<input value={selected.subtitle} onChange={(event) => updateSelected({ subtitle: event.target.value })} /></label><label>Situação<select value={selected.status} onChange={(event) => updateSelected({ status: event.target.value }, `Situação alterada para ${event.target.value}`)}>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select></label><label>Responsável<input value={selected.owner} onChange={(event) => updateSelected({ owner: event.target.value })} /></label>{config.fields.map((field) => <label key={field.key} className={field.wide ? vertical.fullField : ""}>{field.label}{renderField(field, selected.data[field.key] ?? "", (value) => updateSelected({ data: { ...selected.data, [field.key]: value } }))}</label>)}</fieldset></div></details>
+        <section className={vertical.nextStepCard}>
+          <div><span>Etapa atual</span><StatusPill status={selected.status} /></div>
+          <div><span>Ação necessária</span><strong>{selected.archived ? "Restaurar o registro" : linearFlow ? nextStatus || "Processo concluído" : "Revisar e decidir a próxima situação"}</strong></div>
+          <div><span>Atenções</span><strong>{attentionResources ? `${attentionResources} item(ns)` : "Nenhuma"}</strong></div>
+        </section>
+
+        <section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>Trabalho desta etapa</h2><p>Mostramos somente o necessário para decidir o próximo passo.</p></div></div><dl className={vertical.factsGrid}><div><dt>Responsável</dt><dd>{selected.owner}</dd></div><div><dt>Descrição</dt><dd>{selected.subtitle}</dd></div>{keyFacts.slice(0, 4).map((field) => <div key={field.key} className={field.wide ? vertical.factWide : ""}><dt>{field.label}</dt><dd>{selected.data[field.key]}</dd></div>)}</dl>{!keyFacts.length ? <p className={vertical.missingInfo}>Preencha os dados essenciais antes de mudar a etapa.</p> : null}{!selected.archived && transitionOptions().length ? <div className={vertical.inlineActions}><button className={styles.primaryButton} onClick={openTransition}>{linearFlow ? `Continuar para ${nextStatus}` : "Escolher próxima situação"}</button></div> : null}</section>
+
+        <details className={vertical.disclosure}><summary><div><strong>Dados do cadastro</strong><span>Informações preservadas das etapas anteriores.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><fieldset className={vertical.editFieldset} disabled={selected.archived}><label>Título<input value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} /></label><label>Descrição curta<input value={selected.subtitle} onChange={(event) => updateSelected({ subtitle: event.target.value })} /></label><label>Responsável<input value={selected.owner} onChange={(event) => updateSelected({ owner: event.target.value })} /></label>{config.fields.map((field) => <label key={field.key} className={field.wide ? vertical.fullField : ""}>{field.label}{renderField(field, selected.data[field.key] ?? "", (value) => updateSelected({ data: { ...selected.data, [field.key]: value } }))}</label>)}</fieldset></div></details>
+
+        <details className={vertical.disclosure}><summary><div><strong>{config.operationPlural}</strong><span>{selectedOperations.length} registro(s) ligados ao processo.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("operation")}><Icon name="plus" /> Adicionar {config.operationLabel.toLowerCase()}</button> : null}<div className={vertical.operationList}>{selectedOperations.map((item) => <div className={vertical.operationRow} key={item.id}><div><strong>{item.title}</strong><p>{item.description || "Sem observação"}</p><small>{item.date || "Sem data"}</small></div><div className={vertical.operationActions}><StatusPill status={item.status} /><button className={styles.secondaryButton} onClick={() => openOperationStatus(item)}>Atualizar situação</button><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeOperation(item)}><Icon name="trash" /></button></div></div>)}{!selectedOperations.length ? <EmptyState icon="activity" title={`Nenhum ${config.operationLabel.toLowerCase()} registrado`} description="Adicione somente quando houver uma ação real para acompanhar." /> : null}</div></div></details>
+
+        <details className={vertical.disclosure}><summary><div><strong>{config.resourcePlural}</strong><span>{selectedResources.length + selected.attachments.length} item(ns) vinculados.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("resource")}><Icon name="plus" /> Adicionar {config.resourceLabel.toLowerCase()}</button> : null}<div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category || `Sem categoria de ${config.resourceLabel.toLowerCase()}`}{item.reference ? ` · ${item.reference}` : ""}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><StatusPill status={item.status} /><button className={styles.secondaryButton} onClick={() => openResourceStatus(item)}>Atualizar situação</button><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}{!selectedResources.length ? <EmptyState icon={resourceIcon(config.slug)} title={`Nenhum ${config.resourceLabel.toLowerCase()} adicionado`} description="Adicione somente itens úteis para esta etapa." /> : null}</div>{!selected.archived ? <label className={vertical.uploadButton}><Icon name="image" /> Anexar arquivo<input hidden type="file" onChange={addAttachment} /></label> : null}{selected.attachments.length ? <div className={vertical.resourceList}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo anexado</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => { if (window.confirm(`Remover “${file.name}”?`)) updateSelected({ attachments: selected.attachments.filter((item) => item.id !== file.id) }, `Arquivo removido: ${file.name}`); }}><Icon name="trash" /></button></div></div>)}</div> : null}</div></details>
+
+        <details className={vertical.disclosure}><summary><div><strong>Histórico</strong><span>{selected.history.length} registro(s) preservados.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><Timeline items={selected.history} />{!selected.archived ? <div className={vertical.noteComposer}><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar uma observação ou decisão" /><button className={styles.primaryButton} onClick={addNote}>Adicionar observação</button></div> : null}</div></details>
+
         <details className={vertical.disclosure}><summary><div><strong>Mais ações</strong><span>Compartilhar, imprimir, exportar ou arquivar.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><div className={vertical.inlineActions}><button className={styles.secondaryButton} onClick={shareSelected}><Icon name="message" /> Copiar resumo</button><button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir</button><button className={styles.secondaryButton} onClick={exportRecords}><Icon name="download" /> Exportar lista</button>{allowDuplicate && !selected.archived ? <button className={styles.secondaryButton} onClick={duplicateSelected}><Icon name="plus" /> Duplicar</button> : null}<button className={selected.archived ? styles.primaryButton : styles.dangerButton} onClick={toggleArchive}>{selected.archived ? "Restaurar" : "Arquivar"}</button></div></div></details>
-      </div> : null}
-
-      {detailTab === config.operationPlural ? <div className={vertical.detailContent}><section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>{config.operationPlural}</h2><p>{config.operationLabel}s que fazem parte de {selected.title}.</p></div>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("operation")}><Icon name="plus" /> Adicionar</button> : null}</div><div className={vertical.operationList}>{selectedOperations.map((item) => <div className={vertical.operationRow} key={item.id}><div><strong>{item.title}</strong><p>{item.description || "Sem observação"}</p><small>{item.date || "Sem data"}</small></div><div className={vertical.operationActions}><select value={item.status} onChange={(event) => changeOperationStatus(item, event.target.value)}>{config.operationStatuses.map((status) => <option key={status}>{status}</option>)}</select><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeOperation(item)}><Icon name="trash" /></button></div></div>)}{!selectedOperations.length ? <EmptyState icon="activity" title={`Nenhum ${config.operationLabel.toLowerCase()} registrado`} description={`Adicione quando houver um ${config.operationLabel.toLowerCase()} real para acompanhar.`} /> : null}</div></section></div> : null}
-
-      {detailTab === config.resourcePlural ? <div className={vertical.detailContent}><section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>{config.resourcePlural}</h2><p>{config.resourceLabel}s ligados a {selected.title}.</p></div>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("resource")}><Icon name="plus" /> Adicionar</button> : null}</div><div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category || `Sem categoria de ${config.resourceLabel.toLowerCase()}`}{item.reference ? ` · ${item.reference}` : ""}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><select value={item.status} onChange={(event) => changeResourceStatus(item, event.target.value)}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}{!selectedResources.length ? <EmptyState icon={resourceIcon(config.slug)} title={`Nenhum ${config.resourceLabel.toLowerCase()} adicionado`} description={`Adicione somente ${config.resourcePlural.toLowerCase()} úteis para este registro.`} /> : null}</div>{!selected.archived ? <label className={vertical.uploadButton}><Icon name="image" /> Anexar arquivo<input hidden type="file" onChange={addAttachment} /></label> : null}{selected.attachments.length ? <div className={vertical.resourceList}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo anexado</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => { if (window.confirm(`Remover “${file.name}”?`)) updateSelected({ attachments: selected.attachments.filter((item) => item.id !== file.id) }, `Arquivo removido: ${file.name}`); }}><Icon name="trash" /></button></div></div>)}</div> : null}</section></div> : null}
-
-      {detailTab === "Histórico" ? <div className={vertical.detailContent}><section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>Histórico</h2><p>Alterações, decisões e registros importantes.</p></div></div><Timeline items={selected.history} />{!selected.archived ? <div className={vertical.noteComposer}><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar uma observação ou decisão" /><button className={styles.primaryButton} onClick={addNote}>Adicionar observação</button></div> : null}</section></div> : null}
+      </div>
     </section> : null}
 
-    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent, config.operationPlural); } }} /> : null}
-    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent, config.resourcePlural); } }} /> : null}
+    {active === config.entityPlural && view === "list" && records.length > 0 ? null : null}
+    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
 
-    <Modal open={modal === "record"} title={config.primaryAction} description="Comece com o essencial. Complete os detalhes dentro da ficha." onClose={() => setModal(null)}><Form onSubmit={createRecord}><Field label={`Nome do ${config.entityLabel.toLowerCase()}`}><input autoFocus value={recordDraft.title} onChange={(event) => setRecordDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição curta" hint="Use uma frase que ajude a reconhecer este registro."><input value={recordDraft.subtitle} onChange={(event) => setRecordDraft((current) => ({ ...current, subtitle: event.target.value }))} /></Field><Field label="Responsável"><input value={recordDraft.owner} onChange={(event) => setRecordDraft((current) => ({ ...current, owner: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar e abrir</button></div></Form></Modal>
-    <Modal open={modal === "operation"} title={`Novo ${config.operationLabel.toLowerCase()}`} description={selected ? `Em ${selected.title}` : undefined} onClose={() => setModal(null)}><Form onSubmit={createOperation}><Field label="Título"><input autoFocus value={operationDraft.title} onChange={(event) => setOperationDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição"><textarea value={operationDraft.description} onChange={(event) => setOperationDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Data"><input type="date" value={operationDraft.date} onChange={(event) => setOperationDraft((current) => ({ ...current, date: event.target.value }))} /></Field><Field label="Situação"><select value={operationDraft.status} onChange={(event) => setOperationDraft((current) => ({ ...current, status: event.target.value }))}>{config.operationStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Registrar</button></div></Form></Modal>
-    <Modal open={modal === "resource"} title={`Adicionar ${config.resourceLabel.toLowerCase()}`} description={selected ? `Em ${selected.title}` : undefined} onClose={() => setModal(null)}><Form onSubmit={createResource}><Field label="Nome ou identificação"><input autoFocus value={resourceDraft.title} onChange={(event) => setResourceDraft((current) => ({ ...current, title: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Categoria"><input value={resourceDraft.category} onChange={(event) => setResourceDraft((current) => ({ ...current, category: event.target.value }))} /></Field><Field label="Referência"><input value={resourceDraft.reference} onChange={(event) => setResourceDraft((current) => ({ ...current, reference: event.target.value }))} /></Field><Field label="Data ou validade"><input type="date" value={resourceDraft.due} onChange={(event) => setResourceDraft((current) => ({ ...current, due: event.target.value }))} /></Field><Field label="Situação"><select value={resourceDraft.status} onChange={(event) => setResourceDraft((current) => ({ ...current, status: event.target.value }))}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Adicionar</button></div></Form></Modal>
+    <Modal open={modal === "record"} title={config.primaryAction} description="Comece com o essencial. O processo abrirá na primeira etapa." onClose={() => setModal(null)}><Form onSubmit={createRecord}><Field label={`Nome do ${config.entityLabel.toLowerCase()}`}><input autoFocus required value={recordDraft.title} onChange={(event) => setRecordDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição curta" hint="Use uma frase que ajude a reconhecer este registro."><input value={recordDraft.subtitle} onChange={(event) => setRecordDraft((current) => ({ ...current, subtitle: event.target.value }))} /></Field><Field label="Responsável"><input required value={recordDraft.owner} onChange={(event) => setRecordDraft((current) => ({ ...current, owner: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar na etapa {config.statuses[0]}</button></div></Form></Modal>
+
+    <Modal open={modal === "transition"} title="Confirmar mudança de etapa" description={selected ? `${selected.id} · ${selected.title}` : undefined} onClose={() => setModal(null)}>{selected ? <><div className={styles.noteBox}><strong>{selected.status}</strong> → <strong>{transitionTarget}</strong><br />Esta mudança será registrada no histórico e definirá o trabalho que aparecerá como etapa atual.</div>{!linearFlow ? <Field label="Nova situação"><select value={transitionTarget} onChange={(event) => setTransitionTarget(event.target.value)}>{transitionOptions().map((status) => <option key={status}>{status}</option>)}</select></Field> : null}<div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={confirmTransition}>Confirmar mudança</button></div></> : null}</Modal>
+
+    <Modal open={modal === "operation"} title={`Novo ${config.operationLabel.toLowerCase()}`} description={selected ? `Em ${selected.title}` : undefined} onClose={() => setModal(null)}><Form onSubmit={createOperation}><Field label="Título"><input autoFocus required value={operationDraft.title} onChange={(event) => setOperationDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição"><textarea value={operationDraft.description} onChange={(event) => setOperationDraft((current) => ({ ...current, description: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Data"><input type="date" value={operationDraft.date} onChange={(event) => setOperationDraft((current) => ({ ...current, date: event.target.value }))} /></Field><Field label="Situação inicial"><select value={operationDraft.status} onChange={(event) => setOperationDraft((current) => ({ ...current, status: event.target.value }))}>{config.operationStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Registrar</button></div></Form></Modal>
+
+    <Modal open={modal === "resource"} title={`Adicionar ${config.resourceLabel.toLowerCase()}`} description={selected ? `Em ${selected.title}` : undefined} onClose={() => setModal(null)}><Form onSubmit={createResource}><Field label="Nome ou identificação"><input autoFocus required value={resourceDraft.title} onChange={(event) => setResourceDraft((current) => ({ ...current, title: event.target.value }))} /></Field><div className={styles.formGrid}><Field label="Categoria"><input value={resourceDraft.category} onChange={(event) => setResourceDraft((current) => ({ ...current, category: event.target.value }))} /></Field><Field label="Referência"><input value={resourceDraft.reference} onChange={(event) => setResourceDraft((current) => ({ ...current, reference: event.target.value }))} /></Field><Field label="Data ou validade"><input type="date" value={resourceDraft.due} onChange={(event) => setResourceDraft((current) => ({ ...current, due: event.target.value }))} /></Field><Field label="Situação inicial"><select value={resourceDraft.status} onChange={(event) => setResourceDraft((current) => ({ ...current, status: event.target.value }))}>{config.resourceStatuses.map((status) => <option key={status}>{status}</option>)}</select></Field></div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Adicionar</button></div></Form></Modal>
+
+    <Modal open={modal === "operationStatus"} title={`Atualizar ${config.operationLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{config.operationStatuses.filter((status) => status !== itemTransition.current).map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de realizar a ação correspondente.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("operation")}>Confirmar atualização</button></div></Modal>
+
+    <Modal open={modal === "resourceStatus"} title={`Atualizar ${config.resourceLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{config.resourceStatuses.filter((status) => status !== itemTransition.current).map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de verificar a situação real deste item.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("resource")}>Confirmar atualização</button></div></Modal>
+
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
 }
