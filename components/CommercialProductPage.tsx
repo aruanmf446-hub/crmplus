@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { CommercialProductSignature } from "@/components/CommercialProductSignature";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ProductIcon } from "@/components/ProductIcon";
@@ -22,7 +23,7 @@ export function CommercialProductPage({ product }: Props) {
   } as CSSProperties;
 
   return (
-    <div className={`${styles.page} commercial-product-page`} style={pageStyle}>
+    <div className={`${styles.page} commercial-product-page`} style={pageStyle} data-product={product.slug}>
       <Header />
       <main>
         <section className={`${styles.hero} commercial-product-hero`}>
@@ -61,6 +62,7 @@ export function CommercialProductPage({ product }: Props) {
           </div>
         </section>
 
+        <CommercialProductSignature product={product} />
         <ProductInsideGallery product={product} />
 
         <section className={styles.features}>
