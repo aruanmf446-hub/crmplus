@@ -15,6 +15,18 @@ new = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 '''
 if old in text:
-    path.write_text(text.replace(old, new, 1), encoding="utf-8")
+    text = text.replace(old, new, 1)
 else:
     print("Patch vertical já está em modo tolerante ou possui outra formatação.")
+
+normalizer = '''
+# Normalização final de referências antigas do escopo.
+source_path = Path("components/workspaces/phase-four/VerticalBusinessApp.tsx")
+source_text = source_path.read_text(encoding="utf-8")
+source_text = source_text.replace('scope === "Ativos"', 'scope === "Em andamento"')
+source_text = source_text.replace('setScope("Ativos")', 'setScope("Em andamento")')
+source_path.write_text(source_text, encoding="utf-8")
+'''
+if "Normalização final de referências antigas do escopo" not in text:
+    text += normalizer
+path.write_text(text, encoding="utf-8")
