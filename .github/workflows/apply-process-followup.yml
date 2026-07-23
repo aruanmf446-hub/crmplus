@@ -1,0 +1,37 @@
+name: Aplicar compatibilidade dos processos existentes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply-process-followup.py'
+      - '.github/workflows/apply-process-followup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: python scripts/apply-process-followup.py
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Publicar no main
+        run: |
+          git config user.name 'crmplus-process-agent'
+          git config user.email 'actions@users.noreply.github.com'
+          git add components/workspaces/phase-four/HerculesApp.tsx
+          git commit -m 'Manter compatibilidade com desvios existentes'
+          git push origin main
