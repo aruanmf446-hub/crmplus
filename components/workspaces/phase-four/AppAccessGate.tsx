@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import type { Product } from "@/lib/apps";
 import { getProductPresentation } from "@/lib/productPresentation";
 import { getProductMedia } from "@/lib/storefront";
@@ -39,55 +39,56 @@ async function secretMatches(value: string, hash?: string, legacy?: string) {
 
 export function AppAccessGate({ product, children }: { product: Product; children: ReactNode }) {
   const sessionKey = `crmplus.access.${product.slug}.session`;
-  const legacyAccountKeys = [`crmplus.access.${product.slug}.account`, `crmplus.${product.slug}.account`];
+  const legacyScopedAccountKey = `crmplus.access.${product.slug}.account`;
+  const legacyOriginalAccountKey = `crmplus.${product.slug}.account`;
   const legacySessionKey = `crmplus.${product.slug}.session`;
   const [ready, setReady] = useState(false);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
+  const [storedAccount, setStoredAccount] = useState<Account | null>(null);
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState("");
-  const [accountRevision, setAccountRevision] = useState(0);
   const [draft, setDraft] = useState({ name: "", company: "", email: "", password: "", confirmPassword: "", pin: "" });
   const presentation = getProductPresentation(product.slug);
   const media = getProductMedia(product.slug);
 
   useEffect(() => {
-    try {
-      const probeKey = `crmplus.storage.probe.${product.slug}`;
-      window.localStorage.setItem(probeKey, "ok");
-      window.localStorage.removeItem(probeKey);
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      try {
+        const probeKey = `crmplus.storage.probe.${product.slug}`;
+        window.localStorage.setItem(probeKey, "ok");
+        window.localStorage.removeItem(probeKey);
 
-      const existingGlobal = window.localStorage.getItem(globalAccountKey);
-      if (!existingGlobal) {
-        const legacyAccount = legacyAccountKeys.map((key) => window.localStorage.getItem(key)).find(Boolean);
-        if (legacyAccount) window.localStorage.setItem(globalAccountKey, legacyAccount);
+        const existingGlobal = window.localStorage.getItem(globalAccountKey);
+        if (!existingGlobal) {
+          const legacyAccount = window.localStorage.getItem(legacyScopedAccountKey) ?? window.localStorage.getItem(legacyOriginalAccountKey);
+          if (legacyAccount) window.localStorage.setItem(globalAccountKey, legacyAccount);
+        }
+        window.localStorage.removeItem(legacyScopedAccountKey);
+        window.localStorage.removeItem(legacyOriginalAccountKey);
+
+        const legacySession = window.localStorage.getItem(legacySessionKey);
+        if (!window.localStorage.getItem(sessionKey) && legacySession) window.localStorage.setItem(sessionKey, legacySession);
+        if (legacySession) window.localStorage.removeItem(legacySessionKey);
+
+        const accountRaw = window.localStorage.getItem(globalAccountKey);
+        const requestedMode = new URLSearchParams(window.location.search).get("modo");
+        if (!active) return;
+        setStoredAccount(accountRaw ? JSON.parse(accountRaw) as Account : null);
+        setMode(requestedMode === "criar-conta" ? "signup" : requestedMode === "recuperar-senha" ? "forgot" : "login");
+        setSignedIn(window.localStorage.getItem(sessionKey) === "active");
+      } catch {
+        if (!active) return;
+        setStorageAvailable(false);
+        setError("Este navegador bloqueou o armazenamento local. Libere os dados do site para criar uma conta e salvar registros.");
+      } finally {
+        if (active) setReady(true);
       }
-      for (const key of legacyAccountKeys) window.localStorage.removeItem(key);
-
-      const legacySession = window.localStorage.getItem(legacySessionKey);
-      if (!window.localStorage.getItem(sessionKey) && legacySession) window.localStorage.setItem(sessionKey, legacySession);
-      if (legacySession) window.localStorage.removeItem(legacySessionKey);
-
-      const requestedMode = new URLSearchParams(window.location.search).get("modo");
-      setMode(requestedMode === "criar-conta" ? "signup" : requestedMode === "recuperar-senha" ? "forgot" : "login");
-      setSignedIn(window.localStorage.getItem(sessionKey) === "active");
-    } catch {
-      setStorageAvailable(false);
-      setError("Este navegador bloqueou o armazenamento local. Libere os dados do site para criar uma conta e salvar registros.");
-    } finally {
-      setReady(true);
-    }
-  }, [legacyAccountKeys.join("|"), legacySessionKey, product.slug, sessionKey]);
-
-  const storedAccount = useMemo<Account | null>(() => {
-    if (!ready || !storageAvailable) return null;
-    try {
-      const value = window.localStorage.getItem(globalAccountKey);
-      return value ? JSON.parse(value) as Account : null;
-    } catch {
-      return null;
-    }
-  }, [accountRevision, ready, storageAvailable]);
+    });
+    return () => { active = false; };
+  }, [legacyOriginalAccountKey, legacyScopedAccountKey, legacySessionKey, product.slug, sessionKey]);
 
   const passwordRules = [
     { label: "8 ou mais caracteres", passed: draft.password.length >= 8 },
@@ -121,7 +122,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
       createdAt: account.createdAt ?? new Date().toISOString(),
     };
     window.localStorage.setItem(globalAccountKey, JSON.stringify(protectedAccount));
-    setAccountRevision((current) => current + 1);
+    setStoredAccount(protectedAccount);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -262,7 +263,7 @@ export function AppAccessGate({ product, children }: { product: Product; childre
   const description = mode === "login"
     ? `Use a mesma conta local para acessar o ${product.shortName} e os demais aplicativos.`
     : mode === "signup"
-      ? `Crie uma única identidade local para testar todos os aplicativos CRMPlus+.`
+      ? "Crie uma única identidade local para testar todos os aplicativos CRMPlus+."
       : "Confirme o e-mail e o PIN local para criar uma nova senha.";
   const requiresNewPassword = mode !== "login";
   const submitDisabled = !storageAvailable || (mode === "signup" && (Boolean(storedAccount) || !signupReady)) || (mode === "forgot" && !recoveryReady);
