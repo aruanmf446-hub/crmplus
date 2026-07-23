@@ -4,8 +4,10 @@ import { useMemo, useState, type ChangeEvent } from "react";
 import type { Product } from "@/lib/apps";
 import { AppShell, EmptyState, Field, Form, Icon, Modal, StatusPill, Timeline, Toast, type IconName, type NavItem } from "./shared";
 import { copyText, downloadCsv, fileToDataUrl, todayLabel, uid, useLocalState } from "./localStore";
+import { VerticalOperationalHome } from "./VerticalOperationalHome";
 import styles from "./PhaseFourWorkspace.module.css";
 import vertical from "./VerticalBusinessApp.module.css";
+import workflow from "./VerticalWorkflowEnhancements.module.css";
 
 export type FieldDefinition = {
   key: string;
@@ -89,28 +91,35 @@ export type VerticalConfig = {
 type RecordScope = "Em andamento" | "Finalizados" | "Arquivados";
 type RecordView = "list" | "detail";
 type ModalName = "record" | "operation" | "resource" | "transition" | "operationStatus" | "resourceStatus" | null;
+type ItemTransition = { id: string; title: string; current: string; target: string; options: string[] };
+type UndoAction =
+  | { kind: "operation"; item: RelatedRecord }
+  | { kind: "resource"; item: ResourceRecord }
+  | { kind: "attachment"; item: MainRecord["attachments"][number]; parentId: string };
 
-type ItemTransition = {
-  id: string;
-  title: string;
-  current: string;
-  target: string;
-  options: string[];
-};
+const OVERVIEW = "Visão geral";
+const MAX_ATTACHMENTS = 8;
+const MAX_ATTACHMENT_STORAGE = 3_500_000;
+
+function cloneRecord(record: MainRecord): MainRecord {
+  return { ...record, data: { ...record.data }, history: [...record.history], attachments: [...record.attachments] };
+}
 
 export function VerticalBusinessApp({ product, config }: { product: Product; config: VerticalConfig }) {
-  const [active, setActive] = useState(config.entityPlural);
+  const [active, setActive] = useState(OVERVIEW);
   const [view, setView] = useState<RecordView>("list");
   const [scope, setScope] = useState<RecordScope>("Em andamento");
   const [records, setRecords] = useLocalState<MainRecord[]>(`crmplus.${config.slug}.records.v2`, config.seed);
   const [related, setRelated] = useLocalState<RelatedRecord[]>(`crmplus.${config.slug}.related.v2`, config.relatedSeed);
   const [resources, setResources] = useLocalState<ResourceRecord[]>(`crmplus.${config.slug}.resources.v2`, config.resourceSeed);
   const [selectedId, setSelectedId] = useState("");
+  const [editDraft, setEditDraft] = useState<MainRecord | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [recordSort, setRecordSort] = useState<"Mais recentes" | "Nome" | "Responsável" | "Etapa">("Mais recentes");
   const [modal, setModal] = useState<ModalName>(null);
   const [toast, setToast] = useState("");
+  const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
   const [note, setNote] = useState("");
   const [recordDraft, setRecordDraft] = useState({ title: "", subtitle: "", owner: "" });
   const [operationDraft, setOperationDraft] = useState({ title: "", description: "", date: "", status: config.operationStatuses[0] ?? "Aberto" });
@@ -122,6 +131,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const linearFlow = config.linearFlow !== false;
   const allowDuplicate = config.allowDuplicate !== false;
   const nav: NavItem[] = [
+    { label: OVERVIEW, icon: "home" },
     { label: config.entityPlural, icon: config.icon },
     { label: config.operationPlural, icon: "activity" },
     { label: config.resourcePlural, icon: resourceIcon(config.slug) },
@@ -146,7 +156,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       if (recordSort === "Etapa") return config.statuses.indexOf(a.status) - config.statuses.indexOf(b.status);
       return records.indexOf(a) - records.indexOf(b);
     });
-  }, [config.statuses, finalStatus, query, recordSort, records, scope, statusFilter]);
+  }, [config.statuses, query, recordSort, records, scope, statusFilter]);
 
   const selectedOperations = selected ? related.filter((item) => item.parentId === selected.id) : [];
   const selectedResources = selected ? resources.filter((item) => item.parentId === selected.id) : [];
@@ -157,21 +167,33 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   const archivedCount = records.filter((record) => record.archived).length;
   const finalizedCount = records.filter((record) => !record.archived && isFinalRecord(record)).length;
   const openCount = records.filter((record) => !record.archived && !isFinalRecord(record)).length;
+  const draftDirty = Boolean(selected && editDraft && JSON.stringify({ title: selected.title, subtitle: selected.subtitle, owner: selected.owner, data: selected.data }) !== JSON.stringify({ title: editDraft.title, subtitle: editDraft.subtitle, owner: editDraft.owner, data: editDraft.data }));
+
+  function confirmDiscardDraft() {
+    return !draftDirty || window.confirm("Descartar as alterações que ainda não foram salvas?");
+  }
 
   function changeArea(label: string) {
+    if (!confirmDiscardDraft()) return;
     setActive(label);
     setView("list");
     setSelectedId("");
+    setEditDraft(null);
     setQuery("");
   }
 
   function openRecord(record: MainRecord) {
+    if (!confirmDiscardDraft()) return;
+    setActive(config.entityPlural);
     setSelectedId(record.id);
+    setEditDraft(cloneRecord(record));
     setView("detail");
   }
 
   function returnToList() {
+    if (!confirmDiscardDraft()) return;
     setSelectedId("");
+    setEditDraft(null);
     setView("list");
   }
 
@@ -180,15 +202,35 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     setRecords((current) => current.map((record) => record.id === selected.id ? {
       ...record,
       ...patch,
-      updated: "agora",
+      updated: todayLabel(),
       history: historyText ? [{ text: historyText, date: todayLabel() }, ...record.history] : record.history,
     } : record));
+  }
+
+  function saveEditDraft() {
+    if (!selected || !editDraft) return;
+    if (!editDraft.title.trim()) { setToast(`Informe o nome do ${config.entityLabel.toLowerCase()}`); return; }
+    if (!editDraft.owner.trim()) { setToast("Defina um responsável antes de salvar"); return; }
+    const saved = { ...editDraft, title: editDraft.title.trim(), subtitle: editDraft.subtitle.trim(), owner: editDraft.owner.trim(), updated: todayLabel() };
+    setRecords((current) => current.map((record) => record.id === selected.id ? { ...record, ...saved, status: record.status, archived: record.archived, attachments: record.attachments, history: [{ text: "Dados do cadastro atualizados", date: todayLabel() }, ...record.history] } : record));
+    setEditDraft(cloneRecord({ ...selected, ...saved, status: selected.status, archived: selected.archived, attachments: selected.attachments, history: selected.history }));
+    setToast("Alterações salvas");
+  }
+
+  function cancelEditDraft() {
+    if (!selected) return;
+    setEditDraft(cloneRecord(selected));
+    setToast("Alterações descartadas");
   }
 
   function createRecord() {
     const title = recordDraft.title.trim();
     if (!title) { setToast(`Informe o nome do ${config.entityLabel.toLowerCase()}`); return; }
     if (!recordDraft.owner.trim()) { setToast("Defina quem será responsável pelo registro"); return; }
+    if (config.allowDuplicate === false && records.some((record) => record.title.trim().toLowerCase() === title.toLowerCase() && !record.archived)) {
+      setToast(`Já existe um ${config.entityLabel.toLowerCase()} com este nome`);
+      return;
+    }
     const data = Object.fromEntries(config.fields.map((field) => [field.key, config.newRecordDefaults?.[field.key] ?? ""]));
     const next: MainRecord = {
       id: uid(config.slug.slice(0, 3).toUpperCase()),
@@ -196,7 +238,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
       subtitle: recordDraft.subtitle.trim() || config.entityLabel,
       status: config.statuses[0],
       owner: recordDraft.owner.trim(),
-      updated: "agora",
+      updated: todayLabel(),
       archived: false,
       data,
       history: [{ text: `${config.entityLabel} criado na etapa ${config.statuses[0]}`, date: todayLabel() }],
@@ -205,7 +247,6 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
     setRecords((current) => [next, ...current]);
     setRecordDraft({ title: "", subtitle: "", owner: "" });
     setModal(null);
-    setActive(config.entityPlural);
     setScope("Em andamento");
     openRecord(next);
     setToast(`${config.entityLabel} criado`);
@@ -222,6 +263,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
   function openTransition() {
     if (!selected) return;
+    if (draftDirty) { setToast("Salve ou descarte as alterações antes de mudar a etapa"); return; }
     if (selected.archived) { setToast("Restaure o registro antes de alterar sua etapa"); return; }
     const options = transitionOptions();
     if (!options.length) { setToast("Este registro já está na etapa final"); return; }
@@ -249,23 +291,26 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   }
 
   function toggleArchive() {
-    if (!selected) return;
+    if (!selected || !confirmDiscardDraft()) return;
     const willArchive = !selected.archived;
     if (willArchive && !window.confirm(`Arquivar “${selected.title}”? O registro sairá da lista ativa, mas o histórico será preservado.`)) return;
     updateSelected({ archived: willArchive }, willArchive ? "Registro arquivado" : "Registro restaurado");
     setScope(willArchive ? "Arquivados" : "Em andamento");
-    returnToList();
+    setEditDraft(null);
+    setSelectedId("");
+    setView("list");
     setToast(willArchive ? "Registro arquivado" : "Registro restaurado");
   }
 
   function duplicateSelected() {
-    if (!selected || !allowDuplicate) return;
+    if (!selected || !allowDuplicate || draftDirty) return;
     const copy: MainRecord = {
       ...selected,
+      data: { ...selected.data },
       id: uid(config.slug.slice(0, 3).toUpperCase()),
       title: `Cópia de ${selected.title}`,
       status: config.statuses[0],
-      updated: "agora",
+      updated: todayLabel(),
       archived: false,
       attachments: [],
       history: [{ text: `Registro criado a partir de ${selected.id}`, date: todayLabel() }],
@@ -311,17 +356,32 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   }
 
   function removeOperation(item: RelatedRecord) {
-    if (!window.confirm(`Remover “${item.title}”? Esta ação não poderá ser desfeita.`)) return;
+    if (!window.confirm(`Remover “${item.title}”? Você poderá desfazer enquanto o aviso estiver visível.`)) return;
     setRelated((current) => current.filter((entry) => entry.id !== item.id));
     updateSelected({}, `${config.operationLabel} removido: ${item.title}`);
-    setToast(`${config.operationLabel} removido`);
+    setUndoAction({ kind: "operation", item });
   }
 
   function removeResource(item: ResourceRecord) {
-    if (!window.confirm(`Remover “${item.title}”? Esta ação não poderá ser desfeita.`)) return;
+    if (!window.confirm(`Remover “${item.title}”? Você poderá desfazer enquanto o aviso estiver visível.`)) return;
     setResources((current) => current.filter((entry) => entry.id !== item.id));
     updateSelected({}, `${config.resourceLabel} removido: ${item.title}`);
-    setToast(`${config.resourceLabel} removido`);
+    setUndoAction({ kind: "resource", item });
+  }
+
+  function removeAttachment(item: MainRecord["attachments"][number]) {
+    if (!selected || !window.confirm(`Remover “${item.name}”? Você poderá desfazer enquanto o aviso estiver visível.`)) return;
+    updateSelected({ attachments: selected.attachments.filter((entry) => entry.id !== item.id) }, `Arquivo removido: ${item.name}`);
+    setUndoAction({ kind: "attachment", item, parentId: selected.id });
+  }
+
+  function undoRemoval() {
+    if (!undoAction) return;
+    if (undoAction.kind === "operation") setRelated((current) => [undoAction.item, ...current]);
+    if (undoAction.kind === "resource") setResources((current) => [undoAction.item, ...current]);
+    if (undoAction.kind === "attachment") setRecords((current) => current.map((record) => record.id === undoAction.parentId ? { ...record, attachments: [...record.attachments, undoAction.item], history: [{ text: `Arquivo restaurado: ${undoAction.item.name}`, date: todayLabel() }, ...record.history] } : record));
+    setToast("Remoção desfeita");
+    setUndoAction(null);
   }
 
   function addNote() {
@@ -334,9 +394,12 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   async function addAttachment(event: ChangeEvent<HTMLInputElement>) {
     if (!selected || !event.target.files?.length) return;
     const file = event.target.files[0];
+    if (selected.attachments.length >= MAX_ATTACHMENTS) { setToast(`Limite de ${MAX_ATTACHMENTS} anexos por registro atingido`); event.target.value = ""; return; }
     if (file.size > 700 * 1024) { setToast("Escolha um arquivo de até 700 KB"); event.target.value = ""; return; }
     try {
       const data = await fileToDataUrl(file);
+      const currentSize = selected.attachments.reduce((total, attachment) => total + attachment.data.length, 0);
+      if (currentSize + data.length > MAX_ATTACHMENT_STORAGE) { setToast("O limite local de anexos deste registro foi atingido. Exporte um backup e remova arquivos antigos."); event.target.value = ""; return; }
       updateSelected({ attachments: [...selected.attachments, { id: uid("ARQ"), name: file.name, data }] }, `Arquivo anexado: ${file.name}`);
       setToast("Arquivo adicionado");
     } catch {
@@ -392,9 +455,9 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
   }
 
   const isDetail = active === config.entityPlural && view === "detail" && Boolean(selected);
-  const shellTitle = isDetail && selected ? selected.title : active;
-  const shellSubtitle = isDetail && selected ? `${selected.id} · etapa atual: ${selected.status}` : config.entityDescription;
-  const headerAction = active === config.entityPlural && view === "list"
+  const shellTitle = active === OVERVIEW ? `${product.shortName} · visão geral` : isDetail && selected ? selected.title : active;
+  const shellSubtitle = active === OVERVIEW ? config.entityDescription : isDetail && selected ? `${selected.id} · etapa atual: ${selected.status}` : config.entityDescription;
+  const headerAction = active === OVERVIEW || (active === config.entityPlural && view === "list")
     ? <button className={styles.primaryButton} onClick={() => setModal("record")}><Icon name="plus" /> {config.primaryAction}</button>
     : isDetail && selected?.archived
       ? <button className={styles.primaryButton} onClick={toggleArchive}>Restaurar</button>
@@ -403,24 +466,24 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
         : undefined;
 
   return <AppShell product={product} nav={nav} active={active} onChange={changeArea} title={shellTitle} subtitle={shellSubtitle} action={headerAction}>
+    {active === OVERVIEW ? <VerticalOperationalHome product={product} config={config} records={records} operations={related} resources={resources} onOpenRecord={openRecord} onCreateRecord={() => setModal("record")} onOpenRecords={() => changeArea(config.entityPlural)} onOpenOperations={() => changeArea(config.operationPlural)} onOpenResources={() => changeArea(config.resourcePlural)} /> : null}
+
     {active === config.entityPlural && view === "list" ? <>
       <div className={vertical.metricsLine} aria-label="Resumo da área">
         {config.metrics.map((metric) => <div key={metric.label}><strong>{metricCount(metric)}</strong><span>{metric.label}</span></div>)}
       </div>
       <section className={vertical.listSurface}>
         <div className={vertical.listControls}>
-          <label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.entityPlural.toLowerCase()}`} /></label>
+          <label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.entityPlural.toLowerCase()}`} aria-label={`Buscar ${config.entityPlural.toLowerCase()}`} /></label>
           <select className={styles.compactSelect} value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setSelectedId(""); }} aria-label="Filtrar por situação"><option value="Todos">Todas as situações</option>{config.statuses.map((status) => <option key={status}>{status}</option>)}</select>
           <select className={styles.compactSelect} value={recordSort} onChange={(event) => setRecordSort(event.target.value as typeof recordSort)} aria-label="Classificar registros"><option>Mais recentes</option><option>Nome</option><option>Responsável</option><option>Etapa</option></select>
-          <div className={vertical.scopeSwitch} aria-label="Andamento dos registros"><button type="button" className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatusFilter("Todos"); setSelectedId(""); }}>Em andamento ({openCount})</button><button type="button" className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatusFilter("Todos"); setSelectedId(""); }}>Finalizados ({finalizedCount})</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setStatusFilter("Todos"); setSelectedId(""); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
+          <div className={vertical.scopeSwitch} aria-label="Andamento dos registros"><button type="button" className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatusFilter("Todos"); }}>Em andamento ({openCount})</button><button type="button" className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatusFilter("Todos"); }}>Finalizados ({finalizedCount})</button><button type="button" className={scope === "Arquivados" ? vertical.scopeActive : ""} onClick={() => { setScope("Arquivados"); setStatusFilter("Todos"); }}>Arquivados{archivedCount ? ` (${archivedCount})` : ""}</button></div>
         </div>
         <div className={vertical.entityList}>{visibleRecords.map((record) => <button type="button" key={record.id} className={vertical.entityRow} onClick={() => openRecord(record)}><span className={vertical.entityIcon}><Icon name={config.icon} /></span><div className={vertical.entityMain}><strong>{record.title}</strong><p>{record.subtitle}</p><small>Próxima ação: {isFinalRecord(record) ? "Consultar conclusão" : linearFlow ? config.statuses[config.statuses.indexOf(record.status) + 1] || "Revisar" : "Abrir registro"}</small></div><div className={vertical.entityMeta}><StatusPill status={record.status} /><span>{record.updated}</span></div><Icon name="chevron" /></button>)}{!visibleRecords.length ? <EmptyState icon={scope === "Arquivados" || scope === "Finalizados" ? "history" : "search"} title={scope === "Arquivados" ? "Nenhum registro arquivado" : scope === "Finalizados" ? "Nenhum processo finalizado" : `Nenhum ${config.entityLabel.toLowerCase()} encontrado`} description={query || statusFilter !== "Todos" ? "Altere a busca ou o filtro." : `Crie o primeiro ${config.entityLabel.toLowerCase()} para começar.`} action={scope === "Em andamento" && !query && statusFilter === "Todos" ? <button className={styles.primaryButton} onClick={() => setModal("record")}>{config.primaryAction}</button> : undefined} /> : null}</div>
       </section>
     </> : null}
 
-    {active === config.entityPlural && view === "list" && !selected ? null : null}
-
-    {isDetail && selected ? <section className={vertical.detailPage}>
+    {isDetail && selected && editDraft ? <section className={vertical.detailPage}>
       <button type="button" className={vertical.backButton} onClick={returnToList}><Icon name="back" /> Voltar para {config.entityPlural.toLowerCase()}</button>
       <div className={vertical.detailContent}>
         {selected.archived ? <div className={vertical.archiveNotice}>Este registro está arquivado. Restaure para voltar a trabalhar nele.</div> : null}
@@ -432,21 +495,20 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
         <section className={vertical.summarySection}><div className={vertical.sectionTitle}><div><h2>Trabalho desta etapa</h2><p>Mostramos somente o necessário para decidir o próximo passo.</p></div></div><dl className={vertical.factsGrid}><div><dt>Responsável</dt><dd>{selected.owner}</dd></div><div><dt>Descrição</dt><dd>{selected.subtitle}</dd></div>{keyFacts.slice(0, 4).map((field) => <div key={field.key} className={field.wide ? vertical.factWide : ""}><dt>{field.label}</dt><dd>{selected.data[field.key]}</dd></div>)}</dl>{!keyFacts.length ? <p className={vertical.missingInfo}>Preencha os dados essenciais antes de mudar a etapa.</p> : null}{!selected.archived && transitionOptions().length ? <div className={vertical.inlineActions}><button className={styles.primaryButton} onClick={openTransition}>{linearFlow ? `Continuar para ${nextStatus}` : "Escolher próxima situação"}</button></div> : null}</section>
 
-        <details className={vertical.disclosure}><summary><div><strong>Dados do cadastro</strong><span>Informações preservadas das etapas anteriores.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><fieldset className={vertical.editFieldset} disabled={selected.archived}><label>Título<input value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} /></label><label>Descrição curta<input value={selected.subtitle} onChange={(event) => updateSelected({ subtitle: event.target.value })} /></label><label>Responsável<input value={selected.owner} onChange={(event) => updateSelected({ owner: event.target.value })} /></label>{config.fields.map((field) => <label key={field.key} className={field.wide ? vertical.fullField : ""}>{field.label}{renderField(field, selected.data[field.key] ?? "", (value) => updateSelected({ data: { ...selected.data, [field.key]: value } }))}</label>)}</fieldset></div></details>
+        <details className={vertical.disclosure}><summary><div><strong>Dados do cadastro</strong><span>Edite em rascunho e confirme antes de gravar.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><fieldset className={vertical.editFieldset} disabled={selected.archived}><label>Título<input value={editDraft.title} onChange={(event) => setEditDraft((current) => current ? { ...current, title: event.target.value } : current)} /></label><label>Descrição curta<input value={editDraft.subtitle} onChange={(event) => setEditDraft((current) => current ? { ...current, subtitle: event.target.value } : current)} /></label><label>Responsável<input value={editDraft.owner} onChange={(event) => setEditDraft((current) => current ? { ...current, owner: event.target.value } : current)} /></label>{config.fields.map((field) => <label key={field.key} className={field.wide ? vertical.fullField : ""}>{field.label}{renderField(field, editDraft.data[field.key] ?? "", (value) => setEditDraft((current) => current ? { ...current, data: { ...current.data, [field.key]: value } } : current))}</label>)}{!selected.archived ? <div className={workflow.editToolbar}><span className={workflow.editState} data-dirty={draftDirty}><i />{draftDirty ? "Alterações ainda não salvas" : "Cadastro salvo"}</span><div className={workflow.editActions}><button type="button" className={styles.secondaryButton} onClick={cancelEditDraft} disabled={!draftDirty}>Cancelar alterações</button><button type="button" className={styles.primaryButton} onClick={saveEditDraft} disabled={!draftDirty}>Salvar cadastro</button></div></div> : null}</fieldset></div></details>
 
         <details className={vertical.disclosure}><summary><div><strong>{config.operationPlural}</strong><span>{selectedOperations.length} registro(s) ligados ao processo.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("operation")}><Icon name="plus" /> Adicionar {config.operationLabel.toLowerCase()}</button> : null}<div className={vertical.operationList}>{selectedOperations.map((item) => <div className={vertical.operationRow} key={item.id}><div><strong>{item.title}</strong><p>{item.description || "Sem observação"}</p><small>{item.date || "Sem data"}</small></div><div className={vertical.operationActions}><StatusPill status={item.status} /><button className={styles.secondaryButton} onClick={() => openOperationStatus(item)}>Atualizar situação</button><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeOperation(item)}><Icon name="trash" /></button></div></div>)}{!selectedOperations.length ? <EmptyState icon="activity" title={`Nenhum ${config.operationLabel.toLowerCase()} registrado`} description="Adicione somente quando houver uma ação real para acompanhar." /> : null}</div></div></details>
 
-        <details className={vertical.disclosure}><summary><div><strong>{config.resourcePlural}</strong><span>{selectedResources.length + selected.attachments.length} item(ns) vinculados.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("resource")}><Icon name="plus" /> Adicionar {config.resourceLabel.toLowerCase()}</button> : null}<div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category || `Sem categoria de ${config.resourceLabel.toLowerCase()}`}{item.reference ? ` · ${item.reference}` : ""}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><StatusPill status={item.status} /><button className={styles.secondaryButton} onClick={() => openResourceStatus(item)}>Atualizar situação</button><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}{!selectedResources.length ? <EmptyState icon={resourceIcon(config.slug)} title={`Nenhum ${config.resourceLabel.toLowerCase()} adicionado`} description="Adicione somente itens úteis para esta etapa." /> : null}</div>{!selected.archived ? <label className={vertical.uploadButton}><Icon name="image" /> Anexar arquivo<input hidden type="file" onChange={addAttachment} /></label> : null}{selected.attachments.length ? <div className={vertical.resourceList}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo anexado</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => { if (window.confirm(`Remover “${file.name}”?`)) updateSelected({ attachments: selected.attachments.filter((item) => item.id !== file.id) }, `Arquivo removido: ${file.name}`); }}><Icon name="trash" /></button></div></div>)}</div> : null}</div></details>
+        <details className={vertical.disclosure}><summary><div><strong>{config.resourcePlural}</strong><span>{selectedResources.length + selected.attachments.length} item(ns) vinculados.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}>{!selected.archived ? <button className={styles.primaryButton} onClick={() => setModal("resource")}><Icon name="plus" /> Adicionar {config.resourceLabel.toLowerCase()}</button> : null}<div className={vertical.resourceList}>{selectedResources.map((item) => <div className={vertical.resourceRow} key={item.id}><div><strong>{item.title}</strong><p>{item.category || `Sem categoria de ${config.resourceLabel.toLowerCase()}`}{item.reference ? ` · ${item.reference}` : ""}</p><small>{item.due ? `Data: ${item.due}` : "Sem data definida"}</small></div><div className={vertical.operationActions}><StatusPill status={item.status} /><button className={styles.secondaryButton} onClick={() => openResourceStatus(item)}>Atualizar situação</button><button className={styles.iconButton} aria-label={`Remover ${item.title}`} onClick={() => removeResource(item)}><Icon name="trash" /></button></div></div>)}{!selectedResources.length ? <EmptyState icon={resourceIcon(config.slug)} title={`Nenhum ${config.resourceLabel.toLowerCase()} adicionado`} description="Adicione somente itens úteis para esta etapa." /> : null}</div>{!selected.archived ? <><label className={vertical.uploadButton}><Icon name="image" /> Anexar arquivo<input hidden type="file" onChange={addAttachment} /></label><p className={workflow.attachmentLimit}>Até {MAX_ATTACHMENTS} anexos e aproximadamente 3,5 MB por registro. Imagens são comprimidas antes de salvar.</p></> : null}{selected.attachments.length ? <div className={vertical.resourceList}>{selected.attachments.map((file) => <div className={vertical.resourceRow} key={file.id}><div><strong>{file.name}</strong><p>Arquivo anexado</p></div><div className={vertical.operationActions}><a className={vertical.fileAction} href={file.data} download={file.name}><Icon name="download" /> Baixar</a><button className={styles.iconButton} aria-label={`Remover ${file.name}`} onClick={() => removeAttachment(file)}><Icon name="trash" /></button></div></div>)}</div> : null}</div></details>
 
         <details className={vertical.disclosure}><summary><div><strong>Histórico</strong><span>{selected.history.length} registro(s) preservados.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><Timeline items={selected.history} />{!selected.archived ? <div className={vertical.noteComposer}><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar uma observação ou decisão" /><button className={styles.primaryButton} onClick={addNote}>Adicionar observação</button></div> : null}</div></details>
 
-        <details className={vertical.disclosure}><summary><div><strong>Mais ações</strong><span>Compartilhar, imprimir, exportar ou arquivar.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><div className={vertical.inlineActions}><button className={styles.secondaryButton} onClick={shareSelected}><Icon name="message" /> Copiar resumo</button><button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir</button><button className={styles.secondaryButton} onClick={exportRecords}><Icon name="download" /> Exportar lista</button>{allowDuplicate && !selected.archived ? <button className={styles.secondaryButton} onClick={duplicateSelected}><Icon name="plus" /> Duplicar</button> : null}<button className={selected.archived ? styles.primaryButton : styles.dangerButton} onClick={toggleArchive}>{selected.archived ? "Restaurar" : "Arquivar"}</button></div></div></details>
+        <details className={vertical.disclosure}><summary><div><strong>Mais ações</strong><span>Compartilhar, imprimir, exportar ou arquivar.</span></div><Icon name="chevron" /></summary><div className={vertical.disclosureBody}><div className={vertical.inlineActions}><button className={styles.secondaryButton} onClick={shareSelected}><Icon name="message" /> Copiar resumo</button><button className={styles.secondaryButton} onClick={() => window.print()}><Icon name="print" /> Imprimir</button><button className={styles.secondaryButton} onClick={exportRecords}><Icon name="download" /> Exportar lista</button>{allowDuplicate && !selected.archived ? <button className={styles.secondaryButton} onClick={duplicateSelected} disabled={draftDirty}><Icon name="plus" /> Duplicar</button> : null}<button className={selected.archived ? styles.primaryButton : styles.dangerButton} onClick={toggleArchive}>{selected.archived ? "Restaurar" : "Arquivar"}</button></div></div></details>
       </div>
     </section> : null}
 
-    {active === config.entityPlural && view === "list" && records.length > 0 ? null : null}
-    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" statuses={config.operationStatuses} finalStatuses={operationFinalStatuses} items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
-    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} statuses={config.resourceStatuses} finalStatuses={resourceFinalStatuses} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) { setActive(config.entityPlural); openRecord(parent); } }} /> : null}
+    {active === config.operationPlural ? <ListingPage title={config.operationPlural} description={`${config.operationLabel}s de todos os registros.`} icon="activity" statuses={config.operationStatuses} finalStatuses={operationFinalStatuses} items={related.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.date || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) openRecord(parent); }} /> : null}
+    {active === config.resourcePlural ? <ListingPage title={config.resourcePlural} description={`${config.resourceLabel}s de todos os registros.`} icon={resourceIcon(config.slug)} statuses={config.resourceStatuses} finalStatuses={resourceFinalStatuses} items={resources.map((item) => ({ id: item.id, title: item.title, subtitle: records.find((record) => record.id === item.parentId)?.title ?? "Sem vínculo", status: item.status, date: item.due || "Sem data", parentId: item.parentId }))} onRow={(item) => { const parent = records.find((record) => record.id === item.parentId); if (parent) openRecord(parent); }} /> : null}
 
     <Modal open={modal === "record"} title={config.primaryAction} description="Comece com o essencial. O processo abrirá na primeira etapa." onClose={() => setModal(null)}><Form onSubmit={createRecord}><Field label={`Nome do ${config.entityLabel.toLowerCase()}`}><input autoFocus required value={recordDraft.title} onChange={(event) => setRecordDraft((current) => ({ ...current, title: event.target.value }))} /></Field><Field label="Descrição curta" hint="Use uma frase que ajude a reconhecer este registro."><input value={recordDraft.subtitle} onChange={(event) => setRecordDraft((current) => ({ ...current, subtitle: event.target.value }))} /></Field><Field label="Responsável"><input required value={recordDraft.owner} onChange={(event) => setRecordDraft((current) => ({ ...current, owner: event.target.value }))} /></Field><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Cancelar</button><button className={styles.primaryButton}>Criar na etapa {config.statuses[0]}</button></div></Form></Modal>
 
@@ -460,6 +522,7 @@ export function VerticalBusinessApp({ product, config }: { product: Product; con
 
     <Modal open={modal === "resourceStatus"} title={`Atualizar ${config.resourceLabel.toLowerCase()}`} description={itemTransition.title} onClose={() => setModal(null)}><Field label="Nova situação"><select value={itemTransition.target} onChange={(event) => setItemTransition((current) => ({ ...current, target: event.target.value }))}>{itemTransition.options.map((status) => <option key={status}>{status}</option>)}</select></Field><div className={styles.noteBox}><strong>{itemTransition.current}</strong> → <strong>{itemTransition.target}</strong><br />Confirme somente depois de verificar a situação real deste item.</div><div className={styles.modalActions}><button type="button" className={styles.secondaryButton} onClick={() => setModal(null)}>Voltar</button><button type="button" className={styles.primaryButton} onClick={() => confirmItemTransition("resource")}>Confirmar atualização</button></div></Modal>
 
+    {undoAction ? <div className={workflow.undoBar} role="status" aria-live="polite"><span>{undoAction.kind === "operation" ? config.operationLabel : undoAction.kind === "resource" ? config.resourceLabel : "Arquivo"} removido.</span><button type="button" onClick={undoRemoval}>Desfazer</button><button type="button" className={workflow.undoClose} onClick={() => setUndoAction(null)} aria-label="Fechar opção de desfazer"><Icon name="close" /></button></div> : null}
     {toast ? <Toast message={toast} onClose={() => setToast("")} /> : null}
   </AppShell>;
 }
@@ -484,7 +547,7 @@ function ListingPage({ title, description, icon, items, statuses, finalStatuses,
   }, [finalStatuses, items, query, scope, sort, status, statuses]);
   const openCount = items.filter((item) => !finalStatuses.includes(item.status)).length;
   const finishedCount = items.filter((item) => finalStatuses.includes(item.status)).length;
-  return <section className={vertical.listSurface}><div className={vertical.consolidatedHeader}><div><h2>{title}</h2><p>{description}</p></div><strong>{filtered.length}</strong></div><div className={vertical.listControls}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar em ${title.toLowerCase()}`} /></label><select className={styles.compactSelect} value={status} onChange={(event) => setStatus(event.target.value)}><option>Todos</option>{statuses.map((item) => <option key={item}>{item}</option>)}</select><select className={styles.compactSelect} value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option>Mais recentes</option><option>Nome</option><option>Data</option><option>Situação</option></select><div className={vertical.scopeSwitch}><button className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatus("Todos"); }}>Em andamento ({openCount})</button><button className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatus("Todos"); }}>Finalizados ({finishedCount})</button></div></div><div className={vertical.entityList}>{filtered.map((item) => <button key={item.id} type="button" className={vertical.entityRow} onClick={() => onRow(item)}><span className={vertical.entityIcon}><Icon name={icon} /></span><div className={vertical.entityMain}><strong>{item.title}</strong><p>{item.subtitle}</p><small>{item.date}</small></div><div className={vertical.entityMeta}><StatusPill status={item.status} /></div><Icon name="chevron" /></button>)}{!filtered.length ? <EmptyState icon={scope === "Finalizados" ? "history" : "search"} title={scope === "Finalizados" ? "Nenhuma atividade finalizada" : "Nenhum registro em andamento"} description={items.length ? "Altere a busca, o filtro ou a classificação." : "Os registros aparecerão aqui quando forem criados."} /> : null}</div></section>;
+  return <section className={vertical.listSurface}><div className={vertical.consolidatedHeader}><div><h2>{title}</h2><p>{description}</p></div><strong>{filtered.length}</strong></div><div className={vertical.listControls}><label className={styles.inputSearch}><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar em ${title.toLowerCase()}`} aria-label={`Buscar em ${title.toLowerCase()}`} /></label><select className={styles.compactSelect} value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filtrar por situação"><option>Todos</option>{statuses.map((item) => <option key={item}>{item}</option>)}</select><select className={styles.compactSelect} value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} aria-label="Classificar registros"><option>Mais recentes</option><option>Nome</option><option>Data</option><option>Situação</option></select><div className={vertical.scopeSwitch}><button type="button" className={scope === "Em andamento" ? vertical.scopeActive : ""} onClick={() => { setScope("Em andamento"); setStatus("Todos"); }}>Em andamento ({openCount})</button><button type="button" className={scope === "Finalizados" ? vertical.scopeActive : ""} onClick={() => { setScope("Finalizados"); setStatus("Todos"); }}>Finalizados ({finishedCount})</button></div></div><div className={vertical.entityList}>{filtered.map((item) => <button key={item.id} type="button" className={vertical.entityRow} onClick={() => onRow(item)}><span className={vertical.entityIcon}><Icon name={icon} /></span><div className={vertical.entityMain}><strong>{item.title}</strong><p>{item.subtitle}</p><small>{item.date}</small></div><div className={vertical.entityMeta}><StatusPill status={item.status} /></div><Icon name="chevron" /></button>)}{!filtered.length ? <EmptyState icon={scope === "Finalizados" ? "history" : "search"} title={scope === "Finalizados" ? "Nenhuma atividade finalizada" : "Nenhum registro em andamento"} description={items.length ? "Altere a busca, o filtro ou a classificação." : "Os registros aparecerão aqui quando forem criados."} /> : null}</div></section>;
 }
 
 function resourceIcon(slug: string): IconName {
