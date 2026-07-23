@@ -16,14 +16,16 @@ export function HomeProductShowcase() {
     [],
   );
   const [activeIndex, setActiveIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const [interacting, setInteracting] = useState(false);
   const active = showcaseProducts[activeIndex] ?? showcaseProducts[0];
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion || showcaseProducts.length < 2) return;
+    if (reducedMotion || !autoPlay || interacting || showcaseProducts.length < 2) return;
     const timer = window.setInterval(() => setActiveIndex((current) => (current + 1) % showcaseProducts.length), 5200);
     return () => window.clearInterval(timer);
-  }, [showcaseProducts.length]);
+  }, [autoPlay, interacting, showcaseProducts.length]);
 
   if (!active) return null;
 
@@ -32,8 +34,26 @@ export function HomeProductShowcase() {
   const activeStyle = { "--showcase-accent": active.color, "--showcase-soft": active.colorSoft } as CSSProperties;
   const mainCandidates = [...media.galleryCandidates[1], ...media.coverCandidates];
 
+  function chooseProduct(index: number) {
+    setActiveIndex(index);
+    setAutoPlay(false);
+  }
+
   return (
-    <div className="home-product-showcase-v2" style={activeStyle} aria-label="Prévia de aplicativos CRMPlus+">
+    <div
+      className="home-product-showcase-v2"
+      style={activeStyle}
+      aria-label="Prévia de aplicativos CRMPlus+"
+      onMouseEnter={() => setInteracting(true)}
+      onMouseLeave={() => setInteracting(false)}
+      onFocusCapture={() => setInteracting(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setInteracting(false); }}
+    >
+      <div className="showcase-control-row">
+        <span aria-live="polite">{autoPlay ? "Destaque automático ativo" : "Aplicativo escolhido manualmente"}</span>
+        <button type="button" onClick={() => setAutoPlay((current) => !current)} aria-pressed={!autoPlay}>{autoPlay ? "Pausar rotação" : "Ativar rotação"}</button>
+      </div>
+
       <Link className="showcase-main-window" href={`/aplicativos/${active.slug}`}>
         <div className="showcase-window-bar">
           <span><i /><i /><i /></span>
@@ -60,7 +80,7 @@ export function HomeProductShowcase() {
               key={product.slug}
               type="button"
               className={index === activeIndex ? "showcase-switcher-active" : undefined}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => chooseProduct(index)}
               aria-pressed={index === activeIndex}
             >
               <ProductIcon slug={product.slug} size={17} />
