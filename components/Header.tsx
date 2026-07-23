@@ -8,7 +8,8 @@ export function Header() {
         <Brand />
         <nav aria-label="Navegação principal">
           <Link href="/#sistemas">Aplicativos</Link>
-          <Link className="header-cta" href="/entrar">Acessar aplicativo</Link>
+          <Link className="home-login-link" href="/entrar">Entrar</Link>
+          <Link className="header-cta" href="/criar-conta">Criar conta</Link>
         </nav>
       </div>
     </header>
