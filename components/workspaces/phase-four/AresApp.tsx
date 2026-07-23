@@ -21,7 +21,7 @@ const initialModels: QuoteModel[] = [
 ];
 
 const statusOptions: QuoteStatus[] = ["Rascunho", "Pronto", "Enviado", "Visualizado", "Alteração solicitada", "Aprovado", "Recusado", "Expirado"];
-const finalQuoteStatuses: QuoteStatus[] = ["Alteração solicitada", "Aprovado", "Recusado", "Expirado"];
+const finalQuoteStatuses: QuoteStatus[] = ["Aprovado", "Recusado", "Expirado"];
 
 export function AresApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Propostas");
