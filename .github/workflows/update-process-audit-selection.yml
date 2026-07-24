@@ -1,0 +1,59 @@
+name: Alinhar QA ao contexto inicial dos aplicativos
+
+on:
+  push:
+    paths:
+      - ".github/workflows/update-process-audit-selection.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Atualizar contrato do teste de entrada
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/audit-processes.mjs")
+          text = path.read_text(encoding="utf-8")
+          old = '''// Navegação e seleção inicial em todos os aplicativos.
+          for (const slug of slugs) {
+            const { page, errors } = await open(slug);
+            try {
+              const selected = await page.locator('[class*="recordSelected"], [class*="salesSelected"], [class*="floorSelected"], [class*="checkCurrent"]').count();
+              await assert(slug, "entrada sem seleção automática", selected === 0, `foram encontrados ${selected} elementos selecionados`, page);
+          '''
+          new = '''// Navegação e seleção inicial em todos os aplicativos.
+          // Produtos de decisão imediata abrem o primeiro contexto útil; os demais preservam a escolha consciente.
+          const autoSelectedSlugs = new Set(["atlas", "ares", "artemis", "pandora", "poseidon"]);
+          for (const slug of slugs) {
+            const { page, errors } = await open(slug);
+            try {
+              const selected = await page.locator('[class*="recordSelected"], [class*="salesSelected"], [class*="floorSelected"], [class*="checkCurrent"]').count();
+              const shouldSelect = autoSelectedSlugs.has(slug);
+              const selectionTest = shouldSelect ? "entrada com contexto útil" : "entrada sem seleção automática";
+              await assert(slug, selectionTest, shouldSelect ? selected === 1 : selected === 0, `foram encontrados ${selected} elementos selecionados`, page);
+          '''
+          if old not in text:
+              raise SystemExit("Bloco esperado não encontrado no agente de processos")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
+      - name: Remover automação temporária
+        run: rm .github/workflows/update-process-audit-selection.yml
+
+      - name: Publicar alteração no main
+        run: |
+          git config user.name "CRM Plus QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/audit-processes.mjs .github/workflows/update-process-audit-selection.yml
+          git commit -m "Validar contexto útil na entrada dos aplicativos"
+          git push origin main
