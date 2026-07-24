@@ -13,6 +13,7 @@ import "./legal-pages.css";
 import "./showcase-controls.css";
 import "./workspace-viewport.css";
 import "./workspace-client-experience.css";
+import "./workspace-client-states.css";
 
 const buildSha = process.env.NEXT_PUBLIC_BUILD_SHA || "local";
 
