@@ -1,0 +1,49 @@
+/* Artemis — mapa do salão no tema escuro. */
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorMap"] {
+  background:
+    radial-gradient(circle at 24% 14%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 40%),
+    linear-gradient(180deg, #111a25, #0e161f) !important;
+  border-color: #354457 !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] {
+  color: #f3f7fb !important;
+  background: linear-gradient(180deg, #18232f, #131c27) !important;
+  border-color: #344457 !important;
+  box-shadow: 0 9px 22px rgba(0, 0, 0, .2) !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] :where(strong, span, small, p) {
+  color: inherit;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] small,
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] p {
+  color: #a9b6c7 !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorLivre"] {
+  background: #111923 !important;
+  border-color: #405066 !important;
+  border-style: dashed !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorEmatendimento"] {
+  background: color-mix(in srgb, #2563eb 18%, #121a24) !important;
+  border-color: #5680dc !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorNacozinha"] {
+  background: color-mix(in srgb, #f79009 16%, #121a24) !important;
+  border-color: #ad711f !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorPronto"] {
+  background: color-mix(in srgb, #12b76a 15%, #121a24) !important;
+  border-color: #31936a !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorSelected"] {
+  outline-color: color-mix(in srgb, var(--accent) 32%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent) 72%, #ffffff) !important;
+}
