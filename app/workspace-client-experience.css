@@ -1,0 +1,612 @@
+/*
+ * CRM Plus — Client Experience System
+ * Uma única direção visual para os 15 aplicativos.
+ * Princípios: clareza imediata, baixa fricção, densidade escaneável,
+ * superfícies independentes e personalidade por produto.
+ */
+
+:root {
+  --cx-font: "Segoe UI Variable", Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --cx-canvas: #f4f5f7;
+  --cx-surface: #ffffff;
+  --cx-surface-soft: #f8f9fb;
+  --cx-surface-strong: #eef1f4;
+  --cx-ink: #101923;
+  --cx-muted: #64707d;
+  --cx-subtle: #8a95a2;
+  --cx-line: #dce1e7;
+  --cx-line-strong: #cbd2da;
+  --cx-radius-sm: 10px;
+  --cx-radius: 16px;
+  --cx-radius-lg: 22px;
+  --cx-shadow: 0 12px 34px rgba(15, 23, 42, .07);
+  --cx-shadow-raised: 0 22px 58px rgba(15, 23, 42, .12);
+}
+
+html:has([data-product]),
+body:has([data-product]) {
+  background: var(--cx-canvas);
+}
+
+/* Faixa de conta: contexto discreto, não um segundo sistema concorrendo com o app. */
+[class*="signedInShell"] {
+  height: 100dvh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--cx-canvas);
+}
+
+[class*="sessionHeader"] {
+  min-height: 46px !important;
+  padding: 0 18px !important;
+  color: var(--cx-ink) !important;
+  background: rgba(255, 255, 255, .96) !important;
+  border-bottom: 1px solid var(--cx-line) !important;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .02);
+  backdrop-filter: blur(16px);
+}
+
+[class*="sessionHeader"] [class*="sessionIcon"] {
+  width: 30px !important;
+  height: 30px !important;
+  color: #fff !important;
+  background: #18212d !important;
+  border-radius: 9px !important;
+}
+
+[class*="sessionHeader"] strong { color: var(--cx-ink) !important; font-size: 12px !important; }
+[class*="sessionHeader"] small { color: var(--cx-muted) !important; font-size: 11px !important; }
+[class*="sessionHeader"] [class*="storageBadge"] { color: var(--cx-muted) !important; }
+[class*="sessionHeader"] [class*="sessionActions"] a,
+[class*="sessionHeader"] [class*="sessionActions"] button {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  color: #344054 !important;
+  background: #fff !important;
+  border: 1px solid var(--cx-line) !important;
+  border-radius: 9px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+[class*="sessionHeader"] [class*="sessionActions"] a:hover,
+[class*="sessionHeader"] [class*="sessionActions"] button:hover {
+  color: var(--cx-ink) !important;
+  border-color: var(--cx-line-strong) !important;
+  background: #f8fafc !important;
+}
+
+/* Shell operacional */
+[data-product][class*="appShell"] {
+  --text: var(--cx-ink);
+  --text-muted: var(--cx-muted);
+  --surface: var(--cx-surface);
+  --surface-raised: var(--cx-surface-soft);
+  --border: var(--cx-line);
+  --focus: color-mix(in srgb, var(--accent) 32%, transparent);
+  height: 100%;
+  min-height: 0 !important;
+  grid-template-columns: 224px minmax(0, 1fr) !important;
+  color: var(--cx-ink);
+  background: var(--cx-canvas) !important;
+  font-family: var(--cx-font) !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+[data-product][class*="appShell"] * { box-sizing: border-box; }
+[data-product][class*="appShell"] button,
+[data-product][class*="appShell"] input,
+[data-product][class*="appShell"] textarea,
+[data-product][class*="appShell"] select { font-family: inherit; }
+
+/* Sidebar: produto reconhecível, navegação calma e utilitários subordinados. */
+[data-product] > aside[data-ui="navigation"] {
+  padding: 18px 13px 14px !important;
+  background: var(--nav-bg) !important;
+  border-right: 1px solid rgba(255, 255, 255, .07) !important;
+  box-shadow: 12px 0 35px rgba(15, 23, 42, .055);
+}
+
+[data-product] [class*="brandBlock"] {
+  grid-template-columns: 42px minmax(0, 1fr) auto !important;
+  gap: 11px !important;
+  min-height: 66px;
+  padding: 4px 7px 18px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  margin-bottom: 14px;
+}
+[data-product] [class*="productLogo"] {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 13px !important;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 25%, transparent) !important;
+}
+[data-product] [class*="brandBlock"] strong { font-size: 17px !important; letter-spacing: -.02em; }
+[data-product] [class*="brandBlock"] span { color: rgba(255, 255, 255, .58) !important; font-size: 11px !important; }
+
+[data-product] [class*="sideNav"] { display: grid; gap: 5px !important; }
+[data-product] [class*="sideNav"] button {
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  color: rgba(255, 255, 255, .68) !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  transition: color .16s ease, background .16s ease, transform .16s ease;
+}
+[data-product] [class*="sideNav"] button:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .075) !important;
+  transform: translateX(2px);
+}
+[data-product] [class*="sideNav"] button[aria-current="page"] {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .12) !important;
+  box-shadow: inset 3px 0 var(--accent), 0 8px 22px rgba(0, 0, 0, .10) !important;
+}
+[data-product] [class*="sideNav"] svg { width: 18px !important; height: 18px !important; opacity: .9; }
+
+[data-product] [class*="sidebarFooter"] {
+  gap: 3px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid rgba(255, 255, 255, .08) !important;
+}
+[data-product] [class*="sidebarFooter"] button,
+[data-product] [class*="sidebarFooter"] a {
+  min-height: 40px !important;
+  padding: 0 11px !important;
+  border-radius: 9px !important;
+  color: rgba(255, 255, 255, .62) !important;
+  font-size: 12px !important;
+}
+[data-product] [class*="sidebarFooter"] button:hover,
+[data-product] [class*="sidebarFooter"] a:hover { color: #fff !important; background: rgba(255, 255, 255, .07) !important; }
+
+/* Cabeçalho contextual: tarefa primeiro, controles depois. */
+[data-product] [class*="workspace"] { min-height: 0 !important; background: var(--cx-canvas); }
+[data-product] header[data-ui="context"] {
+  min-height: 82px !important;
+  padding: 15px clamp(20px, 2.2vw, 34px) !important;
+  color: var(--cx-ink);
+  background: rgba(255, 255, 255, .94) !important;
+  border-bottom: 1px solid var(--cx-line) !important;
+  box-shadow: 0 5px 22px rgba(15, 23, 42, .035) !important;
+  backdrop-filter: blur(18px);
+}
+[data-product] [class*="titleBlock"] h1 {
+  margin: 0 0 4px !important;
+  color: var(--cx-ink);
+  font-size: clamp(23px, 2vw, 28px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.045em !important;
+}
+[data-product] [class*="titleBlock"] p {
+  max-width: 760px;
+  margin: 0 !important;
+  color: var(--cx-muted) !important;
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+[data-product] [class*="topActions"] { gap: 10px !important; }
+[data-product] [class*="storageBadge"] {
+  min-height: 34px !important;
+  padding: 6px 11px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+}
+
+[data-product] main[data-ui="workspace"] {
+  padding: clamp(18px, 2.2vw, 30px) !important;
+  color: var(--cx-ink);
+  background:
+    radial-gradient(circle at 86% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 29%),
+    var(--cx-canvas) !important;
+}
+
+/* Controles */
+[data-product] :where([class*="primaryButton"], [class*="secondaryButton"], [class*="dangerButton"], [class*="iconButton"]) {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  padding-inline: 15px !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  box-shadow: none !important;
+}
+[data-product] [class*="primaryButton"] {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+[data-product] [class*="primaryButton"]:hover { transform: translateY(-1px); filter: saturate(1.04) brightness(.98); }
+[data-product] [class*="secondaryButton"] {
+  color: #344054 !important;
+  background: #fff !important;
+  border-color: var(--cx-line) !important;
+}
+[data-product] [class*="secondaryButton"]:hover { background: #f8fafc !important; border-color: var(--cx-line-strong) !important; }
+[data-product] [class*="iconButton"] { width: 44px !important; min-width: 44px !important; padding: 0 !important; }
+
+[data-product] :where(input, textarea, select) {
+  color: var(--cx-ink);
+  background: #fff;
+  border-color: var(--cx-line-strong);
+}
+[data-product] :where([class*="inputSearch"], [class*="compactSelect"]) {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  border-color: var(--cx-line-strong) !important;
+  background: #fff !important;
+}
+[data-product] [class*="inputSearch"] { min-width: min(340px, 100%) !important; }
+[data-product] [class*="inputSearch"] input { font-size: 13px !important; }
+[data-product] [class*="compactSelect"] { font-size: 13px !important; }
+[data-product] :where(input, textarea, select):focus-visible,
+[data-product] [class*="inputSearch"]:focus-within {
+  outline: 0;
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--cx-line-strong)) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 11%, transparent) !important;
+}
+
+/* Container model: sem uma caixa gigante envolvendo tudo. */
+[data-product] :where([class*="masterDetail"], [class*="salesLayout"], [class*="feedbackLayout"], [class*="restaurantLayout"], [class*="inspectionLayout"]) {
+  min-height: auto !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  gap: 18px;
+}
+
+[data-product] :where([class*="listPane"], [class*="feedbackInbox"], [class*="salesTablePane"], [class*="floorSheet"], [class*="inspectionList"], [class*="pageSheet"], [class*="listSurface"]) {
+  overflow: hidden;
+  background: var(--cx-surface) !important;
+  border: 1px solid var(--cx-line) !important;
+  border-radius: var(--cx-radius) !important;
+  box-shadow: var(--cx-shadow) !important;
+}
+
+[data-product] :where([class*="detailPane"], [class*="feedbackDetail"], [class*="salesDetail"], [class*="orderSheet"], [class*="inspectionStage"], [class*="documentPane"]) {
+  overflow: hidden;
+  background: var(--cx-surface) !important;
+  border: 1px solid var(--cx-line) !important;
+  border-radius: var(--cx-radius) !important;
+  box-shadow: var(--cx-shadow) !important;
+}
+
+[data-product] [class*="listToolbar"],
+[data-product] [class*="listControls"],
+[data-product] [class*="directoryToolbar"] {
+  min-height: 72px;
+  padding: 13px 14px !important;
+  gap: 9px !important;
+  flex-wrap: wrap;
+  background: #fff !important;
+  border-bottom-color: var(--cx-line) !important;
+}
+
+/* Linhas e tabelas: leitura humana, seleção evidente. */
+[data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"], [class*="scheduleRow"], [class*="directoryRows"] > button) {
+  min-height: 72px !important;
+  color: var(--cx-ink) !important;
+  background: #fff !important;
+  border-color: #e7ebef !important;
+  transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+[data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"], [class*="directoryRows"] > button):hover {
+  background: color-mix(in srgb, var(--accent-soft) 35%, #fff) !important;
+}
+[data-product] :where([class*="recordSelected"], [class*="salesSelected"], [class*="feedbackSelected"]) {
+  background: color-mix(in srgb, var(--accent-soft) 68%, #fff) !important;
+  box-shadow: inset 4px 0 var(--accent) !important;
+}
+[data-product] :where([class*="recordMain"], [class*="entityMain"]) strong,
+[data-product] [class*="salesRow"] strong { font-size: 13px !important; }
+[data-product] :where([class*="recordMain"], [class*="entityMain"]) p,
+[data-product] :where([class*="recordMain"], [class*="entityMain"]) small,
+[data-product] [class*="salesRow"] small,
+[data-product] [class*="salesRow"] span { font-size: 11px !important; line-height: 1.4; }
+[data-product] :where([class*="recordAvatar"], [class*="companyAvatar"], [class*="entityIcon"]) {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 11px !important;
+  background: color-mix(in srgb, var(--accent-soft) 82%, #fff) !important;
+  color: var(--accent) !important;
+  font-size: 11px !important;
+}
+[data-product] :where([class*="recordSelected"], [class*="salesSelected"]) :where([class*="recordAvatar"], [class*="companyAvatar"]) {
+  color: #fff !important;
+  background: var(--accent) !important;
+}
+
+[data-product] [class*="salesHeader"] {
+  min-height: 44px !important;
+  padding: 0 14px !important;
+  color: var(--cx-muted) !important;
+  background: #f6f8fa !important;
+  border-bottom: 1px solid var(--cx-line) !important;
+  font-size: 10px !important;
+  letter-spacing: .06em;
+}
+[data-product] [class*="salesRow"] { min-height: 68px !important; padding: 10px 14px !important; }
+[data-product] [class*="salesRow"] b { font-size: 12px !important; }
+
+/* Poseidon: oportunidade em foco, detalhe como painel de decisão. */
+[data-product="poseidon"] [class*="salesLayout"] {
+  grid-template-columns: minmax(610px, 1fr) minmax(330px, 390px) !important;
+  align-items: stretch;
+}
+[data-product="poseidon"] [class*="salesLayout"]:has(> [class*="emptyState"]) {
+  grid-template-columns: minmax(610px, 1fr) 330px !important;
+}
+[data-product="poseidon"] [class*="salesTablePane"] { min-width: 0; }
+[data-product="poseidon"] [class*="salesDetail"] { padding: 0 20px 24px; }
+[data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] {
+  min-height: 420px;
+  padding: 32px 26px !important;
+  align-self: stretch;
+  display: grid !important;
+  align-content: center;
+  justify-items: start !important;
+  text-align: left !important;
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--accent-soft) 82%, #fff), #fff 64%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--cx-line)) !important;
+  border-radius: var(--cx-radius) !important;
+  box-shadow: var(--cx-shadow) !important;
+}
+[data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] svg {
+  width: 42px !important;
+  height: 42px !important;
+  padding: 10px;
+  color: var(--accent) !important;
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+}
+[data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] h3 {
+  margin: 18px 0 7px !important;
+  font-size: 19px !important;
+  letter-spacing: -.025em;
+}
+[data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] p {
+  max-width: 255px;
+  margin: 0 !important;
+  color: var(--cx-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.55;
+}
+
+/* Empty states de todos os produtos */
+[data-product] [class*="emptyState"] {
+  min-height: 260px;
+  padding: 34px !important;
+  color: var(--cx-ink) !important;
+}
+[data-product] [class*="emptyState"] svg { color: var(--accent) !important; opacity: .82; }
+[data-product] [class*="emptyState"] h3 { color: var(--cx-ink) !important; font-size: 17px !important; }
+[data-product] [class*="emptyState"] p { color: var(--cx-muted) !important; font-size: 12px !important; }
+
+/* Detalhes e decisões */
+[data-product] [class*="detailHeader"] {
+  padding: 22px 22px 17px !important;
+  border-bottom-color: var(--cx-line) !important;
+}
+[data-product] [class*="detailHeader"] h2 { font-size: 23px !important; letter-spacing: -.035em !important; }
+[data-product] [class*="detailHeader"] p { font-size: 12px !important; }
+[data-product] [class*="infoSection"] { padding: 20px 0 !important; }
+[data-product] [class*="sectionHeading"] h3 { font-size: 14px !important; }
+[data-product] [class*="sectionHeading"] p { font-size: 11px !important; }
+[data-product] [class*="nextAction"] {
+  padding: 15px !important;
+  border-radius: 13px !important;
+  background: color-mix(in srgb, var(--accent-soft) 65%, #fff) !important;
+}
+[data-product] [class*="nextAction"] strong { font-size: 13px !important; }
+[data-product] [class*="nextAction"] span { font-size: 11px !important; }
+[data-product] [class*="nextAction"] button { min-height: 38px !important; font-size: 11px !important; }
+[data-product] details > summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  color: #344054;
+  font-size: 12px !important;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+/* Cards operacionais verticais: domínio visível sem parecer CRUD genérico. */
+[data-product] [class*="metricsLine"] {
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+[data-product] [class*="metricsLine"] > div {
+  min-height: 92px !important;
+  padding: 16px 18px !important;
+  border: 1px solid var(--cx-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 7px 20px rgba(15, 23, 42, .045) !important;
+}
+[data-product] [class*="metricsLine"] strong { color: var(--cx-ink) !important; font-size: 27px !important; }
+[data-product] [class*="metricsLine"] span { color: var(--cx-muted) !important; font-size: 12px !important; }
+[data-product] [class*="listSurface"] { max-width: 1240px !important; }
+[data-product] [class*="entityRow"] { padding: 15px 17px !important; }
+[data-product] [class*="entityMain"] strong { font-size: 14px !important; }
+[data-product] [class*="entityMain"] p { color: #475467 !important; font-size: 12px !important; }
+[data-product] [class*="entityMain"] small,
+[data-product] [class*="entityMeta"] span { color: var(--cx-subtle) !important; font-size: 11px !important; }
+
+/* Tipografia operacional dos seis apps singulares. */
+.premium-workspace {
+  color: var(--cx-ink) !important;
+  background: var(--cx-canvas) !important;
+  font-family: var(--cx-font) !important;
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+.premium-workspace button,
+.premium-workspace input,
+.premium-workspace textarea,
+.premium-workspace select { font-family: inherit; }
+.premium-workspace small { font-size: 11px !important; line-height: 1.45 !important; }
+.pw-topbar { min-height: 78px !important; height: auto !important; padding: 12px 26px !important; }
+.pw-content { padding: 25px clamp(18px, 2.3vw, 34px) 46px !important; }
+.pw-intro h1 { font-size: clamp(31px, 3vw, 45px) !important; letter-spacing: -.045em !important; }
+.pw-intro p { font-size: 14px !important; line-height: 1.55 !important; }
+.pw-metric { min-height: 106px !important; border-radius: 15px !important; box-shadow: var(--cx-shadow) !important; }
+.pw-metric strong { font-size: 26px !important; }
+.pw-primary { min-height: 44px !important; border-radius: 10px !important; }
+.pw-search { min-height: 44px !important; border-radius: 10px !important; }
+.section-heading h2 { font-size: 19px !important; }
+
+/* Tema escuro: superfícies reais, não uma tela clara com texto branco. */
+html[data-color-mode="dark"] {
+  --cx-canvas: #0b0f15;
+  --cx-surface: #121821;
+  --cx-surface-soft: #171f2a;
+  --cx-surface-strong: #202a37;
+  --cx-ink: #f2f6fb;
+  --cx-muted: #a6b1c0;
+  --cx-subtle: #7f8b9d;
+  --cx-line: #2a3544;
+  --cx-line-strong: #3a4657;
+  color-scheme: dark;
+}
+html[data-color-mode="dark"] body:has([data-product]),
+html[data-color-mode="dark"] [class*="signedInShell"] { background: var(--cx-canvas) !important; }
+html[data-color-mode="dark"] [class*="sessionHeader"] {
+  color: var(--cx-ink) !important;
+  background: rgba(14, 19, 27, .97) !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [class*="sessionHeader"] strong { color: var(--cx-ink) !important; }
+html[data-color-mode="dark"] [class*="sessionHeader"] small,
+html[data-color-mode="dark"] [class*="sessionHeader"] [class*="storageBadge"] { color: var(--cx-muted) !important; }
+html[data-color-mode="dark"] [class*="sessionHeader"] [class*="sessionActions"] a,
+html[data-color-mode="dark"] [class*="sessionHeader"] [class*="sessionActions"] button {
+  color: var(--cx-ink) !important;
+  background: #171e28 !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [data-product] {
+  --ink: var(--cx-ink) !important;
+  --muted: var(--cx-muted) !important;
+  --line: var(--cx-line) !important;
+  --surface: var(--cx-surface) !important;
+  --surface-raised: var(--cx-surface-soft) !important;
+  --canvas-bg: var(--cx-canvas) !important;
+  --topbar-bg: #0f151d !important;
+  --data-bg: var(--cx-surface) !important;
+  color: var(--cx-ink) !important;
+  background: var(--cx-canvas) !important;
+}
+html[data-color-mode="dark"] [data-product] header[data-ui="context"] {
+  color: var(--cx-ink) !important;
+  background: rgba(15, 21, 29, .96) !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [data-product] main[data-ui="workspace"] {
+  background:
+    radial-gradient(circle at 86% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30%),
+    var(--cx-canvas) !important;
+}
+html[data-color-mode="dark"] [data-product] :where(h1, h2, h3, h4, strong, b, summary, label, dt, dd) { color: var(--cx-ink) !important; }
+html[data-color-mode="dark"] [data-product] :where(p, small, time) { color: var(--cx-muted) !important; }
+html[data-color-mode="dark"] [data-product] :where(input, textarea, select, [class*="inputSearch"], [class*="compactSelect"]) {
+  color: var(--cx-ink) !important;
+  background: #0e141c !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="listPane"], [class*="feedbackInbox"], [class*="salesTablePane"], [class*="floorSheet"], [class*="inspectionList"],
+  [class*="pageSheet"], [class*="listSurface"], [class*="detailPane"], [class*="feedbackDetail"], [class*="salesDetail"],
+  [class*="orderSheet"], [class*="inspectionStage"], [class*="documentPane"], [class*="summarySection"], [class*="disclosure"],
+  [class*="modalCard"], [class*="metricsLine"] > div
+) {
+  color: var(--cx-ink) !important;
+  background: var(--cx-surface) !important;
+  border-color: var(--cx-line) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16) !important;
+}
+html[data-color-mode="dark"] [data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"], [class*="scheduleRow"], [class*="directoryRows"] > button) {
+  color: var(--cx-ink) !important;
+  background: var(--cx-surface) !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"]):hover {
+  background: var(--cx-surface-soft) !important;
+}
+html[data-color-mode="dark"] [data-product] :where([class*="recordSelected"], [class*="salesSelected"], [class*="feedbackSelected"]) {
+  background: color-mix(in srgb, var(--accent) 18%, var(--cx-surface)) !important;
+}
+html[data-color-mode="dark"] [data-product] [class*="salesHeader"],
+html[data-color-mode="dark"] [data-product] [class*="listToolbar"],
+html[data-color-mode="dark"] [data-product] [class*="listControls"] {
+  color: var(--cx-muted) !important;
+  background: var(--cx-surface-soft) !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] [data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] {
+  background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 15%, var(--cx-surface)), var(--cx-surface) 66%) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--cx-line)) !important;
+}
+html[data-color-mode="dark"] [data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] svg { background: var(--cx-surface-soft) !important; }
+html[data-color-mode="dark"] [data-product] [class*="secondaryButton"] {
+  color: var(--cx-ink) !important;
+  background: var(--cx-surface-soft) !important;
+  border-color: var(--cx-line) !important;
+}
+html[data-color-mode="dark"] .premium-workspace { color: var(--cx-ink) !important; background: var(--cx-canvas) !important; }
+
+/* Responsividade: muda o modelo, não comprime a tela. */
+@media (max-width: 1240px) {
+  [data-product="poseidon"] [class*="salesLayout"],
+  [data-product="poseidon"] [class*="salesLayout"]:has(> [class*="emptyState"]) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-product="poseidon"] [class*="salesLayout"] > [class*="emptyState"] { min-height: 250px; }
+  [data-product] :where([class*="masterDetail"], [class*="feedbackLayout"], [class*="restaurantLayout"], [class*="inspectionLayout"]) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  [class*="signedInShell"] { grid-template-rows: 44px minmax(0, 1fr); }
+  [class*="sessionHeader"] { min-height: 44px !important; padding-inline: 12px !important; }
+  [class*="sessionHeader"] [class*="storageBadge"] { display: none !important; }
+  [class*="sessionHeader"] [class*="sessionActions"] a,
+  [class*="sessionHeader"] [class*="sessionActions"] button { min-height: 32px !important; padding: 0 9px !important; font-size: 11px !important; }
+  [data-product][class*="appShell"] { display: block !important; }
+  [data-product] header[data-ui="context"] { min-height: 74px !important; padding: 12px 16px !important; }
+  [data-product] main[data-ui="workspace"] { padding: 16px !important; }
+  [data-product] [class*="titleBlock"] h1 { font-size: 23px !important; }
+}
+
+@media (max-width: 680px) {
+  [class*="sessionHeader"] > div:first-child small { display: none; }
+  [class*="sessionHeader"] [class*="sessionActions"] a { display: none !important; }
+  [data-product] header[data-ui="context"] { align-items: flex-start !important; flex-wrap: wrap; }
+  [data-product] [class*="topActions"] { width: 100%; justify-content: stretch; }
+  [data-product] [class*="topActions"] > * { flex: 1; }
+  [data-product] [class*="storageBadge"] { display: none !important; }
+  [data-product] [class*="listToolbar"],
+  [data-product] [class*="listControls"] { display: grid !important; grid-template-columns: 1fr !important; }
+  [data-product] [class*="inputSearch"],
+  [data-product] [class*="compactSelect"] { width: 100% !important; min-width: 0 !important; }
+  [data-product] [class*="salesHeader"] { display: none !important; }
+  [data-product] [class*="salesRow"] {
+    min-height: 98px !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px 12px !important;
+  }
+  [data-product] [class*="metricsLine"] { grid-template-columns: 1fr !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-product] *, [data-product] *::before, [data-product] *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
