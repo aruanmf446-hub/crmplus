@@ -5,7 +5,7 @@
   --selection-strong: #e4edff;
   --result-bg: #ffffff;
   --result-raised: #f8fafc;
-  --canvas-bg: #f5f6f8;
+  --canvas-bg: #f4f5f7;
   --topbar-bg: #ffffff;
   --data-bg: #ffffff;
   background: var(--canvas-bg);
@@ -13,74 +13,62 @@
 
 .visualHierarchy :global(aside[data-ui="navigation"]) {
   background: var(--nav-bg);
-  border-right-color: rgba(255, 255, 255, .06);
+  border-right-color: rgba(255, 255, 255, .07);
 }
 
 .visualHierarchy :global(header[data-ui="context"]) {
+  color: #101923;
   background: var(--topbar-bg);
-  border-bottom-color: #e5e8ed;
+  border-bottom-color: #dce1e7;
 }
 
 .visualHierarchy :global(main[data-ui="workspace"]) {
+  color: #101923;
   background: var(--canvas-bg);
 }
 
-.visualHierarchy :global(nav[class*="sideNav"] button[aria-current="page"]) {
-  background: rgba(255, 255, 255, .1);
+.visualHierarchy :global(nav[aria-label] button[aria-current="page"]) {
   color: #ffffff;
+  background: rgba(255, 255, 255, .12);
   box-shadow: inset 3px 0 var(--accent);
 }
 
-.visualHierarchy :global(nav[class*="sideNav"] button:not([aria-current="page"]):hover),
-.visualHierarchy :global([class*="sidebarFooter"] button:hover),
-.visualHierarchy :global([class*="sidebarFooter"] a:hover) {
-  background: rgba(255, 255, 255, .07);
+.visualHierarchy :global(nav[aria-label] button:not([aria-current="page"]):hover),
+.visualHierarchy :global([data-ui="sidebar-footer"] button:hover),
+.visualHierarchy :global([data-ui="sidebar-footer"] a:hover) {
   color: #ffffff;
+  background: rgba(255, 255, 255, .075);
 }
 
 .visualHierarchy :global(button[class*="recordSelected"]),
 .visualHierarchy :global(button[class*="salesSelected"]),
-.visualHierarchy :global(button[class*="feedbackRow"][class*="recordSelected"]) {
-  background: var(--selection-strong);
-  box-shadow: inset 3px 0 var(--accent);
+.visualHierarchy :global(button[class*="feedbackSelected"]) {
+  background: color-mix(in srgb, var(--accent-soft) 70%, #ffffff);
+  box-shadow: inset 4px 0 var(--accent);
 }
 
 .visualHierarchy :global(button[class*="recordSelected"] [class*="recordAvatar"]),
 .visualHierarchy :global(button[class*="salesSelected"] [class*="companyAvatar"]) {
-  background: var(--accent);
   color: #ffffff;
+  background: var(--accent);
 }
 
 .visualHierarchy :global([class*="segmented"] [class*="segmentActive"]),
 .visualHierarchy :global([class*="feedbackFilter"] [class*="segmentActive"]) {
-  background: var(--selection-strong);
   color: var(--accent);
-  box-shadow: none;
-}
-
-.visualHierarchy :global([class*="segmented"] [class*="segmentActive"] span) {
-  color: var(--accent);
-  opacity: .75;
+  background: color-mix(in srgb, var(--accent-soft) 72%, #ffffff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .visualHierarchy :global(button[class*="floorSelected"]) {
   border-color: var(--accent);
-  outline: 3px solid color-mix(in srgb, var(--accent) 13%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 14%, transparent);
   box-shadow: none;
 }
 
 .visualHierarchy :global(button[class*="checkCurrent"]) {
-  background: var(--selection-strong);
-  box-shadow: inset 3px 0 var(--accent);
-}
-
-.visualHierarchy :global([class*="detailPane"]),
-.visualHierarchy :global([class*="feedbackDetail"]),
-.visualHierarchy :global([class*="salesDetail"]),
-.visualHierarchy :global([class*="documentPane"]),
-.visualHierarchy :global([class*="orderSheet"]),
-.visualHierarchy :global([class*="inspectionStage"]) {
-  background: var(--data-bg);
+  background: color-mix(in srgb, var(--accent-soft) 72%, #ffffff);
+  box-shadow: inset 4px 0 var(--accent);
 }
 
 .visualHierarchy :global([class*="detailTabs"] [class*="tabActive"]) {
@@ -94,6 +82,21 @@
 .visualHierarchy :global([class*="fieldLabel"] input:focus),
 .visualHierarchy :global([class*="fieldLabel"] textarea:focus),
 .visualHierarchy :global([class*="fieldLabel"] select:focus) {
-  border-color: color-mix(in srgb, var(--accent) 58%, #cfd5de);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 58%, #cbd2da);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 11%, transparent);
+}
+
+:global(html[data-color-mode="dark"]) .visualHierarchy {
+  --selection-bg: color-mix(in srgb, var(--accent) 10%, #121821);
+  --selection-strong: color-mix(in srgb, var(--accent) 18%, #121821);
+  --result-bg: #121821;
+  --result-raised: #171f2a;
+  --canvas-bg: #0b0f15;
+  --topbar-bg: #0f151d;
+  --data-bg: #121821;
+}
+
+:global(html[data-color-mode="dark"]) .visualHierarchy :global(header[data-ui="context"]),
+:global(html[data-color-mode="dark"]) .visualHierarchy :global(main[data-ui="workspace"]) {
+  color: #f2f6fb;
 }
