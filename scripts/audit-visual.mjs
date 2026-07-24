@@ -32,9 +32,9 @@ function recordWarning(scope, issue) {
   warnings.push(`${scope} · ${issue}`);
 }
 
-async function seedLocalAccess(context) {
-  await context.addInitScript((apps) => {
-    localStorage.setItem("crmplus.color-mode", "light");
+async function seedLocalAccess(context, colorMode = "light") {
+  await context.addInitScript(({ apps, mode }) => {
+    localStorage.setItem("crmplus.color-mode", mode);
     localStorage.setItem("crmplus.access.account", JSON.stringify({
       name: "Auditoria visual",
       company: "CRM Plus QA",
@@ -52,11 +52,11 @@ async function seedLocalAccess(context) {
       }));
       localStorage.setItem(`crmplus.access.${slug}.session`, "active");
     }
-  }, slugs);
+  }, { apps: slugs, mode: colorMode });
 }
 
-async function inspectPage(page) {
-  return page.evaluate(() => {
+async function inspectPage(page, expectedMode) {
+  return page.evaluate((mode) => {
     const visible = (element) => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
@@ -67,6 +67,11 @@ async function inspectPage(page) {
       const className = typeof element.className === "string" ? element.className.split(/\s+/).slice(0, 2).join(".") : "";
       return `${element.tagName.toLowerCase()}${className ? `.${className}` : ""}${text ? `{${text}}` : ""}`;
     };
+    const parseRgb = (value) => {
+      const match = value.match(/rgba?\((\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)/i);
+      return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+    };
+    const brightness = (rgb) => rgb ? (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 255000 : 0;
 
     const critical = [];
     const advisory = [];
@@ -89,6 +94,22 @@ async function inspectPage(page) {
       if (Math.abs(sidebarGap) > 2 || sidebarRect.height < 120) {
         critical.push(`sidebar não alcança o limite inferior: topo ${Math.round(sidebarRect.top)}px, altura ${Math.round(sidebarRect.height)}px, diferença inferior ${sidebarGap}px`);
       }
+    }
+
+    if (mode === "dark" && appShell) {
+      const currentMode = document.documentElement.dataset.colorMode;
+      if (currentMode !== "dark") critical.push(`tema escuro solicitado, mas o documento está em ${currentMode || "modo indefinido"}`);
+      const largeLightSurfaces = [];
+      const minimumArea = window.innerWidth * window.innerHeight * 0.12;
+      for (const element of appShell.querySelectorAll("main *, main, section, aside")) {
+        if (!visible(element)) continue;
+        const rect = element.getBoundingClientRect();
+        if (rect.width * rect.height < minimumArea) continue;
+        const color = parseRgb(getComputedStyle(element).backgroundColor);
+        if (brightness(color) > 0.78) largeLightSurfaces.push(`${elementName(element)} ${Math.round(rect.width)}x${Math.round(rect.height)}`);
+        if (largeLightSurfaces.length >= 6) break;
+      }
+      if (largeLightSurfaces.length) critical.push(`superfícies claras grandes no tema escuro: ${largeLightSurfaces.join(" | ")}`);
     }
 
     const smallControls = [];
@@ -125,21 +146,22 @@ async function inspectPage(page) {
     if (unlabeled.length) critical.push(`controles sem nome acessível: ${unlabeled.join(" | ")}`);
 
     return { critical, advisory };
-  });
+  }, expectedMode);
 }
 
 async function auditRoute(browser, viewport, route, label, options = {}) {
+  const colorMode = options.colorMode || "light";
   const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, reducedMotion: "reduce" });
-  await seedLocalAccess(context);
+  await seedLocalAccess(context, colorMode);
   const page = await context.newPage();
   const runtimeErrors = [];
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
-  const scope = `${viewport.name} · ${label}`;
+  const scope = `${viewport.name} · ${colorMode} · ${label}`;
   try {
     await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle", timeout: 60_000 });
-    await page.waitForTimeout(120);
-    const inspection = await inspectPage(page);
+    await page.waitForTimeout(160);
+    const inspection = await inspectPage(page, colorMode);
     for (const issue of inspection.critical) recordFailure(scope, issue);
     for (const issue of inspection.advisory) recordWarning(scope, issue);
     for (const error of [...new Set(runtimeErrors)]) recordFailure(scope, `console: ${error}`);
@@ -155,7 +177,7 @@ async function auditRoute(browser, viewport, route, label, options = {}) {
 
     if (options.screenshot) {
       await page.screenshot({
-        path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${label}`)}.png`,
+        path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${colorMode}-${label}`)}.png`,
         fullPage: true,
       });
     }
@@ -163,13 +185,13 @@ async function auditRoute(browser, viewport, route, label, options = {}) {
     if (!inspection.critical.length && !runtimeErrors.length && focusVisible) passes.push(scope);
     else if (!options.screenshot) {
       await page.screenshot({
-        path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${label}-falha`)}.png`,
+        path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${colorMode}-${label}-falha`)}.png`,
         fullPage: true,
       }).catch(() => undefined);
     }
   } catch (error) {
     recordFailure(scope, `execução: ${error instanceof Error ? error.message : String(error)}`);
-    await page.screenshot({ path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${label}-erro`)}.png`, fullPage: true }).catch(() => undefined);
+    await page.screenshot({ path: `artifacts/visual-audit/screenshots/${safeName(`${viewport.name}-${colorMode}-${label}-erro`)}.png`, fullPage: true }).catch(() => undefined);
   } finally {
     await context.close();
   }
@@ -184,9 +206,14 @@ for (const viewport of viewports) {
   await auditRoute(browser, viewport, "/recuperar-senha/", "seleção-recuperação");
 }
 
-for (const viewport of viewports.filter((item) => [1366, 768, 390].includes(item.width))) {
+for (const slug of slugs) {
+  await auditRoute(browser, viewports[1], `/sistemas/${slug}/`, `sistema-${slug}`, { screenshot: true, colorMode: "light" });
+  await auditRoute(browser, viewports[1], `/sistemas/${slug}/`, `sistema-${slug}`, { screenshot: true, colorMode: "dark" });
+}
+
+for (const viewport of viewports.filter((item) => [768, 390].includes(item.width))) {
   for (const slug of slugs) {
-    await auditRoute(browser, viewport, `/sistemas/${slug}/`, `sistema-${slug}`, { screenshot: true });
+    await auditRoute(browser, viewport, `/sistemas/${slug}/`, `sistema-${slug}`, { screenshot: true, colorMode: "light" });
   }
 }
 
