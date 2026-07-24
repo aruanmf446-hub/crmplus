@@ -14,6 +14,7 @@ import "./showcase-controls.css";
 import "./workspace-viewport.css";
 import "./workspace-client-experience.css";
 import "./workspace-client-states.css";
+import "./workspace-visual-polish.css";
 
 // O build público deve sempre representar a experiência operacional validada de ponta a ponta.
 const buildSha = process.env.NEXT_PUBLIC_BUILD_SHA || "local";
