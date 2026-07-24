@@ -1,0 +1,148 @@
+/*
+ * Estados da experiência CRM Plus.
+ * Complementa o sistema principal apenas para estados vazios, painéis de
+ * orientação e superfícies de domínio que precisam reagir ao tema.
+ */
+
+/* Sem seleção: orientar sem transformar metade da tela numa caixa vazia. */
+[data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]):has(> [class*="emptyState"]) {
+  align-items: start;
+}
+
+[data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] {
+  width: 100%;
+  min-height: 250px !important;
+  align-self: start;
+  justify-items: start !important;
+  align-content: center;
+  padding: 30px !important;
+  text-align: left !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--cx-line)) !important;
+  border-radius: var(--cx-radius) !important;
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    linear-gradient(150deg, color-mix(in srgb, var(--accent-soft) 68%, #fff), #fff 64%) !important;
+  box-shadow: var(--cx-shadow) !important;
+}
+
+[data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] svg {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 10px;
+  color: var(--accent) !important;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--cx-line));
+  border-radius: 13px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+}
+
+[data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] h3 {
+  margin: 17px 0 7px !important;
+  font-size: 19px !important;
+  letter-spacing: -.025em;
+}
+
+[data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] p {
+  max-width: 320px;
+  margin: 0 !important;
+  color: var(--cx-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.58;
+}
+
+/* Artemis: o mapa é uma superfície operacional, não um papel branco. */
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorMap"] {
+  background:
+    radial-gradient(circle at 22% 14%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 38%),
+    linear-gradient(180deg, #121a24, #0e151e) !important;
+  border-color: var(--cx-line) !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] {
+  color: var(--cx-ink) !important;
+  background: var(--cx-surface) !important;
+  border-color: var(--cx-line) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .18) !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorLivre"] {
+  background: #111923 !important;
+  border-color: #354254 !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorEmatendimento"] {
+  background: color-mix(in srgb, var(--accent) 14%, var(--cx-surface)) !important;
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--cx-line)) !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorNacozinha"] {
+  background: #2b2111 !important;
+  border-color: #a66a14 !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorPronto"] {
+  background: #10271d !important;
+  border-color: #27845b !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] :where(strong, span, small) {
+  color: inherit !important;
+}
+
+html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] small {
+  color: var(--cx-muted) !important;
+}
+
+/* Oito homes verticais: painel de resumo integrado ao domínio no escuro. */
+html[data-color-mode="dark"] [data-product] [class*="heroAside"] {
+  color: var(--cx-ink) !important;
+  background: var(--cx-line) !important;
+  border-color: var(--cx-line) !important;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .20) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [class*="heroAside"] [class*="statCard"] {
+  color: var(--cx-ink) !important;
+  background:
+    radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 38%),
+    var(--cx-surface) !important;
+  border-color: var(--cx-line) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [class*="heroAside"] [class*="statCard"] strong {
+  color: var(--cx-ink) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [class*="heroAside"] [class*="statCard"] span {
+  color: var(--cx-muted) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [class*="heroMain"] {
+  color: var(--cx-ink) !important;
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--accent) 10%, var(--cx-surface)), var(--cx-surface)) !important;
+  border-color: var(--cx-line) !important;
+}
+
+html[data-color-mode="dark"] [data-product] [class*="heroMain"] p {
+  color: var(--cx-muted) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] {
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 34%),
+    linear-gradient(150deg, color-mix(in srgb, var(--accent) 10%, var(--cx-surface)), var(--cx-surface) 64%) !important;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--cx-line)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] svg {
+  background: var(--cx-surface-soft) !important;
+  border-color: var(--cx-line) !important;
+}
+
+@media (max-width: 1240px) {
+  [data-product] :where([class*="masterDetail"], [class*="feedbackLayout"]) > [class*="emptyState"] {
+    min-height: 210px !important;
+  }
+}
