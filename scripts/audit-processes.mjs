@@ -84,11 +84,15 @@ async function openVerticalRecords(page) {
 }
 
 // Navegação e seleção inicial em todos os aplicativos.
+// Produtos de decisão imediata abrem o primeiro contexto útil; os demais preservam a escolha consciente.
+const autoSelectedSlugs = new Set(["atlas", "ares", "artemis", "pandora", "poseidon"]);
 for (const slug of slugs) {
   const { page, errors } = await open(slug);
   try {
     const selected = await page.locator('[class*="recordSelected"], [class*="salesSelected"], [class*="floorSelected"], [class*="checkCurrent"]').count();
-    await assert(slug, "entrada sem seleção automática", selected === 0, `foram encontrados ${selected} elementos selecionados`, page);
+    const shouldSelect = autoSelectedSlugs.has(slug);
+    const selectionTest = shouldSelect ? "entrada com contexto útil" : "entrada sem seleção automática";
+    await assert(slug, selectionTest, shouldSelect ? selected === 1 : selected === 0, `foram encontrados ${selected} elementos selecionados`, page);
     const navButtons = page.locator('nav[aria-label^="Navegação"] button');
     const count = await navButtons.count();
     for (let index = 0; index < count; index += 1) {
