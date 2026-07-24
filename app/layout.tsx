@@ -8,14 +8,11 @@ import "./commercial-cover-fix.css";
 import "./isolated-access.css";
 import "./app-footer.css";
 import "./list-navigation.css";
-import "./workspace-ux-audit.css";
-import "./theme-system.css";
 import "./system-states.css";
 import "./legal-pages.css";
 import "./showcase-controls.css";
 import "./workspace-viewport.css";
-import "./workspace-art-direction.css";
-import "./workspace-artemis-dark.css";
+import "./workspace-client-experience.css";
 
 const buildSha = process.env.NEXT_PUBLIC_BUILD_SHA || "local";
 
