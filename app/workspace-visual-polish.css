@@ -1,0 +1,494 @@
+/*
+ * CRM Plus — refinamento visual compartilhado.
+ * Escopo deliberadamente restrito: tipografia, espaçamento, contraste,
+ * bordas, sombras e comportamento responsivo. Nenhuma estrutura ou função.
+ */
+
+:root {
+  --polish-radius-sm: 9px;
+  --polish-radius: 13px;
+  --polish-radius-lg: 17px;
+  --polish-line: #d9dfe6;
+  --polish-line-soft: #e8ecf0;
+  --polish-shadow: 0 8px 24px rgba(15, 23, 42, .055);
+  --polish-shadow-hover: 0 12px 30px rgba(15, 23, 42, .085);
+}
+
+/* Leitura geral */
+[data-product] {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[data-product] :where(p, li, dd, td, label, input, textarea, select, button) {
+  letter-spacing: -.005em;
+}
+
+[data-product] :where(p, small) {
+  line-height: 1.5;
+}
+
+/* Faixa superior da conta */
+[class*="sessionHeader"] {
+  min-height: 44px !important;
+  padding-inline: 16px !important;
+}
+
+[class*="sessionHeader"] [class*="sessionIcon"] {
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 8px !important;
+}
+
+[class*="sessionHeader"] strong {
+  font-size: 12.5px !important;
+  font-weight: 760 !important;
+}
+
+[class*="sessionHeader"] small,
+[class*="sessionHeader"] [class*="storageBadge"] {
+  font-size: 11px !important;
+}
+
+[class*="sessionHeader"] [class*="sessionActions"] a,
+[class*="sessionHeader"] [class*="sessionActions"] button {
+  min-height: 31px !important;
+  border-radius: 8px !important;
+  font-size: 11.5px !important;
+  font-weight: 720 !important;
+}
+
+/* Sidebar */
+[data-product] > aside[data-ui="navigation"] {
+  box-shadow: 8px 0 24px rgba(15, 23, 42, .045) !important;
+}
+
+[data-product] [class*="brandBlock"] {
+  min-height: 62px !important;
+  margin-bottom: 12px !important;
+  padding-bottom: 15px !important;
+}
+
+[data-product] [class*="productLogo"] {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 11px !important;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent) !important;
+}
+
+[data-product] [class*="brandBlock"] strong {
+  font-size: 16px !important;
+  font-weight: 780 !important;
+}
+
+[data-product] [class*="brandBlock"] span {
+  font-size: 11px !important;
+}
+
+[data-product] [class*="sideNav"] {
+  gap: 4px !important;
+}
+
+[data-product] [class*="sideNav"] button {
+  min-height: 42px !important;
+  border-radius: 9px !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+}
+
+[data-product] [class*="sideNav"] button[aria-current="page"] {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255,255,255,.07)) !important;
+  box-shadow: inset 3px 0 var(--accent) !important;
+}
+
+[data-product] [class*="sidebarFooter"] button,
+[data-product] [class*="sidebarFooter"] a {
+  min-height: 38px !important;
+  border-radius: 8px !important;
+  font-size: 11.5px !important;
+}
+
+/* Cabeçalho contextual */
+[data-product] header[data-ui="context"] {
+  min-height: 76px !important;
+  padding-block: 13px !important;
+  box-shadow: 0 3px 14px rgba(15, 23, 42, .025) !important;
+}
+
+[data-product] [class*="titleBlock"] h1 {
+  margin-bottom: 5px !important;
+  font-size: clamp(22px, 1.8vw, 27px) !important;
+  font-weight: 780 !important;
+  letter-spacing: -.038em !important;
+}
+
+[data-product] [class*="titleBlock"] p {
+  max-width: 720px;
+  font-size: 12.5px !important;
+  line-height: 1.45 !important;
+}
+
+[data-product] main[data-ui="workspace"] {
+  padding: clamp(17px, 2vw, 26px) !important;
+}
+
+/* Botões, campos e filtros */
+[data-product] :where([class*="primaryButton"], [class*="secondaryButton"], [class*="dangerButton"]) {
+  min-height: 42px !important;
+  border-radius: 9px !important;
+  padding-inline: 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 740 !important;
+}
+
+[data-product] [class*="primaryButton"] {
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+}
+
+[data-product] [class*="primaryButton"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 24%, transparent) !important;
+}
+
+[data-product] [class*="secondaryButton"] {
+  border-color: var(--polish-line) !important;
+}
+
+[data-product] [class*="iconButton"] {
+  width: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 9px !important;
+}
+
+[data-product] :where([class*="inputSearch"], [class*="compactSelect"], input, textarea, select) {
+  font-size: 13px !important;
+}
+
+[data-product] :where([class*="inputSearch"], [class*="compactSelect"]) {
+  min-height: 42px !important;
+  border-radius: 9px !important;
+}
+
+[data-product] [class*="listToolbar"],
+[data-product] [class*="listControls"],
+[data-product] [class*="directoryToolbar"] {
+  min-height: 66px !important;
+  padding: 11px 13px !important;
+  gap: 8px !important;
+}
+
+/* Superfícies */
+[data-product] :where(
+  [class*="listPane"],
+  [class*="feedbackInbox"],
+  [class*="salesTablePane"],
+  [class*="floorSheet"],
+  [class*="inspectionList"],
+  [class*="pageSheet"],
+  [class*="listSurface"],
+  [class*="detailPane"],
+  [class*="feedbackDetail"],
+  [class*="salesDetail"],
+  [class*="orderSheet"],
+  [class*="inspectionStage"],
+  [class*="documentPane"]
+) {
+  border-color: var(--polish-line) !important;
+  border-radius: var(--polish-radius) !important;
+  box-shadow: var(--polish-shadow) !important;
+}
+
+[data-product] :where([class*="summaryGrid"], [class*="metricsLine"] > div, [class*="statCard"]) {
+  border-color: var(--polish-line-soft) !important;
+  box-shadow: none !important;
+}
+
+/* Listas e tabelas */
+[data-product] :where(
+  [class*="recordRow"],
+  [class*="entityRow"],
+  [class*="feedbackRow"],
+  [class*="salesRow"],
+  [class*="scheduleRow"]
+) {
+  min-height: 66px !important;
+  border-color: var(--polish-line-soft) !important;
+}
+
+[data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"]):hover {
+  transform: none !important;
+  background: color-mix(in srgb, var(--accent-soft) 42%, var(--cx-surface)) !important;
+}
+
+[data-product] :where([class*="recordSelected"], [class*="salesSelected"], [class*="feedbackSelected"]) {
+  background: color-mix(in srgb, var(--accent-soft) 72%, var(--cx-surface)) !important;
+  box-shadow: inset 3px 0 var(--accent) !important;
+}
+
+[data-product] :where([class*="recordMain"], [class*="entityMain"], [class*="salesRow"]) strong {
+  font-size: 12.5px !important;
+  font-weight: 760 !important;
+}
+
+[data-product] :where([class*="recordMain"], [class*="entityMain"], [class*="salesRow"]) :where(p, span, small) {
+  font-size: 11px !important;
+}
+
+[data-product] :where([class*="recordAvatar"], [class*="companyAvatar"], [class*="entityIcon"]) {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+}
+
+[data-product] [class*="salesHeader"] {
+  min-height: 42px !important;
+  font-size: 10.5px !important;
+  font-weight: 780 !important;
+}
+
+[data-product] [class*="salesRow"] {
+  padding-block: 10px !important;
+}
+
+/* Detalhes */
+[data-product] [class*="detailHeader"] {
+  padding: 20px 21px 16px !important;
+}
+
+[data-product] [class*="detailHeader"] h2 {
+  font-size: 22px !important;
+  font-weight: 780 !important;
+}
+
+[data-product] [class*="detailHeader"] p {
+  font-size: 11.5px !important;
+}
+
+[data-product] [class*="detailBody"] {
+  padding: 18px 21px 26px !important;
+}
+
+[data-product] [class*="summaryGrid"] {
+  border-radius: 10px !important;
+}
+
+[data-product] [class*="summaryGrid"] > div {
+  min-height: 68px !important;
+  padding: 12px !important;
+}
+
+[data-product] [class*="summaryGrid"] span,
+[data-product] [class*="feedbackMeta"] span,
+[data-product] [class*="opportunityValue"] > span {
+  font-size: 9.5px !important;
+}
+
+[data-product] [class*="summaryGrid"] strong {
+  font-size: 12.5px !important;
+}
+
+[data-product] [class*="sectionHeading"] h3 {
+  font-size: 13.5px !important;
+}
+
+[data-product] [class*="sectionHeading"] p {
+  font-size: 10.5px !important;
+}
+
+[data-product] [class*="noteBox"],
+[data-product] [class*="nextAction"] {
+  border-radius: 10px !important;
+}
+
+/* Status e estados vazios */
+[data-product] [class*="statusPill"] {
+  min-height: 28px !important;
+  padding-inline: 9px !important;
+  border-radius: 999px !important;
+  font-size: 10.5px !important;
+  font-weight: 760 !important;
+}
+
+[data-product] [class*="emptyState"] {
+  min-height: 220px !important;
+  padding: 28px !important;
+}
+
+[data-product] [class*="emptyState"] h3 {
+  font-size: 16px !important;
+  font-weight: 760 !important;
+}
+
+[data-product] [class*="emptyState"] p {
+  max-width: 340px;
+  font-size: 11.5px !important;
+}
+
+/* Homes dos oito aplicativos verticais */
+[data-product] [class*="heroMain"],
+[data-product] [class*="heroAside"],
+[data-product] [class*="panel"],
+[data-product] [class*="recordCard"],
+[data-product] [class*="petCard"],
+[data-product] [class*="projectCard"],
+[data-product] [class*="deadlineCard"] {
+  border-color: var(--polish-line) !important;
+  border-radius: var(--polish-radius) !important;
+  box-shadow: var(--polish-shadow) !important;
+}
+
+[data-product] [class*="heroMain"] {
+  min-height: 218px !important;
+}
+
+[data-product] [class*="heroMain"] h2 {
+  font-size: clamp(27px, 3.5vw, 40px) !important;
+}
+
+[data-product] [class*="heroMain"] p {
+  font-size: 13px !important;
+}
+
+[data-product] [class*="statCard"] {
+  min-height: 106px !important;
+}
+
+[data-product] [class*="statCard"] strong {
+  font-size: 25px !important;
+}
+
+[data-product] [class*="panelHeader"] {
+  min-height: 62px !important;
+  padding: 12px 15px !important;
+}
+
+[data-product] [class*="panelHeader"] h3 {
+  font-size: 15px !important;
+}
+
+[data-product] [class*="recordCard"],
+[data-product] [class*="petCard"],
+[data-product] [class*="projectCard"],
+[data-product] [class*="deadlineCard"] {
+  min-height: 164px !important;
+  padding: 15px !important;
+}
+
+[data-product] [class*="recordCard"]:hover,
+[data-product] [class*="petCard"]:hover,
+[data-product] [class*="projectCard"]:hover,
+[data-product] [class*="deadlineCard"]:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--polish-shadow-hover) !important;
+}
+
+/* Seis aplicativos especializados */
+.premium-workspace {
+  -webkit-font-smoothing: antialiased;
+}
+
+.premium-workspace .pw-topbar {
+  min-height: 74px !important;
+  padding-block: 12px !important;
+}
+
+.premium-workspace .pw-content {
+  padding-top: 22px !important;
+}
+
+.premium-workspace .pw-intro h1 {
+  font-size: clamp(30px, 2.8vw, 41px) !important;
+}
+
+.premium-workspace .pw-intro p {
+  font-size: 13.5px !important;
+}
+
+.premium-workspace .pw-metric {
+  min-height: 98px !important;
+  border-radius: 13px !important;
+  box-shadow: var(--polish-shadow) !important;
+}
+
+/* Tema escuro */
+html[data-color-mode="dark"] {
+  --polish-line: #2d3745;
+  --polish-line-soft: #242e3a;
+  --polish-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+  --polish-shadow-hover: 0 12px 30px rgba(0, 0, 0, .24);
+}
+
+html[data-color-mode="dark"] [data-product] :where(
+  [class*="listPane"],
+  [class*="feedbackInbox"],
+  [class*="salesTablePane"],
+  [class*="detailPane"],
+  [class*="feedbackDetail"],
+  [class*="salesDetail"],
+  [class*="orderSheet"],
+  [class*="pageSheet"],
+  [class*="listSurface"]
+) {
+  border-color: var(--polish-line) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="recordRow"], [class*="entityRow"], [class*="feedbackRow"], [class*="salesRow"]):hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--cx-surface)) !important;
+}
+
+html[data-color-mode="dark"] [data-product] :where([class*="recordSelected"], [class*="salesSelected"], [class*="feedbackSelected"]) {
+  background: color-mix(in srgb, var(--accent) 14%, var(--cx-surface)) !important;
+}
+
+/* Ajustes móveis sem alterar a arquitetura */
+@media (max-width: 900px) {
+  [data-product] header[data-ui="context"] {
+    min-height: 70px !important;
+    padding-block: 11px !important;
+  }
+
+  [data-product] main[data-ui="workspace"] {
+    padding: 15px !important;
+  }
+
+  [data-product] [class*="titleBlock"] h1 {
+    font-size: 22px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  [class*="sessionHeader"] {
+    padding-inline: 10px !important;
+  }
+
+  [data-product] [class*="topActions"] {
+    gap: 7px !important;
+  }
+
+  [data-product] :where([class*="primaryButton"], [class*="secondaryButton"], [class*="dangerButton"]) {
+    min-height: 44px !important;
+  }
+
+  [data-product] [class*="listToolbar"],
+  [data-product] [class*="listControls"] {
+    padding: 10px !important;
+  }
+
+  [data-product] [class*="detailHeader"],
+  [data-product] [class*="detailBody"] {
+    padding-inline: 16px !important;
+  }
+
+  [data-product] [class*="heroMain"] {
+    min-height: 196px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-product] *,
+  [data-product] *::before,
+  [data-product] *::after {
+    scroll-behavior: auto !important;
+  }
+}
