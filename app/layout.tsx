@@ -15,6 +15,7 @@ import "./legal-pages.css";
 import "./showcase-controls.css";
 import "./workspace-viewport.css";
 import "./workspace-art-direction.css";
+import "./workspace-artemis-dark.css";
 
 const buildSha = process.env.NEXT_PUBLIC_BUILD_SHA || "local";
 
