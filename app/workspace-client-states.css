@@ -93,6 +93,32 @@ html[data-color-mode="dark"] [data-product="artemis"] [class*="floorTable"] smal
   color: var(--cx-muted) !important;
 }
 
+/* Ares: o documento continua editorial, mas pertence ao tema ativo. */
+html[data-color-mode="dark"] [data-product="ares"] article[class*="paper"] {
+  color: var(--cx-ink) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, #151c27), #111821) !important;
+  border-color: var(--cx-line) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .26) !important;
+}
+
+html[data-color-mode="dark"] [data-product="ares"] article[class*="paper"] :where(h1, h2, h3, strong, b, span, p, small, td, th) {
+  color: inherit !important;
+}
+
+html[data-color-mode="dark"] [data-product="ares"] article[class*="paper"] :where(p, small, [class*="documentCode"], [class*="documentSignature"]) {
+  color: var(--cx-muted) !important;
+}
+
+html[data-color-mode="dark"] [data-product="ares"] article[class*="paper"] :where([class*="documentTable"], [class*="documentSection"]) {
+  border-color: var(--cx-line) !important;
+}
+
+html[data-color-mode="dark"] [data-product="ares"] article[class*="paper"] [class*="documentTotal"] {
+  color: #fff !important;
+  background: color-mix(in srgb, var(--accent) 78%, #101720) !important;
+}
+
 /* Oito homes verticais: painel de resumo integrado ao domínio no escuro. */
 html[data-color-mode="dark"] [data-product] [class*="heroAside"] {
   color: var(--cx-ink) !important;
