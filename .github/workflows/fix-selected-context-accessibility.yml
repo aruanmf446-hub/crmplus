@@ -1,0 +1,63 @@
+name: Corrigir acessibilidade dos contextos selecionados
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-selected-context-accessibility.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Corrigir controles e orientação
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          changes = {
+              "components/workspaces/phase-four/ArtemisApp.tsx": [
+                  (
+                      'Escolha uma mesa; nenhuma abre automaticamente.',
+                      'A mesa em atendimento mais recente já está em foco; selecione outra para trocar.',
+                  ),
+                  (
+                      '<button disabled={item.sent} className={styles.iconButton} onClick={() => removeItem(item.id)}><Icon name="trash" /></button>',
+                      '<button disabled={item.sent} className={styles.iconButton} onClick={() => removeItem(item.id)} aria-label={`Remover ${item.name}`}><Icon name="trash" /></button>',
+                  ),
+              ],
+              "components/workspaces/phase-four/PoseidonApp.tsx": [
+                  (
+                      '<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar nota ou decisão" />',
+                      '<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Registrar nota ou decisão" aria-label="Registrar nota ou decisão" />',
+                  ),
+              ],
+          }
+
+          for filename, replacements in changes.items():
+              path = Path(filename)
+              text = path.read_text(encoding="utf-8")
+              for old, new in replacements:
+                  if old not in text:
+                      raise SystemExit(f"Trecho esperado não encontrado em {filename}: {old[:80]}")
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Remover automação temporária
+        run: rm .github/workflows/fix-selected-context-accessibility.yml
+
+      - name: Publicar alteração no main
+        run: |
+          git config user.name "CRM Plus UX"
+          git config user.email "actions@users.noreply.github.com"
+          git add components/workspaces/phase-four .github/workflows/fix-selected-context-accessibility.yml
+          git commit -m "Corrigir controles dos contextos selecionados"
+          git push origin main
