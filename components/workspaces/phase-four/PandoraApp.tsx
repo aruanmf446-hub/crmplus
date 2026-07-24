@@ -25,7 +25,7 @@ export function PandoraApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Respostas");
   const [feedbacks, setFeedbacks] = useLocalState<Feedback[]>("crmplus.pandora.feedbacks.v2", initialFeedbacks);
   const [surveys, setSurveys] = useLocalState<Survey[]>("crmplus.pandora.surveys.v2", initialSurveys);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialFeedbacks[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<"Todas" | "Detratores" | "Neutros" | "Promotores">("Todas");
   const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "Todas">("Todas");

@@ -24,7 +24,7 @@ export function AtlasApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Ordens de serviço");
   const [orders, setOrders] = useLocalState<WorkOrder[]>("crmplus.atlas.orders", initialOrders);
   const [appointments, setAppointments] = useLocalState<Appointment[]>("crmplus.atlas.appointments", initialAppointments);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialOrders[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [listMode, setListMode] = useState<"Em andamento" | "Concluídas">("Em andamento");
   const [statusFilter, setStatusFilter] = useState<WorkStatus | "Todos">("Todos");

@@ -27,7 +27,7 @@ export function AresApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Propostas");
   const [quotes, setQuotes] = useLocalState<Quote[]>("crmplus.ares.quotes.v2", initialQuotes);
   const [models, setModels] = useLocalState<QuoteModel[]>("crmplus.ares.models.v2", initialModels);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialQuotes[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | "Todas">("Todas");
   const [scope, setScope] = useState<"Em andamento" | "Finalizadas">("Em andamento");

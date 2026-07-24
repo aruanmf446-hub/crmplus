@@ -31,7 +31,7 @@ export function PoseidonApp({ product }: { product: Product }) {
   const [active, setActive] = useState("Oportunidades");
   const [opportunities, setOpportunities] = useLocalState<Opportunity[]>("crmplus.poseidon.opportunities.v2", initialOpportunities);
   const [activities, setActivities] = useLocalState<Activity[]>("crmplus.poseidon.activities.v2", initialActivities);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialOpportunities[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<OpenStage | "Todas">("Todas");
   const [activityMode, setActivityMode] = useState<"Pendentes" | "Concluídas">("Pendentes");

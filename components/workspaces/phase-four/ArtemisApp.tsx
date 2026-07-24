@@ -31,7 +31,7 @@ export function ArtemisApp({ product }: { product: Product }) {
   const [tables, setTables] = useLocalState<DiningTable[]>("crmplus.artemis.tables.v2", initialTables);
   const [tickets, setTickets] = useLocalState<KitchenTicket[]>("crmplus.artemis.tickets.v2", [{ id: "PED-411", tableId: 3, createdAt: "há 31 min", state: "Preparando", items: initialTables[2].items }]);
   const [history, setHistory] = useLocalState<ClosedOrder[]>("crmplus.artemis.history.v2", [{ id: "CMD-407", place: "Mesa 08", total: 96, closedAt: "Hoje, 18:52", items: 5, summary: "2× X-bacon · 1× Fritas grande · 2× Refrigerante lata" }]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(initialTables.find((table) => table.status !== "Livre")?.id ?? initialTables[0]?.id ?? null);
   const [modal, setModal] = useState<"item" | "menu" | "command" | "confirm" | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [toast, setToast] = useState("");
